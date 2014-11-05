@@ -1,0 +1,52 @@
+State	Amount
+Alabama	100
+Alaska	300
+Arizona	250
+Arkansas	100
+California	100
+Colorado	100
+Connecticut	50
+Delaware	20
+Washington DC	200
+Florida	250
+Georgia	150
+Hawaii	200
+Idaho	100
+Illinois	1000
+Indiana	500
+Iowa	60
+Kansas	90
+Kentucky	55
+Louisana	175
+Maine	50
+Maryland	500
+Massachusetts	85
+Michigan	40
+Minnesota	300
+Mississippi	100
+Missouri	500
+Montana	70
+Nebraska	200
+Nevada	1000
+New Hampshire	1000
+New Jersey	200
+New Mexico	100
+New York	300
+North Carolina	1000
+North Dakota	55
+Ohio	100
+Oklahoma	75
+Oregon	600
+Pennsylvania	46.5
+Rhode Island	210
+South Carolina	75
+South Dakota	200
+Tennessee	50
+Texas	200
+Utah	750
+Vermont	1000
+Virginia	200
+Washington	77
+West Virginia	100
+Wisconsin	300
+Wyoming	

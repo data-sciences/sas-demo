@@ -1,0 +1,52 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_CreateDeleteColumns.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates creating and deleting columns
+//          Also demonstrates selecting columns and removing column formulas and more.
+
+//reference data table
+//wear_dt = Open("$JSL_Companion\RunningShoes.jmp");
+wear_dt = Data Table( "RunningShoes" ); //From $JSL_Companion
+
+//reference columns and rename so the names are more meaningful
+left_col = Column( wear_dt, "runner 1" ) << Set Name( "Wear (mm) Left Foot" );
+right_col = Column( wear_dt, "runner 2" ) << Set Name( "Wear (mm) Right Foot" );
+
+/*define new columns: change units to microns and add runner ID */
+left_mu_col = wear_dt << New Column( "Wear (microns) Left Foot",
+	Numeric,
+	Continuous,
+	Format( "Fixed Dec", 10, 0 ),
+	Formula( :Name( "Wear (mm) Left Foot" ) * 1000 )
+);
+
+right_mu_col = wear_dt << New Column( "Wear (microns) Right Foot",
+	Numeric,
+	Continuous,
+	Format( "Fixed Dec", 10, 0 ),
+	Formula( :Name( "Wear (mm) Right Foot" ) * 1000 )
+);
+
+diff_mu_col = wear_dt << New Column( "Wear Diff (microns)",
+	Numeric,
+	Continuous,
+	Format( "Fixed Dec", 10, 0 ),
+	Formula( :Name( "Wear (microns) Left Foot" ) - :Name( "Wear (microns) Right Foot" ) )
+);
+
+wear_dt << New Column( "Runner", Numeric, Ordinal, Values( 1 :: N Rows() ) );
+
+//ensure formulas are run
+wear_dt << Run Formulas;
+
+/* delete wear (mm) columns 
+Note that the columns to be deleted contain formulas so the formulas need
+to be deleted before the columns can be deleted. */
+right_mu_col << Delete Formula;
+left_mu_col << Delete Formula;
+left_col << Set Selected( 1 );
+right_col << Set Selected( 1 );
+wear_dt << Delete Columns;
+
+//Get the syntax in the log window for creating the column
+left_mu_col << get script;

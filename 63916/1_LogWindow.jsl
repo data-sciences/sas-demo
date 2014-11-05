@@ -1,0 +1,31 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	1_LogWindow.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates writing output to the Log Window
+
+
+a = 1;
+b = "Hi";
+Print( a, b );
+Show( a, b );
+Write( a, b );
+
+//Write( "\!N\!N", a, "\!n\!n ", a, "\!t\!t", b );
+
+//Extra - These special symbols are called escape sequences for quoted text strings
+/* Remove // from line 13 and rerun this script.
+   "\!t" is equivalent to a tab. 
+   "\!n" is equivalent to a LF, linefeed (newline)only
+   "\!r" is equivalent to a CR, carriage return only
+   "\!N" inserts a line break for most operating systems
+   On a Macintosh it is equvalent to a CR; on Linux it is a LF; on
+   Windows this is a CR LF.
+   JMP and Excel read a text file with a LF, CR or CRLF as a CRLF.  
+   This is not true for all programs.  For example Notepad reads a LF as an 
+   unprintable character.  FileWithLinefeed.txt is the text equivalent
+   of line 13 above. On Windows, open this file in Notepad and you will see 
+   only 2 lines; open it in Excel or JMP and you will see 4 lines of data.
+
+   It is important to note the escape sequences are case sensitive. 
+   "\!T" is equivalent to writing the character T. 
+*/

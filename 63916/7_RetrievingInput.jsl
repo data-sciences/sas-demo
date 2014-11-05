@@ -1,0 +1,137 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_RetrievingInput.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates methods for retrivieving information collected in dialogs.
+//   Both modal and non-modal examples are included. The second dialog script
+//   uses an IfBox, demonstrating dynamic, conditional display features.
+
+//FIRST SCRIPT: The shows how to retrieve information
+//from a dialog box using the Get command. Run the script and then
+//review the log window to see the values of the variables
+
+//Modal (non-Modal) Retrieval in OK button
+//Initialize
+genderList = {"Male", "Female"};
+user_name = "Last, First";
+neb_a = 29;
+rb_g = 2;
+  
+New Window( "Retrieve Info",  <<Modal,   // comment out Modal and run this block
+	Text Box( "Please provide your name, age and gender" ),
+	Text Box( " " ),
+	H List Box(
+		Panel Box( "Personal Information",
+			Lineup Box( 2,
+				Text Box( "Name:" ),
+				teb_name = Text Edit Box( user_name ),
+				Text Box( "Age:" ),
+				neb_age = Number Edit Box( neb_a ),
+				Text Box( "Gender: " ),
+				rb_gender = Radio Box( genderList, <<Set( rb_g ) )
+			) // end LineupBox
+		),  //end PanelBox
+		Panel Box( "Action",
+			V List Box(
+				ok_btn = Button Box( "OK",
+					user_name = teb_name << Get Text;
+					neb_a = neb_age << Get;
+					rb_g = rb_gender << Get;
+					Show( user_name, neb_a, rb_g, genderList[rb_g], 
+                 // Get Selected retuns the list value           
+					  (rb_gender << Get selected) )
+				),  //end OK
+				cncl_btn = Button Box( "Cancel" )
+			)
+		)
+	)
+);
+
+//-----------------------------FIRST SCRIPT Alternative ---------------------------------------------
+// A TextEdit Box is used since in JMP 9 a script cannot be
+// attached to a  NumebrEditBox 
+//Non-Modal Retrieval in Display Box Scripts no OK/Cancel
+//Initialize
+genderList = {"Male", "Female"};
+neb_name = "Last, First"; neb_a = 29; rb_g = 2;  
+
+New Window( "Retrieve Info",
+  Text Box( "Please provide your name, age and gender" ),
+  Text Box( " " ),
+  Panel Box( "Personal Information",
+	Lineup Box( 2,
+		Text Box( "Name:" ),
+		teb_name = Text Edit Box( "Last, First",
+			<<Script( user_name = teb_name << Get Text )
+		),   //end teb_name
+		Text Box( "Age:" ),
+		teb_age = Text Edit Box( char(neb_a),
+		  << Script(
+			If( !Is Missing(Num(teb_age << Get Text )), 
+			  neb_a = Round(num(teb_age << Get Text), 0);
+			  teb_age << Set Text( char(neb_a) ),
+			  teb_age << Set Text ("") );
+			  Show( neb_a)
+		   ) // end teb_age script
+		),  //end teb_age  
+		 Text Box( "Gender: " ),
+		rb_gender = Radio Box(genderList , <<Set( rb_g ),
+		   <<Script(
+			  rb_g = rb_gender << Get Selected
+		   ) 
+		)   // end rb_gender
+	)  // end LineupBox
+  ) //end PanelBox
+);
+
+//test this example by typing in text for your age
+//Hover over rb_g, neb_a, user_name to see that the values have been retrieved.
+//Hover over rb_gender, teb_a, teb_name, JMP returns DisplayBox[]
+//It is important to keep in mind the display box is not the value.  
+//------------------------------------------------------------------------------
+
+
+//--------------------------ColList Box Select Remove--------------------------------
+//Uses If Box.  This is a modification/extension of the sample script provided by JMP 
+// v9.0.3 in the JMP Scripting Guide for Col List Box
+//SECOND SCRIPT:  This shows how to select and remove columns
+//
+clear globals();
+orig_dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+cnt = 0; Chosen Columns={};  //initiate values
+
+//----Action to take for Add-----------------------------
+add_script = Expr(
+	listocols << Append( selcol << Get Selected );
+	// Send Get Items to a Col List Box
+	Chosen Columns = listocols << Get Items;
+	cnt = N Items(Chosen Columns);
+	showIf << set (cnt)	
+);
+
+//----Action to take for Remove -----------------------------
+remove_script= Expr(
+	listocols << Remove Selected;
+	// Send Get Items to a Col List Box
+	Chosen Columns = listocols << Get Items;
+	cnt = N Items(Chosen Columns);
+	showIf << set (!!cnt)	
+);
+
+//-----Dialog Box layout---------------------------------
+dist_win = New Window( "Create Distributions",
+	H List Box(
+		selcol = Col List Box( All, width( 100 ), nlines( 6 ) ),
+		Lineup Box( N Col( 1 ), Spacing( 3 ),
+			Button Box( "Add Column >>", add_script ),
+			Button Box( "<< Remove Column", remove_script )
+		), 
+   // listocols is a Col List Box
+	listocols = Col List Box( width( 100 ), nlines( 6 ) )
+	),
+	Text Box( " " ),
+// Show what Get Items returns
+   showIf = IfBox(0, stuff = Global Box(Chosen Columns ))
+);
+
+//test this example by adding all; removing all; adding columns in strange order; etc

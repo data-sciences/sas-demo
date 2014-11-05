@@ -1,0 +1,108 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Extra_GenerateCompaniesHTM.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Generates HTML report
+
+
+// get the current open directory
+currDir = Get Current Directory();
+
+dt = Open( "$sample_data\companies.jmp" );
+
+// create a summary table and journal it
+sumdt = Data Table( "Companies" ) << Summary(
+	Group( :Type, :Size Co ),
+	Mean( :Name( "Sales ($M)" ) ),
+	Mean( :Name( "Profits ($M)" ) ),
+	Mean( :Name( "profit/emp" ) ),
+	Mean( :Assets ),
+	Mean( :Name( "%profit/sales" ) )
+);
+
+sumdt << journal;  // Table (1)
+Close( sumdt, Nosave );
+
+// create variability graph and summary table
+vc1 = Data Table( "Companies" ) <<
+Variability Chart(
+	Y( :Name( "profit/emp" ) ),
+	X( :Type, :Size Co ),
+	Analysis Type( Name( "Choose best analysis (EMS REML Bayesian)" ) ),
+	Process Variation( 0 ),
+	Std Dev Chart( 0 ),
+	Variability Summary Report( 1 ),
+	Points Jittered( 1 ),
+	SendToReport(
+		Dispatch(
+			{"Variability Chart for profit"},
+			"Variability Chart",
+			FrameBox,
+			{Row Legend(
+				Size Co,
+				Color( 1 ),
+				Color Theme( "JMP Default" ),
+				Marker( 1 ),
+				Marker Theme( "Standard" ),
+				Continuous Scale( 0 ),
+				Reverse Scale( 0 ),
+				Excluded Rows( 0 )
+			)}
+		)
+	)
+);
+
+vc2 = Data Table( "Companies" ) <<
+Variability Chart(
+	Y( :Name( "%profit/sales" ) ),
+	X( :Type, :Size Co ),
+	Analysis Type( Name( "Choose best analysis (EMS REML Bayesian)" ) ),
+	Process Variation( 0 ),
+	Std Dev Chart( 0 ),
+	Variability Summary Report( 1 ),
+	Points Jittered( 1 ),
+	SendToReport(
+		Dispatch(
+			{"Variability Chart for %profit"},
+			"Variability Chart",
+			FrameBox,
+			{Row Legend(
+				Size Co,
+				Color( 1 ),
+				Color Theme( "JMP Default" ),
+				Marker( 1 ),
+				Marker Theme( "Standard" ),
+				Continuous Scale( 0 ),
+				Reverse Scale( 0 ),
+				Excluded Rows( 0 )
+			)}
+		)
+	)
+);
+
+Report( vc1 )[Outline Box( 2 )] << set title( "Profit per Employee" );
+Report( vc1 )[Outline Box( 2 )] << journal;  // graph and Table (2)
+Wait( 0 );
+vc1 << Close window();
+
+Report( vc2 )[Outline Box( 2 )] << set title( "Percent Profit per Sales" );
+Report( vc2 )[Outline Box( 2 )] << journal;  // graph and Table(3)
+Wait( 0 );
+vc2 << Close window();
+
+jj = Current Journal();
+
+jj << Save HTML( currDir || "CompaniesReport.htm", PNG );
+Wait( 2 );
+jj << Close Window();
+Wait( 0 );
+
+Close (dt, NoSave);
+
+//==============================================================================
+// Note: JMP save as HTM saves graphs with default names, image1.PNG image2.PNG.
+// If you do this sequentially or with different JMP sessions, JMP increments 
+// the graph names and does not write over existing files.
+//
+// If you like HTM output, we recommend you write your own HTML statements
+// and name your graphs, that enables you to write over previous versions
+// and allows easier access to specific graphs for other usage or purging.

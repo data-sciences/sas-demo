@@ -1,0 +1,146 @@
+/* Bob Obenchain's "Artificial LTD Simulation" script, version 2009-4-14, for JMP 8.0 */
+ClearGlobals();
+// If showCaps is nonzero, show captions.
+showCaps = 0;
+// If isSpoken is nonzero, shown captions will also be spoken on systems that support audio.
+isSpoken = 1;
+if( showCaps,
+    Caption({20,40}, "Welcome to the Simulated aLTDs platform...", spoken(isSpoken));
+    Wait(5)
+);
+
+ErrLTD = 0;
+if( showCaps, Caption("Start by Opening the Clustering Data Table.") );
+
+dt = Current Data Table();
+If( Char(dt) == ".", Try( dt=Open(), ErrLTD = 1 ));
+if( NRow(dt) == 0, ErrLTD = 1 );
+
+if( showCaps, Caption("Select Y Outcome Variable, Treatment Indicator Factor, and Cluster ID Variable.") );
+ltdvars = ColumnDialog(
+    yv = ColList("Y, Outcome Variable", MaxCol(1),MinCol(1)),
+    tv = ColList("T, Treatment Factor", MaxCol(1),MinCol(1)),
+    cv = ColList("C, Cluster ID Variable", MaxCol(1),MinCol(1)),
+    HList("Nreps, Number of Replications",nreps=EditNumber(25)),
+    HList("Random Number Seed",randseed=EditNumber(12345))
+);
+If( ltdvars["Button"] == -1, ErrLTD = 1);
+
+yv = ltdvars["yv"];
+tv = ltdvars["tv"];
+cv = ltdvars["cv"];
+Summarize(nclus=max(Eval(cv)));
+nreps = floor(ltdvars["nreps"]);
+randseed = floor(ltdvars["randseed"]);
+dtname = dt<<Get Name;
+
+LTD_setup = New Window( " ",
+     LTD_info = vlistbox(
+         TextBox(" "),
+         TextBox("    aLTD Distribution:"),
+         TextBox(" "),
+         TextBox("    Data Table Name        = "||Char(dtname)),
+         TextBox(" "),
+         TextBox("    Outcome Variable       = "||Char(yv)),
+         TextBox(" "),
+         TextBox("    Treatment Factor       = "||Char(tv)),
+         TextBox(" "),
+         TextBox("    Cluster ID Variable    = "||Char(cv)),
+         TextBox(" "),
+         TextBox("    Number of Clusters     = "||Char(nclus)),
+         TextBox(" "),
+         TextBox("    Number of Replications = "||Char(nreps)),
+         TextBox(" "),
+         TextBox("    Random Number Seed     = "||Char(randseed)),
+         TextBox(" ")
+     ) 
+);
+if( ( (Column(yv)<<GetDataType != "Numeric") | 
+      (Column(yv)<<GetModelingType != "Continuous") ),
+    ErrLTD = 1;
+    LTD_info << Append( TextBox("    Y Outcome is not Numeric and Continuous.") );
+    LTD_info << Append( TextBox(" ") )
+);
+if( ErrLTD == 1 ,
+    LTD_info << Append( TextBox("    Abnormal EXIT from Simulated aLTDs script...") );
+    LTD_info << Append( TextBox(" ") )
+);
+LTD_setup << Journal Window;
+LTD_setup << Close Window;      
+If( ErrLTD == 1, Throw());
+
+dt<<Sort(By({Eval(tv), Eval(cv)}),Order(Ascending, Ascending), Replace Table);
+dt1 = dt<<Subset(Columns({Eval(yv), Eval(tv)}), Output Table Name("dt1"));
+dt1<<New Column("Urand", Numeric, Continuous, Format("Best",10), Formula(Random Uniform()));
+dt1<<Set Name("dt1");
+dt2 = dt<<Subset(Columns({Eval(cv)}), Output Table Name("dt2"));
+dt2<<Set Name("dt2");
+Close(dt, NoSave);
+Random Reset(randseed);
+
+for(step = 1, step <= nreps, step++,
+
+    Current Data Table(dt1);
+    Column("Urand")<<Eval Formula;
+    if( showCaps, Caption("Randomly Assign Patients to Clusters Preserving Given Treatment Fractions."));
+    dt1<<Sort(By({Eval(tv), "Urand"}),Order(Ascending, Ascending), Replace Table);
+    dt3 = dt1<<Join(With(dt2), By Row Number);
+    dt3<<Set Name("dt3");
+    dt4 = dt3<<Summary(Group(Eval(cv)), Subgroup(Eval(tv)), N(Eval(yv)), Mean(Eval(yv)),
+                         StdDev(Eval(yv)));
+    dt4<<Set Name("dt4");                                                   
+    Column(2)<<SetName("Pats");
+    Column(3)<<SetName("Pats0");
+    Column(4)<<SetName("Pats1");
+    cf = Expr( Formula(If( c1>0 & c2>0, c1*c2/c0^2, Empty())));
+    SubstituteInto( cf, Expr( c0 ), ColumnName(2),
+                        Expr( c1 ), ColumnName(3),
+                        Expr( c2 ), ColumnName(4)
+    );
+    Eval(
+        Substitute(
+            Expr( dt4<<New Column("LTDwght", Numeric, Continuous,
+                Format("Best", 10), formula, Eval Formula)),
+            Expr( formula ),
+            Name Expr( cf )
+        )   
+    );
+    cf = Expr( Formula( c2 - c1 ) );
+    SubstituteInto( cf, Expr( c1 ), ColumnName(5),
+                        Expr( c2 ), ColumnName(6)
+    );
+    Eval(
+        Substitute(
+            Expr( dt4<<New Column("aLTD", Numeric, Continuous,
+               Format("Best", 10), formula, Eval Formula)),
+            Expr( formula ),
+            Name Expr( cf )
+        )   
+    );  
+    if( step == 1,
+    
+       altddt = dt4<<Subset(Columns("aLTD", "LTDwght", "Pats"));
+       altddt<<Set Name("atemp"),
+
+       dt5 = dt4<<Subset(Columns("aLTD", "LTDwght", "Pats"));
+       dt5<<Set Name("dt5");
+       altddt = altddt<<Concatenate(dt5);
+       Close("dt5", NoSave);
+       Close("atemp", NoSave);
+       altddt<<Set Name("atemp")
+    );
+    Close("dt4", NoSave);
+    Close("dt3", NoSave)    
+);
+Close("dt2", NoSave);
+Close("dt1", NoSave);
+altddt<<Select Where(IsMissing(aLTD));
+altddt<<Delete Rows;
+altddt<<Sort(By(aLTD), Replace Table);
+altddt<<Set Name("Simu aLTD Dist");
+
+Distribution(Stack(1), Weight(NormWght), Continuous Distribution(Column(aLTD),
+    Horizontal Layout(1), Normal Quantile Plot(1), CDF Plot(1), Fit Distribution(Normal),
+    Fit Distribution(Smooth Curve))); 
+
+if( showCaps, Caption("End of aLTD Distribution script...") );

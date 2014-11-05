@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace>
+<NODES>
+<NODE COMPONENT="DataSource" X="106.0" Y="172.0" DESCRIPTION="BinaryTarget_B" ID="$1">
+<PROPERTIES DataSource="" Scope="" Role="" Library="" Table="" NCols="NaN" NObs="NaN" SamplingRate="NaN" Segment="" UseExternal="" OutputType="VIEW" ForceRun="N" DataSelection="DATASOURCE" NewTable=" " Component="DataSource" Description="">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Partition" X="244.0" Y="171.0" DESCRIPTION="Data Partition" ID="$2">
+<PROPERTIES Method="DEFAULT" TrainPct="50.0" ValidatePct="30.0" TestPct="20.0" RandomSeed="12345.0" Component="Partition">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="VariableSelection" X="360.0" Y="171.0" DESCRIPTION="Variable Selection" ID="$3">
+<PROPERTIES TargetModel="RSQUARE" HideRejectedVars="Y" MaxMissingPercent="50.0" MaxLevel="100.0" RejectUnusedInputVars="Y" UseAov16="Y" UseInteractions="N" UseGroups="Y" MinR2="0.0050" StopR2="1.0E-5" MaxRows="3000.0" Passes="6.0" ChiSquare="3.84" Bins="50.0" SASSPDS="Y" PrintOption="DEFAULT" Component="VariableSelection" VarselLabel="VARSELLABEL">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Regression" X="456.0" Y="170.0" DESCRIPTION="Regression" ID="$4">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2.0" Terms="N" Error="LOGISTIC" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0.0" Stop="0.0" Force="0.0" Hierarchy="CLASS" Rule="NONE" MaxStep="NaN" StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="NaN" MaxFunctionCalls="NaN" MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0.0" AbsFTime="1.0" AbsGValue="1.0E-5" AbsGTime="1.0" AbsXValue="1.0E-8" AbsXTime="1.0" FConvValue="0.0" FConvTimes="1.0" GConvValue="1.0E-6" GConvTimes="1.0" ClParm="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" Component="Regression">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+</NODES>
+<CONNECTIONS>
+<CONNECTION FROM="$1" TO="$2"/>
+<CONNECTION FROM="$2" TO="$3"/>
+<CONNECTION FROM="$3" TO="$4"/>
+</CONNECTIONS>
+</Workspace>

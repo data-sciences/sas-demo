@@ -1,0 +1,269 @@
+ 
+   /********************************************************************/
+   /********** The Bootstrap Distribution for a Mean **********/
+
+   /* extract random sample of movies for 2005-2007 */
+   submit;
+   data Sample;
+      set Sasuser.Movies;
+      if (ranuni(1)<0.25);
+   run;
+   endsubmit;
+
+
+   /* read in movies and draw histogram */
+   use Sample;
+   read all var {Budget} into x;
+   close Sample;
+   
+   declare Histogram hist;
+   hist = Histogram.Create("Movies", x);
+   hist.SetAxisLabel(XAXIS,"Sample Movie Budgets");
+
+
+   /* bootstrap method: the statistic to bootstrap is the mean */
+   /* 1. Compute the statistic on the original data */
+   Mean = x[:];                             /* sample mean             */
+
+   /* 2. Resample B times from the data (with replacement) 
+      to form B bootstrap samples. */
+   call randseed(12345);
+   load module=SampleWithReplace;           /* not required in IMLPlus */
+   B = 1000;
+   n = nrow(x);
+   EQUAL = .;
+   xBoot = SampleWithReplace(x, B||n, EQUAL);
+
+   /* 3. compute the statistic on each resample */   
+   s = xBoot[,:];       
+
+   /* 4. If desired, graph the bootstrap distribution */
+   declare Histogram hBoot;
+   hBoot = Histogram.Create("Means", s);
+   hBoot.SetAxisLabel(XAXIS,"Means of Resamples");
+   hBoot.ReBin(40, 1);
+   attrib = BLACK || SOLID ||2;
+   run abline(hBoot, Mean, ., attrib);
+
+
+   /* 5. Compute standard errors and confidence intervals. */
+   MeanBoot = s[:];                   /* a. mean of bootstrap dist     */
+   StdErrBoot = sqrt(var(s));         /* b. std error                  */
+   alpha = 0.05;
+   prob = alpha/2 || 1-alpha/2;       /* lower/upper percentiles       */
+   call qntl(CIBoot, s, prob);        /* c. quantiles of sampling dist */
+   print MeanBoot StdErrBoot CIBoot;
+
+   attrib = BLACK || DASHED || 1 || PLOTFOREGROUND;
+   run abline(hBoot, MeanBoot//CIBoot, {.,.,.}, attrib);
+
+
+   /* Compute traditional estimates for the sampling distribution of
+      the mean by computing statistics of the original data */
+   StdErr = sqrt(var(x)/n);           /* estimate SEM                  */
+   t = quantile("T", prob, n-1);      /* percentiles of t distribution */
+   CI = Mean + t * StdErr;            /* 95% confidence interval       */
+   print Mean StdErr CI;
+
+
+
+   /********************************************************************/
+   /********** Comparing Two Groups **********/
+
+
+   /* compute bootstrap estimate for difference between means of two groups */
+   use Sample where (MPAARating="PG-13");    /* read data from group 1 */
+   read all var {Budget} into x1;
+   use Sample where (MPAARating="R");        /* read data from group 2 */
+   read all var {Budget} into x2;
+   close Sample;
+   
+   /* 1. compute bootstrap distribution for difference between means   */
+   call randseed(12345);
+   load module=SampleWithReplace;       /* not required in IMLPlus     */
+   B = 1000;
+   n1 = nrow(x1);
+   n2 = nrow(x2);
+   EQUAL = .;
+   Boot1 = SampleWithReplace(x1, B||n1, EQUAL);   /* resample B times  */
+   Boot2 = SampleWithReplace(x2, B||n2, EQUAL);   /*   from each group */
+   
+   /* 2. difference between the B means computes for each resample     */
+   s1 = Boot1[,:];                      /* means of B resample from x1 */
+   s2 = Boot2[,:];                      /* means of B resample from x2 */
+   s = s1 - s2;                         /* difference of means         */
+   
+   /* 3. Compute bootstrap estimate for 95% C.I. */
+   alpha = 0.05;
+   prob = alpha/2 || 1-alpha/2;
+   call qntl(CIBoot, s, prob); 
+   print CIBoot;
+
+
+   /********************************************************************/
+   /********** Using SAS Procedures in Bootstrap Computations **********/
+
+
+   /* create small data set */
+   x = {A,B,C,D};
+   create BootIn var {"x"};        
+   append;
+   close BootIn;
+
+
+   /* Use the SURVEYSELECT procedure to generate bootstrap resamples */
+   N = nrow(x);
+   B = 5;
+
+
+   submit N B;  
+   proc surveyselect data=BootIn out=BootSamp noprint
+        seed   = 12345               /*  1 */
+        method = urs                 /*  2 */
+        n      = &N                  /*  3 */
+        rep    = &B                  /*  4 */
+        OUTHITS;                     /*  5 */
+   run;
+   endsubmit;
+
+   submit;
+   proc print data=BootSamp; 
+      var Replicate x;
+   run;
+   endsubmit;
+
+
+   /* use SURVEYSELECT to resample; use PROC to compute statistics */
+   DSName = "Sample";                          /* 1 */
+   VarName = "Budget";
+   B = 1000;
+   
+   submit DSName VarName B;                    /* 2 */
+   /* generate bootstrap resamples */
+   proc surveyselect data=&DSName out=BootSamp noprint
+        seed=12345  method=urs  rep= &B
+        rate   = 1;                            /* 3 */
+   run;
+
+   /* use procedure to compute statistic on each resample */
+   proc means data=BootSamp noprint;           /* 4 */
+      by Replicate;                            /*  a */
+      freq NumberHits;                         /*  b */
+      var &VarName;
+      output out=BootDist mean=s;              /*  c */
+   run;
+   endsubmit;
+
+
+   /* create histogram of bootstrap distribution */
+   use BootDist;
+   read all var {s};
+   close BootDist;
+
+   declare Histogram hBoot;
+   hBoot = Histogram.Create("Means", s);
+   hBoot.SetAxisLabel(XAXIS,"Means of Resamples (PROC MEANS)");
+   hBoot.ReBin(40, 1);
+
+   /********************************************************************/
+   /********** Case Study: Bootstrap Principal Component Statistics **********/ 
+
+   /* compute principal component analysis of data */
+   DSName = "Sample";
+   VarNames = {"Budget" "US_Gross" "Sex" "Violence" "Profanity"};
+   
+   submit DSName VarNames;  
+   ods select NObsNVar EigenValues Eigenvectors;
+   proc princomp data=&DSName;
+      var &VarNames;
+      ods output Eigenvalues=EigenValues;
+   run;
+   endsubmit;
+
+
+   /* use SURVEYSELECT to resample; use PROC to compute statistics */
+   B = 1000;                       /* number of bootstrap samples */
+   
+   submit DSName VarNames B;
+   /* generate bootstrap resamples */
+   proc surveyselect data=&DSName out=BootSamp noprint
+        seed=12345 method=urs rate=1 rep=&B;
+   run;
+   
+   /* Compute the statistic for each bootstrap sample */
+   ods listing exclude all;
+   proc princomp data=BootSamp;
+      by   Replicate;
+      freq NumberHits;
+      var  &VarNames;
+      ods output Eigenvalues=BootEVals(keep=Replicate Number Proportion);
+   run;
+   ods listing exclude none;
+   endsubmit;
+
+   /* create union of scree plots for bootstrap resamples */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Work.BootEVals");
+   dobj.SetVarFormat("Proportion","BEST5.");
+   
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "Number", "Proportion");
+   p.SetMarkerSize(3);
+
+
+   /* overlay statistics of the original data */
+   use EigenValues;                 /* 1. read PVE for data */
+   read all var {Number Proportion};
+   close EigenValues;
+
+   p.DrawUseDataCoordinates();      /* define coordinate system         */
+   p.DrawMarker(Number, Proportion, MARKER_X, 7); /* plot proportions   */
+
+   use BootEVals;                   /* 2. read stats for resamples      */
+   read all var {Number Proportion};
+   close BootEVals;
+
+   NumPC = ncol(VarNames);          /* number of principal components   */
+   s = shape(Proportion, 0, NumPC); /* 3. reshape results               */
+
+   mean = s[:,];                    /* 4. compute mean of each column   */
+   alpha = 0.05;                    /* significance level for C.I.      */
+   prob = alpha/2 || 1-alpha/2;     /* lower/upper values for quantiles */
+   call qntl(CI, s, prob);          /* compute C.I. for each column     */
+   print mean, CI[rowname={LCI UCI} label="Confidence Intervals"];
+   
+   p.DrawSetRegion(PLOTBACKGROUND);
+   p.DrawSetBrushColor(0xC8C8C8);   /* light gray                       */
+   dx = 0.1;                        /* half-width of rectangles         */
+   do i = 1 to NumPC;               /* 5. draw rectangles and mean line */
+      p.DrawRectangle(i-dx, CI[1,i], i+dx, CI[2,i], true);
+      p.DrawLine(i-dx, mean[i], i+dx, mean[i]);
+   end;
+
+
+   /* create data object from bootstrap distribution; 
+      create histograms and overlay bootstrap mean and C.I. */
+   names = "Proportion1":"Proportion"+strip(char(NumPC));
+   declare DataObject dobj2;
+   dobj2 = DataObject.Create("PVE", names, s);
+
+   declare Histogram hist;
+   attrib = BLACK || DASHED || 1 || PLOTFOREGROUND;
+   do i = 1 to NumPC;
+      hist = Histogram.Create(dobj2, names[i]);
+      /* use a module distributed with SAS/IML Studio to compute
+         the position of i_th plot in an array of 6 plots */
+      run CalcPlotPosition(i, 6, left, top, width, height);
+      hist.SetWindowPosition(left, top, width, height);
+
+      /* plot mean and C.I. */
+      run abline(hist, mean[i]//CI[,i], {.,.,.}, attrib);
+      
+      /* draw rectangle in background to indicate C.I. */
+      hist.DrawUseDataCoordinates();
+      hist.GetAxisViewRange(YAXIS, YMin, YMax);
+      hist.DrawSetRegion(PLOTBACKGROUND);             
+      hist.DrawSetBrushColor(0xC8C8C8);
+      hist.DrawRectangle(CI[1,i], 0, CI[2,i], YMax+10, true);
+   end;
+

@@ -1,0 +1,35 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_CrayonSwatches.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates a non-mathematical use of Function().
+
+
+// see_color draws swatches of crayon colors.
+
+//Define a function to reference crayon colors from an Associative Array
+see_color = Function( {rgbName}, {Default Local},
+	drawit = Expr(
+		New Window( rgbName, Graph Box( framesize( 150, 150 ),
+		   Pen Color( _rgb_ );
+			Fill Color( _rgb_ ); 
+			Rect( 10, 90, 90, 10, 1 ); )
+		)
+	);
+	swatch = Substitute( Name Expr( drawit ), Expr( _rgb_ ),
+     ::rgb_AA[rgbName] );
+	Show( swatch );
+	swatch;
+);
+
+//Create an Associative Array using a list of key-value pairs of crayon colors
+rgb_AA = Associative Array(
+	{{"Atomic Tangerine", [255, 164, 116]}, {"Caribbean Green", [28, 211, 162]}, {"Electric Lime", [206, 255, 29]},
+	{"Granny Smith Apple", [168, 228, 160]}, {"Macaroni and Cheese", [255, 189, 136]}, {"Navy Blue", [25, 116, 210]},
+	{"Orchid", [230, 168, 215]}, {"Piggy Pink", [253, 221, 230]}, {"Razzmatazz", [227, 37, 107]}, {"Sunset Orange", [253, 94,
+	83]}, {"Tropical Rain Forest", [23, 128, 109]}, {"Wild Blue Yonder", [162, 173, 208]}}
+);
+
+//Draw swatches of specified crayon colors
+see_color( "Tropical Rain Forest" );
+see_color( "Caribbean Green" );
+see_color( "Granny Smith Apple" );

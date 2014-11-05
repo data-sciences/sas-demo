@@ -1,0 +1,1394 @@
+ /*------------------------------------------------------------------- */
+ /*    Analyzing Receiver Operating Characteristic Curves with SAS    */
+ /*                   by Mithat Gonen                                 */
+ /*       Copyright(c) 2007 by SAS Institute Inc., Cary, NC, USA      */
+ /*                                                                   */
+ /*                        ISBN 978-1-59994-298-8                     */
+ /*-------------------------------------------------------------------*/
+ /*                                                                   */
+ /* This material is provided "as is" by SAS Institute Inc.  There    */
+ /* are no warranties, expressed or implied, as to merchantability or */
+ /* fitness for a particular purpose regarding the materials or code  */
+ /* contained herein. The Institute is not responsible for errors     */
+ /* in this material as it now exists or will exist, nor does the     */
+ /* Institute provide technical support for it.                       */
+ /*                                                                   */
+ /*-------------------------------------------------------------------*/
+ /* Questions or problem reports concerning this material may be      */
+ /* addressed to the author:                                          */
+ /*                                                                   */
+ /* SAS Institute Inc.                                                */
+ /* SAS Press                                                         */
+ /* Attn: Mithat Gonen                                                */
+ /* SAS Campus Drive                                                  */
+ /* Cary, NC   27513                                                  */
+ /*                                                                   */
+ /*                                                                   */
+ /* If you prefer, you can send email to:  saspress@sas.com           */
+ /* Use this for subject field:                                       */
+ /*     Comments for Mithat Gonen                                     */
+ /*                                                                   */
+ /*-------------------------------------------------------------------*/
+
+
+
+
+  
+Chapter 2
+
+/***    Section 2.5    ***/
+
+data m62;
+  input forecast $ observed $ weight;
+  datalines;
+Frost Frost 29
+Frost No_Frost 6
+No_Frost Frost 4
+No_Frost No_Frost 38
+;
+run;
+
+proc freq data=m62;
+  table forecast*observed;
+  weight weight;
+run;
+
+title "Sensitivity";
+proc freq data=m62(where=(observed='Frost'));
+  table forecast / binomial(p=0.8);
+  weight weight;
+  exact binomial;
+run;
+
+title "Specificity";
+proc freq data=m62(where=(observed='No_Frost')) order=freq;
+  table forecast / binomial(p=0.75);
+  weight weight;
+  exact binomial;
+run;
+
+
+Chapter 3
+
+
+/*******************************************************************/
+/*    Data set exampleHN cannot be made publicly available due to  */
+/*    privacy concerns. Instead a simulated data set is provided   */
+/*    For this reason the ROC curves produce by the following       */
+/*    will not be identical to the one in the book                 */
+/*******************************************************************/
+
+data exampleHN;
+  do i=1 to 200;
+    gold_standard=(ranuni(0)>2/3);
+	suv=3+4*gold_standard+1.8*rannor(0);
+	output;
+  end;
+run;
+
+/***     Section 3.1     ***/
+
+proc univariate data=exampleHN noprint;
+  class gold_standard / keylevel='0';
+  var suv;
+  histogram suv / turnvlabels cfill=ligr cframe=white cframeside=white           
+		endpoints=0 to 20 by 2 cbarline=black font=swissb height=4;
+run;
+
+/***    This code is not provided explicitly in the book       ***/
+/***    Produces the numbers in Table 3.1                      ***/
+
+proc freq data=exampleHN;
+  table suv7*gold_standard;
+run;
+
+
+/***     Section 3.2     ***/
+
+
+proc logistic data=exampleHN noprint;
+  model gold_standard=suv / outroc=ROCData;
+run;
+symbol1 v=dot i=join;
+proc gplot data=ROCData;
+  plot _sensit_*_1mspec_;
+run;quit;
+
+******************************************************************;
+/*  ROCPLOT macro                                                */
+/*  Author: Mithat Gonen                                         */
+/*                                                               */
+/*                                                               */
+/*  Computes and plots the ROC curve                             */
+/*  Contains enhancements to the OUTROC option in PROC LOGISTIC	 */
+/*                                                               */
+/*  INPUTS                                                       */
+/*                                                               */
+/*  dsn:    data set name                                        */
+/*  marker: name of the marker or predictor variable for which   */
+/*          an ROC curve is desired. must be numerical           */
+/*          two variable names can be given separated by a blank */
+/*          if an overlaid plot of two markers are desired       */
+/*	gold:   variable for gold standard or true state of nature   */
+/*          must be numerical and takes on values of 0 or 1      */
+/*          only                                                 */
+/*  anno:   controls the amount of annotation                    */
+/*          0:  no graphical output, but prints the coordinates  */
+/*              of the ROC curve along with the thresholds that  */
+/*              corresponds to each of the (TPR,FPR) pairs.      */
+/*              useful for determining the thresholds to be      */
+/*              annotated (see anno=2 and anno=3 below)          */
+/*          1:  plots only the ROC curve                         */
+/*          2:  adds the 45-degree line                          */
+/*          3:  marks the ROC curve at thresholds given by TLIST */	
+/*              (see below)                                      */
+/*          4:  adds the horizontal and vertical reference line  */
+/*              for the thresholds                               */
+/*  tlist:  a list of numerical values separated by blanks       */
+/*          the curve will be marked at the points that          */
+/*          corresponds to these thresholds. if an overlaid plot */
+/*          is desired, this is taken to be the list for the     */
+/*          first marker                                         */
+/*  tlist2: list of mark points for second marker (see MARKER    */
+/*          and TLIST). ignored unless an overlaid plot is       */
+/*          desired                                              */
+/*  round:  nearest rounding unit if the values in TLIST are to  */
+/*          be rounded to match the observations in the data set */
+/*          if an overlaid plot is desired this is taken to be   */
+/*          the rounding unit for the first marker. Same format  */
+/*          as in ROUND function                                 */
+/*  round2: rounding unit for the second marker (see MARKER and  */
+/*          ROUND). ignored unless an overlaid plot is desired   */ 
+/*  optimal:if 1 a list of the distances from the perfect and    */
+/*          non-informative markers are printed. often used to   */
+/*          select an optimal threshold. ignored for overlaid    */
+/*          plots.                                               */
+/*                                                               */
+******************************************************************;
+
+
+%macro rocplot(dsn,marker,gold,anno=,tlist=,tlist2=,round=0,round2=0,optimal=0);
+
+
+data _null_;
+  _tmp="&marker";
+  call symput("_multiple",countc(_tmp,' '));
+run;
+
+%if &_multiple=0 %then %do;
+
+proc sort data=&dsn out=_plrc(rename=(&marker=_x_ &gold=_g) keep=&marker &gold);
+  by &marker &gold;
+run;
+
+proc sql noprint;
+  select sum(_g), n(_g) into :npos, :ntot from _plrc ;
+quit;
+
+data _plroc;
+  set _plrc;
+  retain tn fn 0;
+  %if &round=0 %then _x=_x_;
+  %else _x=round(_x_,&round);;
+  if _g=0 then tn=tn+1;
+  if _g=1 then fn=fn+1;
+  tnr=tn/(&ntot-&npos);
+  fnr=fn/&npos;
+  fpr=1-tnr;
+  tpr=1-fnr;
+run;
+
+data _dummy;
+  _x=.;fpr=1;tpr=1;
+run;
+
+data _plroc_;
+  set _plroc _dummy;
+  by _x;
+  if last._x;
+  dist_to_perfect=sqrt(fpr**2+(1-tpr)**2);
+  dist_to_noninf=abs(tpr-fpr);
+  keep _x fpr tpr dist_to_perfect dist_to_noninf;
+  label _x='Threshold' fpr='False Positive Rate' tpr='True Positive Rate'
+        dist_to_perfect='Distance from Perfect Marker' dist_to_noninf='Distance from Non-Informative Marker';
+run;
+
+%if &optimal=1 %then %do;
+proc sort data=_plroc_;
+  by dist_to_perfect dist_to_noninf;
+run;
+proc print data=_plroc_ noobs label;
+  var _x fpr tpr dist_to_perfect dist_to_noninf;
+run;
+%end;
+%if &anno=0 %then %do;
+proc print data=_plroc_ noobs label;
+  var _x fpr tpr dist_to_perfect dist_to_noninf;
+run;
+%end;
+
+%else %do;
+
+%annomac;
+
+%if &anno=3 or &anno=4 %then %do;
+data anno2;
+  length function $ 5 text $ 60 style $ 8 color $ 32;
+  set _plroc_(where=(_x in (&tlist)));
+  xsys='2' ; ysys='2' ;
+  function='label' ; y=tpr ; x=fpr;
+  style='special' ; text='M' ; position='5' ; size=2 ; color='red'; output ;
+  function='label' ; y=tpr ; x=fpr;
+  style='swissb'; text=_x; position='1'; size=1.5; color='red'; output; 
+  %line(0,0,1,1,black,3,2);
+  %if &anno=4 %then %do;
+    %line(fpr,0,fpr,tpr,black,3,1);
+    %line(0,tpr,fpr,tpr,black,3,1);
+  %end;
+  %else;
+run;
+%end;
+%else %if &anno=2 %then %do;
+data anno2;
+  xsys='2' ; ysys='2' ;
+  %line(0,0,1,1,black,3,2);
+run;
+%end;
+
+axis1 length=8cm order=0 to 1 by 0.2 label=(f=swissb h=2) value=(font=swissb h=2);
+axis2 length=8cm order=0 to 1 by 0.2 label=(a=90 f=swissb h=2) value=(font=swissb h=2);
+
+symbol1 v=none i=join w=3;
+
+proc gplot data=_plroc_;
+  plot tpr*fpr / haxis=axis1 vaxis=axis2 
+		%if &anno^=1 %then annotate=anno2;;
+run;quit;
+
+%end;
+%end;
+
+
+
+%if &_multiple=1 %then %do;
+
+
+%let marker1=%scan(&marker,1);
+%let marker2=%scan(&marker,2);
+
+proc sort data=&dsn out=_plrc1(rename=(&marker1=_x_ &gold=_g) keep=&marker1 &gold);
+  by &marker1 &gold;
+run;
+
+proc sql noprint;
+  select sum(_g), n(_g) into :npos, :ntot from _plrc1 ;
+quit;
+
+data _plroc1;
+  set _plrc1;
+  retain tn fn 0;
+  %if &round=0 %then _x=_x_;
+  %else _x=round(_x_,&round);;
+  if _g=0 then tn=tn+1;
+  if _g=1 then fn=fn+1;
+  tnr=tn/(&ntot-&npos);
+  fnr=fn/&npos;
+  fpr=1-tnr;
+  tpr=1-fnr;
+run;
+
+data _dummy;
+  _x=.;fpr=1;tpr=1;
+run;
+
+data _plroc1_;
+  set _plroc1 _dummy;
+  by _x;
+  if last._x;
+  dist_to_perfect=sqrt(fpr**2+(1-tpr)**2);
+  dist_to_noninf=abs(tpr-fpr);
+  keep _x fpr tpr dist_to_perfect dist_to_noninf;
+  label _x='Threshold' fpr='False Positive Rate' tpr='True Positive Rate'
+        dist_to_perfect='Distance from Perfect Marker' dist_to_noninf='Distance from Non-Informative Marker';
+run;
+
+
+proc sort data=&dsn out=_plrc2(rename=(&marker2=_x_ &gold=_g) keep=&marker2 &gold);
+  by &marker2 &gold;
+run;
+
+proc sql noprint;
+  select sum(_g), n(_g) into :npos, :ntot from _plrc2 ;
+quit;
+
+data _plroc2;
+  set _plrc2;
+  retain tn fn 0;
+  %if &round2=0 %then _x=_x_;
+  %else _x=round(_x_,&round2);;
+  if _g=0 then tn=tn+1;
+  if _g=1 then fn=fn+1;
+  tnr=tn/(&ntot-&npos);
+  fnr=fn/&npos;
+  fpr=1-tnr;
+  tpr=1-fnr;
+run;
+
+data _dummy;
+  _x=.;fpr=1;tpr=1;
+run;
+
+data _plroc2_;
+  set _plroc2 _dummy;
+  by _x;
+  if last._x;
+  dist_to_perfect=sqrt(fpr**2+(1-tpr)**2);
+  dist_to_noninf=abs(tpr-fpr);
+  keep _x fpr tpr dist_to_perfect dist_to_noninf;
+  label _x='Threshold' fpr='False Positive Rate' tpr='True Positive Rate'
+        dist_to_perfect='Distance from Perfect Marker' dist_to_noninf='Distance from Non-Informative Marker';
+run;
+
+data _plroc_;
+  set _plroc1_(in=in1) _plroc2_(in=in2);
+  if in1 then _marker="&marker1";
+  else if in2 then _marker="&marker2";
+run;
+
+
+%if &anno=0 %then %do;
+proc print data=_plroc_ noobs label;
+  var _x fpr tpr dist_to_perfect dist_to_noninf;
+run;
+%end;
+
+%else %do;
+
+%annomac;
+
+%if &anno=3 or &anno=4 %then %do;
+data anno2;
+  length function $ 5 text $ 60 style $ 8 color $ 32;
+  set _plroc_(where=((_x in (&tlist) and _marker="&marker1") or (_x in (&tlist2) and _marker="&marker2")));
+  xsys='2' ; ysys='2' ;
+  function='label' ; y=tpr ; x=fpr;
+  style='special' ; text='M' ; position='5' ; size=2 ; 
+  if _marker="&marker1" then color='red'; else if _marker="&marker2" then color='blue'; output ;
+  function='label' ; y=tpr ; x=fpr;
+  style='swissb'; text=_x; position='1'; size=1.5; 
+  if _marker="&marker1" then color='red'; else if _marker="&marker2" then color='blue'; output; 
+  %line(0,0,1,1,black,3,2);
+  %if &anno=4 %then %do;
+    %line(fpr,0,fpr,tpr,black,3,1);
+    %line(0,tpr,fpr,tpr,black,3,1);
+  %end;
+  %else;
+run;
+%end;
+%else %if &anno=2 %then %do;
+data anno2;
+  xsys='2' ; ysys='2' ;
+  %line(0,0,1,1,black,3,2);
+run;
+%end;
+
+axis1 length=8cm order=0 to 1 by 0.2 label=(f=swissb h=2) value=(font=swissb h=2);
+axis2 length=8cm order=0 to 1 by 0.2 label=(a=90 f=swissb h=2) value=(font=swissb h=2);
+
+symbol1 v=none c=black i=join w=3 l=1;
+symbol2 v=none c=black i=join w=3 l=3;
+
+legend1 position=(inside right bottom) label=none value=(font=swissb) frame across=1;
+
+proc gplot data=_plroc_;
+  plot tpr*fpr=_marker / haxis=axis1 vaxis=axis2 legend=legend1
+		%if &anno^=1 %then annotate=anno2;;
+run;quit;
+
+%end;
+
+
+%end;
+
+
+%mend;
+
+/*
+Examples;
+
+data exhn;
+  do i=1 to 200;
+    gold_standard=(ranuni(0)>2/3);
+	suv1=3+4*gold_standard+1.8*rannor(0);
+	suv2=3*gold_standard+1.8*rannor(0);
+	output;
+  end;
+run;
+
+
+A single plot 
+%rocplot(dsn=exhn,marker=suv,gold=gold_standard,anno=2);
+
+An overlaid plot
+%rocplot(dsn=exhn,marker=suv1 suv2,gold=gold_standard,anno=3,tlist=2.4,tlist2=3,round=0.1,round2=0.1);
+
+*/
+
+
+
+/***   Section 3.4.1          ***/
+/***   Generates output 3.1   ***/
+
+proc logistic data=exampleHN;
+  model gold_standard=suv;
+run;
+
+/***   Section 3.4.2        ***/
+
+proc logistic data=exampleHN noprint;
+  model gold_standard=suv / outroc=ROCData;
+run;
+
+/***  Section 3.6           ***/
+
+proc nlmixed data=exampleHN;
+  parameters m1=0 m0=0 s1=1 s0=1;
+  if gold_standard=1 then m=m1;
+	else if gold=0 then m=m0;
+  if gold_standard=1 then s=s1**2;
+	else if gold=0 then s=s0**2;
+  a=(m1-m0)/s1;
+  b=s0/s1;
+  model suvsq ~ normal(m,s);
+  estimate 'a' a;
+  estimate 'b' b;
+  estimate 'AUC' probnorm(a/sqrt(1+b**2));
+run;
+proc means data=exampleHN;
+  class gold_standard;
+  var suvsq;
+run;
+
+/*** Generates Figure 3.6                                     ***/
+/*** ROCData is created by the OUTROC option in PROC LOGISTIC ***/
+
+data ROCData;
+  set ROCData;
+  _bsensit_=probnorm(1.41+0.66*probit(_1mspec_));
+run;
+
+axis1 length=12cm order=0 to 1 by 0.2 label=(f=swissb h=2) value=(font=swissb h=2);
+axis2 length=12cm order=0 to 1 by 0.2 label=(a=90 f=swissb h=2) value=(font=swissb h=2);
+symbol1 v=none i=join w=3 l=1 c=black;
+symbol2 v=none i=join w=3 l=3 c=black;
+
+proc gplot data=ROCData;
+  plot (_sensit_ _bsensit_)*_1mspec_ / haxis=axis1 vaxis=axis2 overlay;
+run;quit;
+
+/*** Section 3.7           ***/
+
+proc transreg data=exampleHN;
+  model boxcox(suv/parameter=0.1) = class(gold);
+run;
+
+/*** Section 3.8           ***/
+
+data ROCData;
+  set ROCData;
+  _y=probit(_sensit_);
+  _x=probit(_1mspec_);
+run;
+
+proc reg data=ROCData;
+  model _y=_x;
+run;quit;
+
+
+******************************************************************;
+/*  BOOT1UAC macro                                               */
+/*  Author: Mithat Gonen                                         */
+/*                                                               */
+/*                                                               */
+/*  Computes the bootstrap distribution for the AUC              */
+/*  and reports the point estimate, standard error and           */
+/*  the 95% confidence interval                                  */
+/*                                                               */
+/*  The distribution itself is available in the data set         */
+/*  BOOTDIST                                                     */
+/*                                                               */
+/*  Missing Data: It is safer to remove the records with         */
+/*                missing values of either &marker or &gold      */
+/*                to avoid potential imbalances during           */
+/*                resampling                                     */
+/*                                                               */
+/*                                                               */
+/*                                                               */
+/*  INPUTS                                                       */
+/*                                                               */
+/*  dsn:    data set name                                        */
+/*  marker: name of the marker or predictor variable for which   */
+/*          an ROC curve is desired. must be numerical           */
+/*  gold:   variable for gold standard or true state of nature   */
+/*          must be numerical and takes on values of 0 or 1      */
+/*          only                                                 */
+/*  boot:   number of bootstrap samples. 1000 by default         */
+/*  alpha:  Error level for the confidence interval              */
+/*                                                               */
+******************************************************************;
+
+
+%macro boot1auc(dsn,marker,gold,boot=1000,alpha=0.05);
+
+%let conflev=%sysevalf(100*(1-&alpha));
+%let ll=%sysevalf((&alpha/2)*&boot);
+%let ul=%sysevalf((1-(&alpha)/2)*&boot);
+
+proc datasets;delete bootsample bootdist;
+
+proc sql noprint;
+  select n(&marker) into :n
+  from &dsn;
+quit;
+
+proc surveyselect data=&dsn method=urs n=&n out=bootsample outhits rep=&boot noprint;
+run;
+
+filename junk 'junk.txt';
+proc printto print=junk;run;
+
+proc logistic data=bootsample;
+  by replicate;
+  model &gold=&marker;
+  ods output association=assoc;
+run;
+
+proc printto;run;
+data bootdist(keep=nvalue2 rename=(nvalue2=auc));
+  set assoc(where=(label2='c'));
+run;
+options formdlim=' ';
+title "Bootstrap Analysis of the AUC for &marker";
+
+proc sql;
+  select mean(auc) as AUC, std(auc) as StdErr
+  from bootdist;
+run;
+
+proc sort data=bootdist;by auc;run;
+title "&conflev.% Confidence Interval";
+
+proc sql;
+  select a.auc as LowerLimit, b.auc as UpperLimit
+  from bootdist(firstobs=&ll obs=&ll) a, bootdist(firstobs=&ul obs=&ul) b; 
+quit;
+options formdlim='';
+%mend;
+
+%boot1auc(exampleHN,suv,gold_standard);
+
+
+
+
+Chapter 4
+
+
+/***    Section 4.5.1               ***/
+
+proc transreg data=bone;
+  model boxcox(suv1/parameter=0.1 geometricmean)=class(gold);
+  output out=trsuv;
+run;
+proc transreg data=bone;
+  model boxcox(bsi/parameter=0.1 geometricmean)=class(gold);
+  output out=trbsi;
+run;
+
+data long;
+  set trbsi(keep=_name_ gold tbsi rename=(tbsi=result _name_=subid) in=in1) 
+      trsuv(keep=_name_ gold tsuv1 rename=(tsuv1=result _name_=subid) in=in2);
+  if in1 then marker=0; else if in2 then marker=1;
+run;
+
+proc nlmixed data=long method=firo technique=quanew;
+  parms sr=1 s11=3 s10=0.3 s01=2 s00=0.2 m11=7 m10=1 m01=2 m00=0;
+  bounds sr s11 s10 s01 s00>0;
+  if gold=1 and marker=0 then do;
+    m=m10+u;s=s10**2;end;
+  if gold=1 and marker=1 then do;
+    m=m11+u;s=s11**2;end;
+  if gold=0 and marker=0 then do;
+    m=m00+u;s=s00**2;end;
+  if gold=0 and marker=1 then do;
+    m=m01+u;s=s01**2;end;
+  a1=(m11-m01)/s11;
+  b1=s01/s11;
+  a0=(m10-m00)/s10;
+  b0=s00/s10;
+  auc1=probnorm(a1/sqrt(1+b1**2));
+  auc0=probnorm(a0/sqrt(1+b0**2));
+  model result ~ normal(m,s);
+  random u ~ normal(0,sr) subject=subid;
+  estimate 'a1' a1;
+  estimate 'b1' b1;
+  estimate 'AUC1' auc1;
+  estimate 'a0' a0;
+  estimate 'b0' b0;
+  estimate 'AUC0' auc0;
+  estimate 'AUC1-AUC0' auc1-auc0;
+  contrast 'AUC1-AUC0' auc1-auc0;
+  contrast 'Equality of ROC curves' a1-a0, b1-b0;
+run;
+
+
+
+
+******************************************************************;
+/*  BOOT2UAC macro                                               */
+/*  Author: Mithat Gonen                                         */
+/*                                                               */
+/*                                                               */
+/*  Computes the bootstrap distribution for the AUC              */
+/*  and reports the point estimate, standard error and           */
+/*  the 95% confidence interval                                  */
+/*                                                               */
+/*  The distribution itself is available in the data set         */
+/*  BOOTDIST                                                     */
+/*                                                               */
+/*  Missing Data: It is safer to remove the records with         */
+/*                missing values of either &marker1 or &marker2  */ 
+/*                or &gold to avoid potential imbalances during  */
+/*                resampling                                     */
+/*                                                               */
+/*                                                               */
+/*                                                               */
+/*                                                               */
+/*  INPUTS                                                       */
+/*                                                               */
+/*  dsn:    data set name                                        */
+/*  marker1,marker2:                                             */  
+/*          names of the markers or predictor variables for which*/
+/*          ROC curves are desired. must be numerical            */
+/*	gold:   variable for gold standard or true state of nature   */
+/*          must be numerical and takes on values of 0 or 1      */
+/*          only                                                 */
+/*  boot:   number of bootstrap samples. 1000 by default         */
+/*  alpha:  Error level for the confidence interval              */
+/*  null:   The null value for difference AUCs                   */
+/*                                                               */
+******************************************************************;
+
+
+%macro boot2auc(dsn,marker1,marker2,gold,boot=1000,alpha=0.05,null=0);
+options formdlim=' ';
+%let conflev=%sysevalf(100*(1-&alpha));
+%let ll=%sysevalf((&alpha/2)*&boot);
+%let ul=%sysevalf((1-(&alpha)/2)*&boot);
+
+proc datasets;delete bootsample bootdist;
+
+proc sql noprint;
+  select n(&gold) into :n
+  from &dsn;
+quit;
+
+proc surveyselect data=&dsn method=urs n=&n out=bootsample outhits rep=&boot noprint;
+run;
+
+filename junk 'junk.txt';
+proc printto print=junk;run;
+
+proc logistic data=bootsample;
+  by replicate;
+  model &gold=&marker1;
+  ods output association=assoc1;
+run;
+
+proc logistic data=bootsample;
+  by replicate;
+  model &gold=&marker2;
+  ods output association=assoc2;
+run;
+
+proc printto;run;
+
+data assoc;
+  merge assoc1(where=(label2='c') rename=(nvalue2=auc1)) assoc2(where=(label2='c') rename=(nvalue2=auc2));
+  by replicate;
+  diff=auc1-auc2;
+run;
+
+proc sort data=assoc;by diff;run;
+
+proc sql;
+  select mean(auc1) as AUC1, std(auc2) as SE, mean(auc2) as AUC2, std(auc2) as SE, 
+  mean(diff) as Difference, std(diff) as SE from assoc;
+quit;
+title "&conflev.% Confidence Interval for the Difference";
+proc sql;
+  select a.diff as LowerLimit, b.diff as UpperLimit
+  from assoc(firstobs=&ll obs=&ll) a, assoc(firstobs=&ul obs=&ul) b; 
+quit;
+title "H0:Difference=&null";
+proc sql;
+  select 2*min(n(diff),&boot-n(diff))/&boot as p from assoc where diff>&null;
+quit;
+%mend;
+
+
+%boot2auc(bone,suv1,bsi,gold);
+
+
+
+Chapter 5
+
+
+/***    Section 5.3               ***/
+
+/* Generates the data in Table 5.1 */
+
+proc format;
+  value moody 1='Aaa' 2='Aa1' 3='Aa2' 4='A1' 5='A2' 6='A3' 7='A3-' 8='Baa1' 9='Baa2' 10='Baa3' 11='Ba1'
+	12='Ba2' 13='Ba3' 14='B1' 15='B2'  16='B3' 17='C';
+  value sp	1='AAA' 2='AA+' 3='AA-' 4='A+' 5='A' 6='A' 7='A-' 8='BBB+' 9='BBB' 10='BBB-' 11='BB+'
+	12='BB' 13='BB-' 14='B+' 15='B'  16='B-' 17='C';
+run;
+
+data ratings;
+  do r1=1 to 17;
+    input d1 d2 n1 n2;r2=r1;c1=round(n1*d1,1);c2=round(n2*d2,1);output;
+  end;
+  label r1="Moody's" r2='S&P' d1='Default' d2='Default';
+  format r1 moody. r2 sp. d1 d2 percent5.2;
+datalines;
+0 0 49 53
+0 0 47 36
+0 0 120 81
+0 0 164 162
+0 .0023 163 216
+.0020 0 254 238
+.0010 .0013 226 223
+.0052 .0043 238 265
+.0011 .0059 242 264
+.0059 .0050 212 202
+.0119 .0041 105 119
+.0123 .0139 108 180
+.0086 .0315 175 212
+.0351 .0385 238 295
+.0694 .1304 215 142
+.0924 .2377 139 74
+.3351 .4195 164 96
+;
+run;
+
+data moody;
+  set ratings;
+  do i=1 to n1;
+    if i<=c1 then default=1;else default=0;output;
+  end;
+  rename r1=moody;
+run; 
+
+/* Figure 5.1 */
+
+proc logistic data=moody;
+  model default=moody / outroc=rocdata;
+run;
+
+axis1 length=12cm order=0 to 1 by 0.2 label=(f=swissb h=2) value=(font=swissb h=2) offset=(.5 .5)cm;
+axis2 length=12cm order=0 to 1 by 0.2 label=(a=90 f=swissb h=2) value=(font=swissb h=2) offset=(.5 .5)cm;
+symbol1 v=dot i=none c=black;
+
+proc gplot data=rocdata;
+  plot _sensit_*_1mspec_ / haxis=axis1 vaxis=axis2;
+run;quit;
+
+
+/***    Section 5.5               ***/
+
+/* Generates the data in Table 5.2 */
+
+data moody;
+  set moody;
+  if 1<=moody<=7 then rating=1;
+  else if 8<=moody<=10 then rating=2;
+  else if 11<=moody<=13 then rating=3;
+  else if 14<=moody<=16 then rating=4;
+  else if moody=17 then rating=5;
+run;
+
+/* Produces Ouput 5.3 */
+
+proc nlmixed data=moody gconv=0;
+  parms alpha=1 theta1=1 theta2=2 theta3=3 beta=1;
+  bounds theta1>0, theta2>0, theta3>0;
+  eta1=alpha*default;
+  eta2=exp(beta*default);
+  if rating=1 then z = probnorm(-eta1/eta2);
+  else if rating=2 then z = probnorm((theta1-eta1)/eta2) - probnorm(-eta1/eta2);
+  else if rating=3 then z = probnorm((theta2+theta1-eta1)/eta2) - probnorm((theta1-eta1)/eta2);
+  else if rating=4 then z = probnorm((theta3+theta2+theta1-eta1)/eta2) - probnorm((theta2+theta1-eta1)/eta2);
+  else if rating=5 then z = 1 - probnorm((theta3+theta2+theta1-eta1)/eta2);
+  if z>1e-6 then ll=log(z);
+  else ll=-1e6;
+  model rating ~ general(ll);
+  estimate 'AUC' probnorm(alpha/sqrt(1+beta**2));
+run;
+
+
+Chapter 6
+
+
+/***    Section 6.3               ***/
+
+/* Generates Ouptut 6.1 */
+
+proc phreg data=ph;
+  model signal=grp / rl;
+  if group='normal' then grp=0;
+  else if group='benign' then grp=1;
+run;
+
+proc phreg data=ph;
+  model signal=grp / rl;
+  if group='normal' then grp=1;
+  else if group='benign' then grp=0;
+run;
+
+/***    Section 6.4               ***/
+
+proc phreg data=ph;
+  model signal=grp age grpage/rl;
+  if group='normal' then grp=0;
+  else if group='benign' then grp=1;
+  grpage=grp*age;
+run;
+
+/***    Section 6.5               ***/
+
+proc phreg data=ph covsandwich(aggregate);
+  model signal=grp/rl;
+  if group='normal' then grp=0;
+  else if group='benign' then grp=1;
+  id id;
+run;
+
+
+
+Chapter 7
+
+
+/***    Section 7.3.1               ***/
+
+/* Generates Ouptut 7.1 */
+
+proc lifetest data=lung timelist=(36);
+  time survival*status(0);
+run;
+
+/***    Section 7.3.2               ***/
+
+/* Generates Ouptut 7.2 */
+
+proc lifetest data=lung(where=(suv>9)) timelist=(36);
+  time survival*status(0);
+run;
+
+/***    Section 7.3.3               ***/
+
+/* Generates Ouptut 7.3 */
+
+proc lifetest data=lung timelist=(9);
+  time suv;
+run;
+
+
+******************************************************************;
+/*  TDROC macro                                                  */
+/*  Author: Mithat Gonen                                         */
+/*                                                               */
+/*                                                               */
+/*  Generates a time-dependent ROC curve at a given time point   */
+/*  for a censored outcome and an ordinal or continous predictor */
+/*                                                               */
+/*  INPUTS                                                       */
+/*                                                               */
+/*  dsn:    data set name                                        */
+/*  marker: name of the marker or predictor variable for which   */
+/*          a time-dependent ROC curve is desired.               */  
+/*          Must be numerical                                    */
+/*  timevar:survival time (or time to the event of interest      */
+/*  status: censoring status. use lifetest/phreg notation where  */
+/*          a list of censoring values appear in parantheses     */
+/*  timept: the time point for which the ROC curve will be       */
+/*          generated                                            */
+/*  smooth: 1 if the resulting plot needs to be smoothed         */
+/*  plot:   1 if a plot is desired. otherwise only a dataset with*/
+/*          values of sensitivity and specificity is created     */
+/*                                                               */
+/*  SEE IMPLEMENTATION NOTES AT THE END                          */
+******************************************************************;
+
+options spool;
+
+%macro tdroc(dsn=,marker=,timevar=,status=,timept=,smooth=1,plot=1);
+
+data _tdr;
+  set &dsn;
+  index+1;
+run;
+
+proc univariate data=&dsn noprint;
+  var &marker;
+  output out=_pctls pctlpre=p_ pctlpts=10 to 90 by 2 max=max;
+run;
+
+proc transpose data=_pctls out=_cutpts;
+run;
+
+proc sort data=_cutpts;
+  by col1;
+run;
+
+data _cutpts(keep=col1 cutindex);
+  set _cutpts;
+  cutindex+1;
+run;
+
+proc sql noprint;
+  select n(cutindex) into:ncuts from _cutpts;
+quit;
+
+proc sql;
+  create table _id as
+  select a.index, a.&timevar, a.status, a.&marker, b.col1 
+  from _tdr a, _cutpts b
+  where a.&marker<=b.col1;
+quit;
+
+proc sort;by index &marker col1;run;
+
+data _tdr_;
+  set _id;
+  by index &marker col1;
+  if first.index;
+  rename col1=&marker.1;
+run;
+
+proc sql;
+  create table _big as
+  select &marker.1, cutindex, col1 as cutoff from _tdr_, _cutpts;
+quit;
+
+proc sort data=_big;
+  by cutoff;
+run;
+
+data _big;
+  set _big;
+  _d=(&marker.1>cutoff);
+run;
+
+proc freq data=_big noprint;
+  by cutindex;
+  table _d / out=_prevs;
+run;
+
+%macro _createdatasets;
+%do i=1 %to &ncuts;
+data _sens&i _spec&i;
+    if _n_=1 then set _cutpts(where=(cutindex=&i));
+	set _tdr_;
+	if .<&marker.1<=col1 then output _spec&i;
+	else if &marker.1>col1 then output _sens&i;
+run;
+%end;
+data _sens(keep=cutindex &timevar status);
+  set %do i=1 %to &ncuts; _sens&i %end;;
+run;
+data _spec(keep=cutindex &timevar status);
+  set %do i=1 %to &ncuts; _spec&i %end;;
+run;
+%mend;
+%_createdatasets;
+
+proc sort data=_sens;
+  by cutindex;
+run;
+
+proc lifetest data=_sens noprint outsurv=_outsens timelist=(&timept) reduceout;
+  by cutindex;
+  time &timevar*&status;
+run;
+
+proc sort data=_spec;
+  by cutindex;
+run;
+
+proc lifetest data=_spec noprint outsurv=_outspec timelist=(&timept) reduceout;
+  by cutindex;
+  time &timevar*&status;
+run;
+
+proc lifetest data=&dsn noprint outsurv=_allpats timelist=(&timept) reduceout;
+  time &timevar*&status;
+run;
+
+data _allscore(keep=cutindex cutoff w prev sensnum specnum);
+  merge _outsens(rename=(survival=sensnum sdf_lcl=lsens sdf_ucl=usens)) 
+        _outspec(rename=(survival=specnum sdf_lcl=lspec sdf_ucl=uspec)) 
+        _prevs(where=(_d=1)) _cutpts(rename=(col1=cutoff));
+  by cutindex;
+  prev=percent/100;
+  wsens=(usens-lsens)**(-2);
+  wspec=(uspec-lspec)**(-2);
+  w=wsens*wspec;
+run;
+
+data &dsn._&timept;
+  if _n_=1 then set _allpats(keep=survival);
+  set _allscore;
+  sens=(1-sensnum)*prev/(1-survival);
+  spec=specnum*(1-prev)/survival;
+  onemspec=1-spec;
+  label sens="True Positive Fraction" onemspec="False Positive Fraction";
+run;
+
+%if &smooth=1 %then %do;
+
+proc printto file="to_be_deleted.txt" new;run;
+proc transreg data=&dsn._&timept;
+  model monotone(sens)=identity(onemspec);
+  output out=_tro;
+  weight w;
+run;
+proc printto;run;
+
+%if &plot=1 %then %do;
+
+axis1 length=12cm order=0 to 1 by 0.2 label=(f=swissb h=2 "True Positive Fraction") 
+	  value=(font=swissb h=2);
+axis2 length=12cm order=0 to 1 by 0.2 label=(a=90 f=swissb h=2 "False Positive Fraction") 
+      value=(font=swissb h=2);
+
+symbol1 v=none i=j c=black w=3;
+proc gplot data=_tro;
+  plot tsens*tonemspec / haxis=axis1 vaxis=axis2;
+run;quit;
+
+%end;%end;
+
+%else %if &smooth=0 %then %do;
+
+%if &plot=1 %then %do;
+ 
+axis1 length=12cm order=0 to 1 by 0.2 label=(f=swissb h=2) value=(font=swissb h=2);
+axis2 length=12cm order=0 to 1 by 0.2 label=(a=90 f=swissb h=2) value=(font=swissb h=2);
+
+symbol1 v=dot i=j c=black w=3;
+proc gplot data=&dsn._&timept;
+  plot sens*onemspec / haxis=axis1 vaxis=axis2;
+run;quit;
+
+%end;%end;
+
+proc datasets;
+  delete _allpats _allscore %do i=1 %to &ncuts; _sens&i _spec&i %end;
+run;quit;
+
+*******************************************************************;
+/*  IMPLEMENTATION NOTES                                           */
+/* 	1) Smoothing is often necessary to create a monotone ROC curve */
+/*  2) The original paper by Hagaerty et al (2000) used a different*/
+/*     smoothing technique than the one impleneted here.           */
+/*  3) Reliable generation of time dependent ROC curves usually    */
+/*     require a large data set. If non-smooth versions are very   */
+/*     from monotone this could be an indication of an insufficient*/
+/*     sample size                                                 */
+********************************************************************;
+
+%mend;
+
+********************************************************************;
+/*   DUE TO PRIVACY CONCERNS THE LUNG DATA SET HAS NOT BEEN MADE   */
+/*   PUBLIC. INSTEAD A SIMULATED DATA SET IS USED HERE             */
+********************************************************************;
+
+data example;
+  do i=1 to 100;
+    marker=rannor(0);
+    surv=-marker+exp(rannor(0));
+	status=(ranuni(0)>0.3);
+	output;
+	end;
+run;
+
+%tdroc(dsn=example,marker=marker,timevar=surv,status=status(0),timept=2,smooth=1,plot=0);
+
+
+******************************************************************;
+/*  CINDEX  macro                                                */
+/*  Author: Mithat Gonen                                         */
+/*                                                               */
+/*                                                               */
+/*  Computes the concirdance index for a marker and a censored   */
+/*  outcome                                                      */
+/*                                                               */
+/*  INPUTS                                                       */
+/*                                                               */
+/*  dsn:    data set name                                        */
+/*  marker: name of the marker or predictor variable for which   */
+/*          a time-dependent ROC curve is desired.               */  
+/*          must be numerical                                    */
+/*  surv:   survival time (or time to the event of interest      */
+/*  cens:   censoring status. (1:censored, 0:event)              */
+/*                                                               */
+******************************************************************;
+
+%macro cindex(dsn,marker,surv,cens);
+
+data _base_;
+  set &dsn;
+  i+1;
+run;
+
+data _firstbase_;
+  set _base_;
+run;
+
+proc sql noprint;
+  select n(&marker) into:_n_ from _base_;
+quit;
+
+%macro mergepairs;
+%do i=1 %to &_n_;
+data _base_i;
+  set _firstbase_;
+  i=&i;
+  rename &surv=_surv2 &cens=_cens2 &marker=_pred2;
+run;
+
+data _base_;
+  merge _base_ _base_i;
+  by i;
+run;
+%end;
+%mend;
+%mergepairs;
+
+data _final_;
+  set _base_(where=((&cens=0 and _cens2=0 and &surv>_surv2) or 
+        (&cens=1 and _cens2=0 and &surv>_surv2) or 
+        (&cens=0 and _cens2=0 and &surv<_surv2) or 
+        (&cens=0 and _cens2=1 and &surv<_surv2)));
+  if (&marker-_pred2)*(&surv-_surv2)>0 then aij=1;
+  else aij=0;
+run;
+
+proc sql;
+  select max(sum(aij)/n(aij),1-(sum(aij)/n(aij))) as cindex
+  from _final_;
+quit;
+
+%mend;
+
+%cindex(dsn=example,marker=marker,surv=surv,cens=status);
+
+
+******************************************************************;
+/*                                                               */
+/*     CPE Macro requires an executable file and is available    */
+/*     under "Samples and Tips, Blogs, and More" on the          */
+/*     companion site for this book.                             */
+/*                                                               */
+******************************************************************;
+
+
+Chapter 8
+
+
+/***    Section 8.3               ***/
+
+/* Generates Ouptut 8.1 */
+
+proc logistic data=liver;
+  model complications=age_at_op comorb lobeormore_code bilat_resec_code numsegs_resec /selection=stepwise;
+run;
+
+/***    Section 8.4               ***/
+
+data training test;
+  set liver;
+  seed=12061996;
+  unif=ranuni(seed);
+  if unif>0.333 then output training;
+  else output test;
+run;
+
+proc logistic data=training outmodel=model1;
+  model complications =  age_at_op comorb lobeormore_code bilat_resec_code numsegs_resec  / selection=s;
+run;  
+
+proc logistic inmodel=model1;
+  score data=test out=testscore outroc=rocvalid fitstat;;
+run;  
+
+%roc(data=testscore, var=p_1, response=complications, contrast=1, details=no,
+           alpha=.05);
+
+%rocplot(dsn=testscore,marker=p1,gold=COMPLICATIONS,anno=4,tlist=.35 .51 .58);
+
+/***     Section 8.5       ***/
+
+proc logistic data=liver;
+  model complications=age_at_op comorb lobeormore_code bilat_resec_code numsegs_resec / selection=s;
+  output out=outx predprobs=x;
+  ods output classification=classroc;
+run;
+
+
+******************************************************************;
+/*  XVAL macro                                                   */
+/*  Author: Mithat Gonen                                         */
+/*                                                               */
+/*                                                               */
+/*  Generates a data set that can be used for k-fold             */
+/*  cross-validation. The only output is a data set that         */
+/*  be used as input to %ROC and %ROCPLOT                        */
+/*                                                               */
+/*                                                               */
+/*  INPUTS                                                       */
+/*                                                               */
+/*  dsn:    data set name                                        */
+/*  outcome:independent variable                                 */
+/*  covars: list of dependent variables separated by blanks      */
+/*  k:      Fold level of cross validation                       */
+/*  sel:    Selection method for logistic regression             */
+/*  outdsn: Output data set that contains cross-validated        */
+/*          predicted probabilities. Default is _XVAL_           */
+/*                                                               */
+******************************************************************;
+
+
+%macro xval(dsn=,outcome=,covars=,k=10,sel=stepwise,outdsn=_xval_);
+
+data _modif;
+  set &dsn;
+  unif=&k*ranuni(20052905);
+  xv=ceil(unif);
+run;
+%do i=1 %to &k;
+  proc logistic data=_modif(where=(xv ne &i)) outmodel=_mod&i noprint;
+    model &outcome=&covars / selection=&sel;
+  run;
+%if print^=0 %then %do;proc printto file='junk.txt';%end;
+  proc logistic inmodel=_mod&i;
+    score data=_modif(where=(xv=&i)) out=out&i;
+  run;
+%if print^=0 %then %do;proc printto;run;%end;
+%end;
+  data &outdsn;
+    set %do j=1 %to &k;out&j %end;;
+  run;
+
+%mend;
+ 
+%xval(dsn=liver,outcome=complications,covars=age_at_op comorb lobeormore_code bilat_resec_code numsegs_resec,k=5);
+%rocplot(_xval_,P_1,COMPLICATIONS,anno=2);
+%roc(data=_xval_,var=P_1,response=COMPLICATIONS,CONTRAST=1);
+
+
+******************************************************************;
+/*  BVAL macro                                                   */
+/*  Author: Mithat Gonen                                         */
+/*                                                               */
+/*                                                               */
+/*  Performs bootstrap validation                                */
+/*                                                               */
+/*  INPUTS                                                       */
+/*                                                               */
+/*  dsn:    data set name                                        */
+/*  outcome:independent variable                                 */
+/*  covars: list of dependent variables separated by blanks      */
+/*  B:      Number of bootstrap samples                          */
+/*  sel:    Selection method for logistic regression             */
+/*                                                               */
+******************************************************************;
+
+%macro bval(dsn=,outcome=,covars=,B=10,sel=stepwise);
+proc sql noprint;
+  select n(&outcome) into:_n from &dsn;
+run;
+proc surveyselect data=liver method=urs outhits rep=&B n=&_n out=bsamples noprint;
+run;
+%do i=1 %to &B;
+  proc logistic data=bsamples(where=(replicate=&i)) outmodel=_mod&i noprint;
+    model &outcome=&covars / selection=&sel;
+  run;
+  proc printto file='junk.txt';
+  proc logistic inmodel=_mod&i;
+    score data=&dsn out=out1&i;
+  run;
+  proc logistic inmodel=_mod&i;
+    score data=bsamples(where=(replicate=&i)) out=out2&i;
+  run;
+  proc printto;run;  
+%end;
+  data bval1;
+    set %do j=1 %to &B;out1&j(in=in&j) %end;;
+	%do j=1 %to &B; if in&j then bsamp=&j; %end;
+  run;
+  data bval2;
+    set %do j=1 %to &B;out2&j(in=in&j) %end;;
+	%do j=1 %to &B; if in&j then bsamp=&j; %end;
+  run;
+
+
+proc printto file='junk.txt' new;
+proc logistic data=bval1;
+  by bsamp;
+  model &outcome=p_1;
+  ods output association=assoc1;
+run;
+
+proc logistic data=bval2;
+  by bsamp;
+  model &outcome=p_1;
+  ods output association=assoc2;
+run;
+proc logistic data=&dsn;
+  model &outcome=&covars / selection=&sel;
+  ods output association=assoc3;
+run;
+proc printto;
+
+data assoc3;
+  set assoc3;
+  bsamp=1;
+run;
+
+data optim;
+  merge assoc1(where=(label2='c') keep=bsamp label2 nvalue2 rename=(nvalue2=auc1))
+        assoc2(where=(label2='c') keep=bsamp label2 nvalue2 rename=(nvalue2=auc2))
+        assoc3(where=(label2='c') keep=bsamp label2 nvalue2 rename=(nvalue2=auc3));
+  by bsamp;
+run;
+
+proc sql;
+  select mean(auc3) as OptimisticAUC, mean(auc2-auc1) as OptimisimCorrection, 
+		 mean(auc3)-mean(auc2-auc1) as CorrectedAUC from optim;
+quit;
+
+
+%mend;
+        
+%bval(dsn=liver,outcome=complications,covars=age_at_op comorb lobeormore_code bilat_resec_code numsegs_resec,B=10);
+
+
+
+
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                         

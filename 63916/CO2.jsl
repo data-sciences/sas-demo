@@ -1,0 +1,9 @@
+CO2_dt = Open( "$SAMPLE_DATA/Time Series/CO2.jmp" );
+
+//Scatter plot of CO2 vs. Time
+CO2_dt << Bivariate(
+	Y( :CO2 ),
+	X( :Name( "Year&Month" ) ),
+	Fit Line(),
+	Fit Spline( 0.0001 )
+);

@@ -1,0 +1,1517 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="Generator" content="SAS Software Version 9.3, see www.sas.com">
+<meta http-equiv="Content-type" content="text/html; charset=windows-1252">
+<title>SAS/Graph chart of Mortality Trends</title>
+<style type="text/css">
+<!--
+.aftercaption
+{
+  background-color: #C0C0C0;
+  border-spacing: 0px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+  padding-top: 4pt;
+}
+.batch
+{
+  background-color: #D2D2D2;
+  border-bottom-color: #666666;
+  border-collapse: separate;
+  border-left-color: #DDDDDD;
+  border-right-color: #666666;
+  border-spacing: 1px;
+  border-style: outset;
+  border-top-color: #DDDDDD;
+  border-width: 9px;
+  color: #000000;
+  font-family: 'SAS Monospace', 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+  padding: 7px;
+}
+.beforecaption
+{
+  background-color: #C0C0C0;
+  border-spacing: 0px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.body
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.bodydate
+{
+  background-color: #C0C0C0;
+  border-spacing: 0px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  text-align: right;
+  vertical-align: top;
+  width: 100%;
+}
+.bycontentfolder
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: none;
+  margin-left: 6pt;
+}
+.byline
+{
+  background-color: #D2D2D2;
+  border-spacing: 0px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.bylinecontainer
+{
+  background-color: #C0C0C0;
+  border: 0px solid #000000;
+  border-spacing: 1px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  width: 100%;
+}
+.caption
+{
+  background-color: #C0C0C0;
+  border-spacing: 0px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.cell
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.container
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.contentfolder
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: none;
+  margin-left: 6pt;
+}
+.contentitem
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: none;
+  margin-left: 6pt;
+}
+.contentproclabel
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: decimal;
+}
+.contentprocname
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: decimal;
+}
+.contents
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: decimal;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.contentsdate
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  width: 100%;
+}
+.contenttitle
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.continued
+{
+  background-color: #C0C0C0;
+  border-spacing: 0px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+  text-align: left;
+  width: 100%;
+}
+.data
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.dataemphasis
+{
+  background-color: #880000;
+  color: #AAFFAA;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.dataemphasisfixed
+{
+  background-color: #880000;
+  color: #AAFFAA;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: italic;
+  font-weight: normal;
+}
+.dataempty
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.datafixed
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.datastrong
+{
+  background-color: #880000;
+  color: #AAFFAA;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.datastrongfixed
+{
+  background-color: #880000;
+  color: #AAFFAA;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: bold;
+}
+.date
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  width: 100%;
+}
+.document
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+a:link {
+color:#000080
+}
+a:visited {
+color:#800080
+}
+a:active {
+color:#800080
+}
+.errorbanner
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: bold;
+}
+.errorcontent
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.errorcontentfixed
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.extendedpage
+{
+  background-color: #C0C0C0;
+  border: 1pt solid #000000;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+  text-align: center;
+}
+.fatalbanner
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: bold;
+}
+.fatalcontent
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.fatalcontentfixed
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.folderaction
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: none;
+  margin-left: 6pt;
+}
+.footer
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.footeremphasis
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.footeremphasisfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: italic;
+  font-weight: normal;
+}
+.footerempty
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.footerfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.footerstrong
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.footerstrongfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: bold;
+}
+.frame
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.graph
+{
+  background-color: #C0C0C0;
+  border-bottom-color: #666666;
+  border-collapse: separate;
+  border-left-color: #DDDDDD;
+  border-right-color: #666666;
+  border-spacing: 1px;
+  border-style: outset;
+  border-top-color: #DDDDDD;
+  border-width: 9px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.header
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.headeremphasis
+{
+  background-color: #D2D2D2;
+  color: #A80000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.headeremphasisfixed
+{
+  background-color: #D2D2D2;
+  color: #A80000;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: italic;
+  font-weight: normal;
+}
+.headerempty
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.headerfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.headersandfooters
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.headerstrong
+{
+  background-color: #D2D2D2;
+  color: #A80000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.headerstrongfixed
+{
+  background-color: #D2D2D2;
+  color: #A80000;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: bold;
+}
+.index
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.indexaction
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: none;
+  margin-left: 6pt;
+}
+.indexitem
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: none;
+  margin-left: 6pt;
+}
+.indexprocname
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: decimal;
+}
+.indextitle
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.layoutcontainer
+{
+  border: 0px solid #000000;
+  border-spacing: 30px;
+}
+.layoutregion
+{
+  border: 0px solid #000000;
+  border-spacing: 30px;
+}
+.list
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: disc;
+  text-align: left;
+}
+.list10
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.list2
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: circle;
+  text-align: left;
+}
+.list3
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.list4
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.list5
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.list6
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.list7
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.list8
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.list9
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: square;
+  text-align: left;
+}
+.listitem
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem10
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem2
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem3
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem4
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem5
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem6
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem7
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem8
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.listitem9
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.note
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.notebanner
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: bold;
+}
+.notecontent
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.notecontentfixed
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.output
+{
+  background-color: #C0C0C0;
+  border-bottom-color: #666666;
+  border-collapse: separate;
+  border-left-color: #DDDDDD;
+  border-right-color: #666666;
+  border-spacing: 1px;
+  border-style: outset;
+  border-top-color: #DDDDDD;
+  border-width: 9px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.pageno
+{
+  background-color: #C0C0C0;
+  border-spacing: 0px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+  text-align: right;
+  vertical-align: top;
+}
+.pages
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: decimal;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+.pagesdate
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  width: 100%;
+}
+.pagesitem
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: none;
+  margin-left: 6pt;
+}
+.pagesproclabel
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: decimal;
+}
+.pagesprocname
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  list-style-type: decimal;
+}
+.pagestitle
+{
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.paragraph
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  text-align: left;
+}
+.parskip
+{
+  border: 0px solid #000000;
+  border-spacing: 0px;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.prepage
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  text-align: left;
+}
+.proctitle
+{
+  background-color: #A0A0A0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: italic;
+  font-weight: bold;
+}
+.proctitlefixed
+{
+  background-color: #A0A0A0;
+  color: #000000;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowfooter
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowfooteremphasis
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.rowfooteremphasisfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: italic;
+  font-weight: normal;
+}
+.rowfooterempty
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowfooterfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.rowfooterstrong
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowfooterstrongfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowheader
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowheaderemphasis
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: italic;
+  font-weight: normal;
+}
+.rowheaderemphasisfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: italic;
+  font-weight: normal;
+}
+.rowheaderempty
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowheaderfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.rowheaderstrong
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: normal;
+  font-weight: bold;
+}
+.rowheaderstrongfixed
+{
+  background-color: #707070;
+  color: #FFFFFF;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: bold;
+}
+.systemfooter
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter10
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter2
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter3
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter4
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter5
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter6
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter7
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter8
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemfooter9
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle10
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle2
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle3
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle4
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle5
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle6
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle7
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle8
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systemtitle9
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: large;
+  font-style: italic;
+  font-weight: bold;
+}
+.systitleandfootercontainer
+{
+  background-color: #C0C0C0;
+  border: 0px solid #000000;
+  border-spacing: 1px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  width: 100%;
+}
+.table
+{
+  background-color: #C0C0C0;
+  border-bottom-color: #666666;
+  border-collapse: separate;
+  border-left-color: #DDDDDD;
+  border-right-color: #666666;
+  border-spacing: 1px;
+  border-style: outset;
+  border-top-color: #DDDDDD;
+  border-width: 9px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.top_stacked_value
+{
+  padding-bottom: 1px;
+}
+.middle_stacked_value
+{
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.bottom_stacked_value
+{
+  padding-top: 1px;
+}
+.titleandnotecontainer
+{
+  background-color: #C0C0C0;
+  border: 0px solid #000000;
+  border-spacing: 1px;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  width: 100%;
+}
+.titlesandfooters
+{
+  background-color: #C0C0C0;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: medium;
+  font-style: italic;
+  font-weight: bold;
+}
+.usertext
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+  text-align: left;
+}
+.warnbanner
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: bold;
+}
+.warncontent
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: small;
+  font-style: normal;
+  font-weight: normal;
+}
+.warncontentfixed
+{
+  background-color: #D2D2D2;
+  color: #000000;
+  font-family: 'Courier New', Courier;
+  font-size: x-small;
+  font-style: normal;
+  font-weight: normal;
+}
+.l {text-align: left }
+.c {text-align: center }
+.r {text-align: right }
+.d {text-align: right }
+.j {text-align: justify }
+.t {vertical-align: top }
+.m {vertical-align: middle }
+.b {vertical-align: bottom }
+TD, TH {vertical-align: top }
+.stacked_cell{padding: 0 }
+-->
+</style>
+<script language="javascript" type="text/javascript">
+<!-- 
+function startup(){
+
+}
+function shutdown(){
+
+}
+
+//-->
+</script>
+
+</head>
+<body onload="startup()" onunload="shutdown()" class="body">
+
+<script language="javascript" type="text/javascript">
+<!-- 
+var _info = navigator.userAgent
+var _ie = (_info.indexOf("MSIE") > 0
+          && _info.indexOf("Win") > 0
+          && _info.indexOf("Windows 3.1") < 0);
+var _ie64 = _info.indexOf("x64") > 0
+
+//-->
+</script>
+
+<div class="branch">
+<a name="IDX"></a>
+<div>
+<map name="g5ccb1fy_map">
+<area shape="POLY" title="2002438,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="724,329,726,327,728,329,726,331,724,329,724,329">
+<area shape="RECT" title="2002438,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="724,327,728,331">
+<area shape="POLY" title="2001435,000 Male Deaths502,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="698,337,700,336,701,337,700,339,698,337,698,337">
+<area shape="RECT" title="2001435,000 Male Deaths502,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="698,336,701,339">
+<area shape="POLY" title="2000440,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="672,324,673,322,675,324,673,325,672,324,672,324">
+<area shape="RECT" title="2000440,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="671,322,675,326">
+<area shape="POLY" title="1999446,000 Male Deaths513,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="645,307,647,306,649,307,647,309,645,307,645,307">
+<area shape="RECT" title="1999446,000 Male Deaths513,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="645,306,649,309">
+<area shape="POLY" title="1998446,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="619,307,621,306,622,307,621,309,619,307,619,307">
+<area shape="RECT" title="1998446,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="619,306,622,309">
+<area shape="POLY" title="1997450,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="592,296,594,295,596,296,594,298,592,296,592,296">
+<area shape="RECT" title="1997450,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="592,295,596,298">
+<area shape="POLY" title="1996451,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="566,294,568,292,569,294,568,295,566,294,566,294">
+<area shape="RECT" title="1996451,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="566,292,570,296">
+<area shape="POLY" title="1995454,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="540,286,541,284,543,286,541,287,540,286,540,286">
+<area shape="RECT" title="1995454,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="540,284,543,287">
+<area shape="POLY" title="1994452,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="513,291,515,289,517,291,515,293,513,291,513,291">
+<area shape="RECT" title="1994452,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="513,289,517,293">
+<area shape="POLY" title="1993457,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="487,277,489,276,490,277,489,279,487,277,487,277">
+<area shape="RECT" title="1993457,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="487,276,490,279">
+<area shape="POLY" title="1992444,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="461,313,462,311,464,313,462,315,461,313,461,313">
+<area shape="RECT" title="1992444,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="461,311,464,315">
+<area shape="POLY" title="1991447,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="434,305,436,303,438,305,436,306,434,305,434,305">
+<area shape="RECT" title="1991447,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="434,303,438,306">
+<area shape="POLY" title="1990448,000 Male Deaths478,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="408,302,410,300,411,302,410,304,408,302,408,302">
+<area shape="RECT" title="1990448,000 Male Deaths478,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="408,300,411,304">
+<area shape="POLY" title="1989456,000 Male Deaths482,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="382,280,383,278,385,280,383,282,382,280,382,280">
+<area shape="RECT" title="1989456,000 Male Deaths482,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="381,278,385,282">
+<area shape="POLY" title="1988478,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="355,220,357,219,359,220,357,222,355,220,355,220">
+<area shape="RECT" title="1988478,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="355,218,359,222">
+<area shape="POLY" title="1987475,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="329,228,331,227,332,228,331,230,329,228,329,228">
+<area shape="RECT" title="1987475,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="329,227,332,230">
+<area shape="POLY" title="1986480,000 Male Deaths499,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="302,215,304,213,306,215,304,216,302,215,302,215">
+<area shape="RECT" title="1986480,000 Male Deaths499,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="302,213,306,217">
+<area shape="POLY" title="1985490,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="276,188,278,186,279,188,278,189,276,188,276,188">
+<area shape="RECT" title="1985490,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="276,186,280,189">
+<area shape="POLY" title="1984490,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="250,188,251,186,253,188,251,189,250,188,250,188">
+<area shape="RECT" title="1984490,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="250,186,253,189">
+<area shape="POLY" title="1983498,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="223,166,225,164,227,166,225,167,223,166,223,166">
+<area shape="RECT" title="1983498,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="223,164,227,168">
+<area shape="POLY" title="1982496,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="197,171,199,170,200,171,199,173,197,171,197,171">
+<area shape="RECT" title="1982496,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="197,169,200,173">
+<area shape="POLY" title="1981500,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="171,160,172,159,174,160,172,162,171,160,171,160">
+<area shape="RECT" title="1981500,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="171,159,174,162">
+<area shape="POLY" title="1980510,000 Male Deaths490,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="144,133,146,131,148,133,146,135,144,133,144,133">
+<area shape="RECT" title="1980510,000 Male Deaths490,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="144,131,148,135">
+<area shape="POLY" title="1979500,000 Male Deaths470,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="118,160,120,159,121,160,120,162,118,160,118,160">
+<area shape="RECT" title="1979500,000 Male Deaths470,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="118,159,121,162">
+<area shape="POLY" title="2002438,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="724,160,726,159,728,160,726,162,724,160,724,160">
+<area shape="RECT" title="2002438,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="724,159,728,162">
+<area shape="POLY" title="2001435,000 Male Deaths502,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="698,155,700,153,701,155,700,157,698,155,698,155">
+<area shape="RECT" title="2001435,000 Male Deaths502,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="698,153,701,157">
+<area shape="POLY" title="2000440,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="672,147,673,145,675,147,673,148,672,147,672,147">
+<area shape="RECT" title="2000440,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="671,145,675,148">
+<area shape="POLY" title="1999446,000 Male Deaths513,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="645,125,647,123,649,125,647,127,645,125,645,125">
+<area shape="RECT" title="1999446,000 Male Deaths513,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="645,123,649,127">
+<area shape="POLY" title="1998446,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="619,149,621,148,622,149,621,151,619,149,619,149">
+<area shape="RECT" title="1998446,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="619,148,622,151">
+<area shape="POLY" title="1997450,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="592,152,594,150,596,152,594,154,592,152,592,152">
+<area shape="RECT" title="1997450,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="592,150,596,154">
+<area shape="POLY" title="1996451,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="566,147,568,145,569,147,568,148,566,147,566,147">
+<area shape="RECT" title="1996451,000 Male Deaths505,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="566,145,570,148">
+<area shape="POLY" title="1995454,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="540,152,541,150,543,152,541,154,540,152,540,152">
+<area shape="RECT" title="1995454,000 Male Deaths503,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="540,150,543,154">
+<area shape="POLY" title="1994452,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="513,166,515,164,517,166,515,167,513,166,513,166">
+<area shape="RECT" title="1994452,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="513,164,517,168">
+<area shape="POLY" title="1993457,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="487,160,489,159,490,160,489,162,487,160,487,160">
+<area shape="RECT" title="1993457,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="487,159,490,162">
+<area shape="POLY" title="1992444,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="461,217,462,216,464,217,462,219,461,217,461,217">
+<area shape="RECT" title="1992444,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="461,216,464,219">
+<area shape="POLY" title="1991447,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="434,217,436,216,438,217,436,219,434,217,434,217">
+<area shape="RECT" title="1991447,000 Male Deaths479,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="434,216,438,219">
+<area shape="POLY" title="1990448,000 Male Deaths478,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="408,220,410,219,411,220,410,222,408,220,408,220">
+<area shape="RECT" title="1990448,000 Male Deaths478,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="408,218,411,222">
+<area shape="POLY" title="1989456,000 Male Deaths482,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="382,209,383,208,385,209,383,211,382,209,382,209">
+<area shape="RECT" title="1989456,000 Male Deaths482,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="381,208,385,211">
+<area shape="POLY" title="1988478,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="355,149,357,148,359,149,357,151,355,149,355,149">
+<area shape="RECT" title="1988478,000 Male Deaths504,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="355,148,359,151">
+<area shape="POLY" title="1987475,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="329,160,331,159,332,160,331,162,329,160,329,160">
+<area shape="RECT" title="1987475,000 Male Deaths500,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="329,159,332,162">
+<area shape="POLY" title="1986480,000 Male Deaths499,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="302,163,304,161,306,163,304,165,302,163,302,163">
+<area shape="RECT" title="1986480,000 Male Deaths499,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="302,161,306,165">
+<area shape="POLY" title="1985490,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="276,166,278,164,279,166,278,167,276,166,276,166">
+<area shape="RECT" title="1985490,000 Male Deaths498,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="276,164,280,168">
+<area shape="POLY" title="1984490,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="250,182,251,180,253,182,251,184,250,182,250,182">
+<area shape="RECT" title="1984490,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="250,180,253,184">
+<area shape="POLY" title="1983498,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="223,182,225,180,227,182,225,184,223,182,223,182">
+<area shape="RECT" title="1983498,000 Male Deaths492,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="223,180,227,184">
+<area shape="POLY" title="1982496,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="197,207,199,205,200,207,199,208,197,207,197,207">
+<area shape="RECT" title="1982496,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="197,205,200,208">
+<area shape="POLY" title="1981500,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="171,207,172,205,174,207,172,208,171,207,171,207">
+<area shape="RECT" title="1981500,000 Male Deaths483,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="171,205,174,208">
+<area shape="POLY" title="1980510,000 Male Deaths490,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="144,188,146,186,148,188,146,189,144,188,144,188">
+<area shape="RECT" title="1980510,000 Male Deaths490,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="144,186,148,189">
+<area shape="POLY" title="1979500,000 Male Deaths470,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="118,242,120,240,121,242,120,244,118,242,118,242">
+<area shape="RECT" title="1979500,000 Male Deaths470,000 Female Deaths " href="http://biomed.brown.edu/Courses/BI108/BI108_2005_Groups/02/mortality.htm" coords="118,240,121,244">
+</map>
+<div  class="c">
+<img src="example18.png" style=" background-color: #D1D1D1; height: 600px; width: 800px;" border="0" usemap="#g5ccb1fy_map" class="c graph">
+</div>
+</div>
+<br>
+</div>
+</body>
+</html>

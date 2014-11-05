@@ -1,0 +1,64 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_GetSetClearSelections.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Introduces how to set and clear column selections
+
+
+//   This script reviews syntax for selecting rows and
+//   introduces how to set and clear column selections.
+//   At the end, the syntax to select rows using reference columns is reviewed
+//---------------------------------------------------------------------------
+
+Candy_dt = Open( "$SAMPLE_DATA\Candy Bars.jmp" );
+//--get all names as text
+all_Names = Candy_dt << Get Column Names( string );
+
+//select all columns with grams as units, i.e., name ends with " g" 
+//--use set selected
+For( i = 1, i <= N Items( all_Names ), i++,
+	   If( Ends With( all_Names[i], " g" ),
+		   Column( i ) << Set Selected( 1 )	)
+);
+
+//--select rows(candy bars) with <= 2 g protein/oz, 49 of 75 rows
+Candy_dt << Select Where( :Protein g / :Name( "Oz/pkg" ) <= 2  );
+
+//--get a list of selected columns and a list of selected rows
+usr_SelectedCols = Candy_dt << Get Selected Columns;
+usr_SelectedRows = Candy_dt << Get Selected Rows;
+
+//----clear row selections
+Candy_dt << Clear Select;
+//clear column selection ...note no trailing S on selection or column
+Candy_dt << Clear Column Selection;
+
+//--reset previously selected rows  
+Candy_dt << Select Rows( usr_SelectedRows );
+
+//--reset previously selected columns  
+For( i = 1, i <= N Items( usr_SelectedCols ), i++,
+	   usr_SelectedCols[i] << Set Selected( 1 )
+);
+//Previous selections restored, columns with "g" in the name and protein per oz > 2  
+
+//---------------------------------------------------------------------------
+
+//Suppose you are scripting with references to columns
+protCol = Column( Candy_dt, "Protein g");
+ozCol = Column( Candy_dt, "Oz/pkg");
+//----clear row selections
+Candy_dt << Clear Select;
+
+// convert this command:
+// Candy_dt << Select Where( :Protein g / :Name( "Oz/pkg" ) <= 2  );
+//--run this statement and look at the log and errors are flagged after protCol and ozCol
+Candy_dt << Select Where( protCol / ozCol <= 2  );
+
+//--run this statement and look at the log (no errors) and the table
+Candy_dt << Select Where( protCol[] / ozCol[] <= 2  );
+
+//This is a common error to forget the empty bracket required for calculations
+//and logical tests for column references.
+
+//Close( Candy_dt, NoSave );
+

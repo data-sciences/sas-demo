@@ -1,0 +1,15 @@
+start SetMarkerShapeByGroup(DataObject dobj, VarName);
+   /* module that uses marker shape to encode category */
+   dobj.GetVarData(VarName, Group);
+   u = unique(Group);              
+   shapes = MARKER_SQUARE || MARKER_X || MARKER_TRIANGLE || 
+            MARKER_PLUS || MARKER_INVTRIANGLE ||             
+            MARKER_CIRCLE || MARKER_DIAMOND || MARKER_STAR;
+   do i = 1 to ncol(u);
+      idx = loc(Group = u[i]);
+      j = 1 + mod(i-1, ncol(shapes));
+      shape = shapes[j];
+      dobj.SetMarkerShape(idx, shape);
+   end;
+finish;
+store module=SetMarkerShapeByGroup;

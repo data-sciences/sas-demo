@@ -1,0 +1,30 @@
+start RugPlot(Plot2D p);
+   /* argument of module can be scatter plot or histogram */
+   /* draw a "rug plot" for the X variable */
+   if !Histogram.IsInstance(p) & 
+      !ScatterPlot.IsInstance(p) then                    /* 1 */
+      return;
+      
+   declare DataObject dobj;
+   dobj = p.GetDataObject();                             /* 2 */
+   p.GetVars(ROLE_X, xVarName);                          /* 3 */
+   dobj.GetVarData(xVarName, x);                         /* 4 */
+   
+   /* for scatter plot, check for nominal variables */
+   if ScatterPlot.IsInstance(p) then do;
+      p.GetVars(ROLE_Y, yVarName);
+      if dobj.IsNominal(xVarName) | 
+         dobj.IsNominal(yVarName) then                   /* 5 */
+         return;
+   end;         
+   
+   p.GetAxisViewRange(YAXIS, yMin, yMax);                /* 6 */
+   y0 = j(nrow(x),1, yMin);
+   if Histogram.IsInstance(p) then 
+      y1 = y0 + 0.05*(yMax-yMin);                        /* 7 */
+   else 
+      y1 = y0 - 0.05*(yMax-yMin);
+   p.DrawUseDataCoordinates();
+   p.DrawLine(x, y0, x, y1);                             /* 8 */
+finish;
+store module=RugPlot;

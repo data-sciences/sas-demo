@@ -1,0 +1,45 @@
+start abline(Plot2D p, a, b, attrib);
+/* Module to draw a vertical, horizontal, and diagonal lines
+ * on a scatter plot, line plot, or histogram.
+ * The form of the line is  y = a + b*x.
+ * INPUT   p: a Plot2D object: ScatterPlot, LinePlot, or Histogram
+ *         a: specifies the intercept for the line
+ *         b: specifies the slope for the line
+ *    attrib: specifies line attributes.
+ *            If attrib = ., use default attributes
+ *            If attrib = 0xRRGGBB, it specifies a color
+ *            if ncol(attrib)=3, attrib = {color,style,width}
+ *            if ncol(attrib)=4, attrib = {color,style,width,PlotRegion}
+ *            
+ * For a vertical line, a= x-intercept and b=. (MISSING).
+ * To specify multiple lines, the parameters a and b can be column vectors.
+ */
+ 
+   if nrow(a)^=nrow(b) then 
+      Runtime.Error("abline: incompatible intercepts and slopes");
+   
+   p.GetAxisViewRange(XAXIS, xMin, xMax);     /* get range of x     */
+   x0 = xMin - (xMax-xMin);  
+   xf = xMax + (xMax-xMin);
+   p.GetAxisViewRange(YAXIS, yMin, yMax);     /* get range of y     */
+   y0 = yMin - (yMax-yMin);  
+   yf = yMax + (yMax-yMin);
+   
+   p.DrawUseDataCoordinates();
+   if attrib=. then     
+      p.DrawSetPenAttributes(BLUE, DASHED, 1);/* default attributes */
+   else if ncol(attrib)=1 then             
+      p.DrawSetPenColor(attrib);              /* set color          */
+   else if ncol(attrib)>=3 then
+      p.DrawSetPenAttributes(attrib[1], attrib[2], attrib[3]);
+   if ncol(attrib)=4 then
+      p.DrawSetRegion(attrib[4]);
+   
+   do i = 1 to nrow(a);
+      if b[i]=. then                          /* vertical line      */
+         p.DrawLine(a[i], y0, a[i], yf);
+      else                                    /* horiz or diag line */
+         p.DrawLine(x0, a[i]+b[i]*x0, xf, a[i]+b[i]*xf);
+   end;
+finish;
+store module=abline;

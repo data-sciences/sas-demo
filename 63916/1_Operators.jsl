@@ -1,0 +1,52 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	1_Operators.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the functionality of some JMP operators
+
+
+Clear Globals();
+
+// Define some global variables...
+a = 1;
+b = 2;
+c = 3;
+d = 5;
+e = 8;
+
+//From this point on run one command line at a time and
+//check the Log Window or hover over Result
+// These two statements return identical results
+Result = a - b;
+Result = Subtract( a, b ); 
+
+// Lots of operator action..
+Result = -a;
+Result = a * b / c – d ^ e;
+Result = 0;
+
+// run this block of commands
+For( a = 1, a <= 100, a++,
+	Result = Result + a;
+	Show (a, Result)
+);
+// to here
+
+Result = Week Of Year( Date DMY( 20, 1, 1968 ) );
+
+Result = a;
+
+Result == a;
+a < b;
+a >= b;
+Result = a & b;
+Result = a | b;
+Result = If( Is Missing( a ), b, c );
+
+Result = List( a, b );
+Result = {a, b};
+Result = a || b;
+
+// For column vectors...
+g = [4, 7];
+Mag = Function( {g}, Sqrt( g` * g ) );
+Mag( g );

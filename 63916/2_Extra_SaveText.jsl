@@ -1,0 +1,161 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Extra_SaveText.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates saving results and File Utility functions
+
+
+// This script:
+//   - creates a summary table using tabulate
+//   - saves the results in different formats
+//   - shows how to get user Export Preferences for text files, 
+//   - sets a desired preference, save the text file
+//   - restores the original preference
+// Extras include:
+//     File Utility Functions - FileExists, CreateDirectory, DeleteDirectory, 
+//                  Files in Directory, DeleteFile
+//     Get Preferences, Current Journal,  Throw
+
+
+// Task: Find n, mean, min, max and standard deviation for each continuous column.
+// Since this program may eventually be run on a generic file, the number of 
+// continuous columns could be none or many.  
+// Candy Bars has 15 numeric continuous columns. With 5 statistics for each,
+// the resulting table is 75 values. 
+// JMP Table > Summary can create a table of 76 columns (1 column for # of rows)
+// However, stacking the continuous columns then finding the statistics by 
+// the label created from column names results in a nice manageable summary for 1 
+// or thousands of continuous variables (parameters).
+// If the table is large, stacking takes time and if data is sparse it may be 
+// inefficient.
+//
+// Tabulate may be a simpler solution.  
+//  
+// When writing code create test cases.  The JMP Sample Data has several ready made
+// files: "Big Class.jmp" has 2 continuous columns , "Semiconductor Capability.jmp"
+// has 128 continuous columns. 
+// Try Tabulate and if not happy with the results, create a stacked column and use
+// table Summary.
+
+// Define Input Path and File
+::pathIn = "$Sample_Data\";
+::fid = "Candy Bars.jmp";
+raw_dt = Open( ::pathIn || fid );
+
+NC_colList = raw_dt << get column names( Numeric, Continuous, string );
+
+If( N Items( NC_colList ) == 0,
+	str = ::pathIn || fid || " has no continuous variables ... Good Bye!";
+	Show( str );  // write to the log window
+	Caption( str ); // communicate to the user
+	Wait( 4 );
+	Caption( Remove );
+	Throw()    // program aborts
+	;
+);  // end if  
+
+
+// Create Output Path 
+// This is done after checking if there is anything to do... don't ask if unnecessary
+
+If( !File Exists( "c:\temp\test_myapp.dir" ),
+	Create Directory( "c:\temp\test_myapp" )
+);
+::pathOut = "c:\temp\test_myapp\";
+
+// perform task
+sumry_disp = raw_dt << Tabulate(
+	Add Table(
+		Column Table( Statistics( N ) ),
+		Column Table( Statistics( Mean ) ),
+		Column Table( Statistics( Std Dev ) ),
+		Column Table( Statistics( Min ) ),
+		Column Table( Statistics( Max ) ),
+		Row Table( Analysis Columns( Eval( NC_colList ) ) )
+	)
+);
+
+sumry_disp << Make into Data Table;
+sumry_tbl = Current Data Table();    // create a reference to newly created table
+//Alternately create table and reference in one statement
+//sumry_tbl = sumry_disp << Make into Data Table; 
+
+// close the display
+sumry_disp << Close Window();  
+
+// get the file name -- important when input is dynamic from a user prompt 
+ttl = raw_dt << Get Name;   
+
+// Create a name for the table
+sumry_tbl << Set Name( ttl || " Continuous Var Summary" );
+
+//this is a nice "display name" 
+//but it has spaces which may cause issues with other applications
+
+// Create a name with no spaces using Words() function
+str = Words( sumry_tbl << Get Name );   //default delimiter is spaces
+ofid = Concat Items( str, "_" );   //create a name with underscore delimiters
+
+// Command to save and keep open
+sumry_tbl << Save( ::pathOut || ofid || ".jmp" );
+
+// Save as xls
+sumry_tbl << Save( ::pathOut || ofid || ".xls" );
+
+// Save as csv
+sumry_tbl << Save( ::pathOut || ofid || ".csv" );
+
+// Save as text with comma delimiters
+// Get user Export Preferences
+xptPref = Get Preferences( Export Settings );
+
+// Set desired Export Preferences
+Preferences(
+	ExportSettings(
+		End Of Line( CRLF ),
+		End Of Field( Comma ),  //optionally try: Tab|Space|Other("|")|Other("^") etc
+		Export Table Headers( 1 )
+	)
+);
+
+// Save as .txt
+sumry_tbl << Save( ::pathOut || ofid || ".txt" );
+
+// Reset user Export Preferences
+Eval( xptPref );
+
+// Journal to keep display or create HTML table
+sumry_tbl << Journal ;
+
+// If desired, save table as a web table
+Current Journal() << SaveHTML( ::pathOut || ofid || ".htm" );
+//If saving a web display, it is better to define numeric formats in tabulate, and save 
+//the display as HTML before closing (line 72 above)
+
+// Close and do not save since it has been saved in several formats
+Close( sumry_tbl, NoSave );
+
+
+//--------- Look at your Output & Delete Files Created by this Script -------------
+fids = Files In Directory( ::pathOut, recursive );
+If( N Items( fids ) == 0,
+	Delete Directory(
+		Substr( ::pathOut, 1, Length( ::pathOut ) - 1 )
+	); //remove trailing separator (\ or /)
+	Throw();
+);  //do nothing
+
+// if files exist delete them
+For( i = 1, i <= N Items( fids ), i++,
+	Delete File( ::pathOut || fids[i] )
+);
+   
+Delete Directory(
+	Substr( ::pathOut, 1, Length( ::pathOut ) - 1 )
+);
+// remove trailing separator (\ or /)
+
+//Note JMP cannot delete any file currently locked by an application
+//For example if the .JMP file were still open in JMP, the .JMP file
+//would not be deleted and the ::pathOut directory will not be deleted.
+//Close any applications use of these files and rerun the code  below //if files 
+//to demonstrate JMP's ability to delete files and directories new in JMP 9

@@ -1,0 +1,54 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Extra_OpenHTML.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates reading a web based table using HTML Table(n)
+
+
+// The syntax to read a table from an HTML encoded page (url) is relatively easy.
+// Since formatted reports are notoriously capricious, the Try() function will be used
+// to Capture errors.  Try() and Throw() are mentioned in several sections of this book.
+// Officially, it is documented in Chapter 9, "Writing Flexible Code."
+//
+// Note: the Include() function will run a specified script which creates a 
+// journal file and saves it as HTML so there are tables to read.
+
+// HTML Table(n) -- Read HTML tables
+ 
+// Outside of JMP find and double click on CompaniesReport.htm.
+// This is an HTML report created from $Sample_Data\Companies.jmp
+//  Table Summary --> Journal
+//  Variability Chart for 2 responses with variability report enabled --> Journal
+//  Journal -- > Save as HTML 
+
+// Or browse inside of JMP using the web function 
+Web( Convert File Path( "$JSL_Companion\CompaniesReport.HTM", windows ) );
+
+// Use the right scroll bar to see the entire HTML report.
+//  Open a summary report table if it exists.
+dt7 = Try(
+	Open( "$JSL_Companion\CompaniesReport.htm", HTML Table( 1 ) ), 
+//else
+	Caption( "No tables were opened...aborting" )
+);  
+     
+           
+dt8 = Try(
+	Open( "$JSL_Companion\CompaniesReport.htm", HTML Table( 3 ) ), 
+//else
+	Caption( "Table 3 did not exist...aborting" )
+);    //var report %profit/sales
+
+// Run the following two lines to delete tables created by this script
+// The two lines are commented in case the user runs the full script at the start.
+/*
+Try( Close( dt7, NoSave ) );
+Try( Close( dt8, NoSave ) );
+*/
+
+//===================================================================================
+// If the html file does not exist, run this next command to create an HTML report.  
+
+//--Set the directory to the path for the HTML file
+currDir = Convert File Path( "$JSL_Companion", windows );
+Set Current Directory( currDir );
+Include( currDir || "2_Extra_GenerateCompaniesHTM.jsl" );

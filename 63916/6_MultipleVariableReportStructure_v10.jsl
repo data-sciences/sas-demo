@@ -1,0 +1,224 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_MultipleVariableReportStructure.jsl 
+// Version: Windows JMP 10.0.0
+// Purpose: Demonstrates syntax and statements to customize Multiple Variable reports.
+//      Using the Bivariate and Distribution platforms, this script demonstrates the
+//      differences in these two report's tree structure    
+
+
+//*   This script is a multi Y variable version of 
+//*   script Block #3 6_Navigation_dboPathSyntax.jsl
+
+body_dt = Open( "$Sample_Data\Body Measurements.jmp" );
+
+//-----------------Generate Analysis--------------------------------------------------------
+::yList = {"Fore", "Bicep", "Chest", "Waist", "Thigh"};
+A_body_biv = body_dt << Bivariate( Y( eval(yList) ), X( :Mass ) );
+B_body_dist = body_dt << Distribution( Y( eval(yList) ), Horizontal(0) );
+
+//---------------Discussion Points----------------------------------------------------------
+//  A_body_biv is no longer a Bivariate analysis but a list of
+//  5 Bivariate analyses.  However, B_body dist is still a 
+//  single Distribution analysis. 
+//  The differences are discussed in the text.
+Show( A_body_biv, B_body_dist );
+Show( Type( A_body_biv ), Type( B_body_dist ) );
+Show( A_body_biv << class name, B_body_dist << Class Name );
+
+//-------------Customize global analysis options---------------------------------------------
+//  Platform (object) messages are items listed on the pulldowns.
+//  For both A and B, if they are sent to the main object's
+//  reference JMP applies the command to all Y's
+A_body_biv << Fit Line( {Report( 0 ), Confid Shaded Fit( 1 )} );
+
+B_body_dist << {Normal Quantile Plot( 1 ), Fill Color( "Medium Dark Purple" ),
+Histogram Color( 24 ) };
+
+//The next command is not in the text. It turns off specific Distribution features
+//to keep the display simple and easier to see changes.
+B_body_dist << {Horizontal Layout(0), Quantile Box Plot(0), Outlier Box plot(1)};
+
+//-------------Show syntax for local analysis options-------------------------------------------
+//  This syntax also applies to lower level pulldowns all 5 linear fit plots
+//  will have a wide curve
+A_body_biv << (Curve[1] << Line width( 3 ));
+
+//Format "A" the main object is a list when multiple Y's or X's are analyzed.
+//To send platform messages to individual analyses number references is the easiest to use
+//These commands do *NOT* start at the grouping outline box.
+A_body_biv[1] << (Curve[1] << Line Color( "Blue" ));   //Fore is Blue
+A_body_biv[3] << (Curve[1] << Line Color( "Orange" )); //Chest is Orange
+//Note the syntax is identical starting from the top of each Bivariate.
+
+//Format "B" the main object is a distribution, each Y is a segment.
+//To send a platform message to an indidivual Y use the it's number or name.
+B_body_dist[2] << Shadowgram( 1 );
+B_body_dist["Chest"] << Shadowgram( 1 ) << Histogram Color( "Blue" );
+
+//---------Display Box Scripting Bivariate - Format "A"------------------------------------------------
+//Novice scripters usually find Format "A" easier, because the list
+//makes it easy to get to the top of each Bivariate and reference 
+// the display boxes that "belong" to it.
+
+//--- Uncomment and run the 2 statements below, to visualize this.
+//rpt_biv=report(A_body_biv[3]);
+//rpt_biv<<show tree structure;
+
+// If you look at the tree structure the numbers for each displaybox
+// are global, yet the commands below can use the same relative numbers
+// and can apply to each analsysis.
+
+//  Note: a Polynomial Fit could have been applied as one statement
+//  to A_body_biv. It is applied here to the individual biviate to
+//  demonstrate the syntax.
+For( i = 1, i <= N Items( A_body_biv ), i++,
+	A_body_biv[i] << Fit Polynomial( 2 );
+	A_body_biv[i] << {Curve[2] << Report( 0 ) << Line width( 3 ) << Line Color( "Dark Gray" )};
+//rpt here is the report for each independent bivariate 
+	rpt = A_body_biv[i] << report;
+	rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Size( 11 );
+	rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Style( "Bold" );
+	rpt[AxisBox( 2 )][Text Edit Box( 1 )] << Set Font Size( 11 );
+	rpt[AxisBox( 2 )][Text Edit Box( 1 )] << Set Font Style( "Bold" );
+);
+
+
+//--------------Display Box Scripting Distibution Format "B" -----------------------------------------
+
+//Format "B" -- Each Y analysis is a segment of the Distribution
+//Report(body_dist[3]) generates a report for all Y variables...they are not independent
+
+//--- Uncomment and run the 2 commands below, to visualize this  
+//rpt_dist=report(B_body_dist[3]);
+//rpt_dist<<show tree structure;
+
+//-------Discussion Points-----------------------------------------------------------------------------
+//The graphic for Format "B" depicts the "hidden" owner for the analyses as gray
+//Some form of a ListBox is used. For Distribution it is a "WrapListBox"
+//The owner of each distribution is a WrapList
+
+rpt_dist = Report( B_body_dist );
+
+Show( (rpt_dist[Outline Box( "Chest" )] << Parent) << Class Name );
+//-- Recall OutlineBox references can use just the name, code below same as above
+Show( (rpt_dist["Chest"] << Parent) << Class Name );
+// Note once the report exposes the addresses, each Distribution
+// and most importantly its subbordinates may be accessed.
+
+//--------Actual code--Compare to single analysis code 6_Navigation_dboPathSyntax.jsl-------------------
+//===== 2 methods to reference & customize DisplayBoxes for Format "B"
+B_body_dist << Bring Window to Front;
+
+For( i = 1, i <= N Items( ::yList ), i++,
+	rpt_dist[Outline Box( ::yList[i] )][AxisBox( 2 )] << select; 
+  //Outline Box() is needed since ::yList[i] is a variable
+	Wait( 3 );
+	rpt_dist[Outline Box( ::yList[i] )][PictureBox( 4 )][TextBox(1)] 
+	  << {Set Font Style( "Bold" ), set Font Size(11)};
+	rpt_dist[Outline Box( ::yList[i] )][AxisBox( 2 )] << deselect;
+	rpt_dist[Outline Box( ::yList[i] )][AxisBox( 1 )] << Add Axis Label( ::yList[i] );
+	rpt_dist[Outline Box( ::yList[i] )][AxisBox( 1 )][Text Edit Box( 1 )] 
+	  << {Set Font Size( 11 ), Set Font Style( "Bold" ), Rotate Text (Horizontal)};
+//	rpt_dist[Outline Box( ::yList[i] )][AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Style( "Bold" );
+);
+
+//JMP did not provide the list of Distributions. The scripter can 
+//use the list of Y variable names or the variable number order.
+
+// The code below is an alternative to above (without the highlighting)
+/* If you run both the code above and this below you will get another axis label, use one or the other
+B_body_dist << Bring Window to Front;
+For( i = 1, i <= N Items( ::yList ), i++,
+	rpt = rpt_dist[Outline Box( ::yList[i] )];
+	rpt[AxisBox( 1 )] << Add Axis Label( ::yList[i] );
+	rpt[AxisBox( 1 )][Text Edit Box( 1 )]  
+		 << {Set Font Size( 11 ), Set Font Style( "Bold" ), Rotate Text (Horizontal)};
+	rpt[PictureBox( 4 )][TextBox(1)] << {Set Font Style( "Bold" ), set Font Size(11)};
+);
+*/
+
+//------------Example Code for Parent Child Sib
+//== #2 Use Parent Child relationships
+//  Look at the tree structure. The text "Normal Quantile Plot" is 
+//  in a Text Box and not a TextEdit Box and it is not nested within an AxisBox(1)
+//  Format "B" OutlineBox(2) is the first analyses.  Equivalent references are 
+//  (rpt_dist[OutlineBox(2)] << Parent) or rpt_dist[1]  or rpt_dist[WrapListBox(1)]   
+B_body_dist << Bring Window to Front;
+rpt_dist = Report( B_body_dist );
+cur_dist = (rpt_dist[Outline Box( 2 )] << Parent) << Child;
+
+//--------------JMP 10 change---------------------------------------------- 
+//The JMP10 Distribution platform prepends a SpacerBox for each Y variable.
+//This highlights the weakness of transversing by relative path.  Referencing
+//each distributions by variable name is more robust than accessing each 
+//display box one at a time.
+//A few simple checks are made: class name must be OutlineBox and title, variable name.
+//JMP10 now calls the Moments table Summary Statistics. The tree structure shows that
+//either name Moments or Summary Statistics can be used in JMP10 to reference that portion
+//of the report layer. 
+While( !Is Empty( cur_dist ),
+    cur_dist << select;
+    If( (cur_dist << class name) =="OutlineBox",
+      If(Contains(::yList, (cur_dist << get title)),
+    	cur_dist[Text Box( 1 )] << Set Font Size( 10 ) << Set Font Style( "Bold" );
+	    wait(2) ;
+	  )
+	);
+	cur_dist << deselect;
+	cur_dist = (cur_dist << sib);     //get its sibling, its brother to the right
+);   
+
+//-------------Compare this code to a single analysis.  Statemenets were added to check whether 
+// a CDF plot makes sense. Just in case, the list of Y variables includes nominal or ordinal Y variables.     
+//---Extra customize each distribution with CDF Plot add one at a time.
+B_body_dist << Bring Window to Front;
+For( i = 1, i <= N Items( ::yList ), i++,
+  if((column(body_dt,::yList[i]) << get Modeling Type) != "Continuous",
+  	Continue  //skip the CDF plot if not continuous...
+  );
+   B_body_dist[::yList[i] ]<< CDF Plot(1); 
+   rpt_dist = Report( B_body_dist );  //Regenerate references as recommended.
+   rpt_B = rpt_dist[Outline Box( ::yList[i] )];
+  //Outline Box() is needed since ::yList[i] is a variable
+   stats = rpt_B["Moments"][TableBox(1)] <<Get As Matrix;
+   B_body_dist << {Quantiles(0), Moments(0)};
+// ----Alternate JMP 10 syntax- replace Moments with Summary Statistics
+/*  
+   stats = rpt_B["Summary Statistics"][TableBox(1)] <<Get As Matrix;
+   B_body_dist << {Quantiles(0), Summary Statistics(0)};
+*/   
+   rpt_B[OutlineBox(::yList[i]) ] << Set Title (::yList[i]  
+     || " Mean = " || Char(stats[1], 5,2)
+     || "  StdDev = " || Char(stats[2], 5,2) );
+//--Note if you change the outline box search string you must adjust
+rpt_B = B_body_dist << Report;
+rpt_cdf =  rpt_B[OutlineBox(::yList[i] ||"?")]["CDF?"] [PictureBox(1)]; 
+rpt_cdf[ScaleBox(2)] << 
+{Scale( "Normal" ), Format( "Best", 5 ),
+	Min( 0.00620966532577616 ),
+	Max( 0.993790334674224 ), Inc( 1 ), Minor Ticks( 1 ),
+	Add Ref Line( 0.05, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.02, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.95, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.96, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.97, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.98, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.91, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.92, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.93, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.94, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.99, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.09, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.08, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.07, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.6, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.06, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.04, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.03, Solid, {187, 187, 187} ),
+	Add Ref Line( 0.01, Solid, {187, 187, 187} ), 
+	Show Major Grid( 1 ), Show Minor Grid( 1 )};
+rpt_CDF[PictureBox(1)][AxisBox(1)][TextEditBox(1)] 
+   << {SetFontSize(11), SetFontStyle("Bold")};
+rpt_CDF[PictureBox(1)][AxisBox(2)][TextEditBox(1)] 
+   << {SetFontSize(11), SetFontStyle("Bold")};
+);

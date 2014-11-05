@@ -1,0 +1,68 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_Formulas.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates the use of formula, their evaluation and suppression
+
+
+signers_dt = Open("$JSL_Companion\SignersDeclarationofIndependence.jmp");
+signers_dt = Data Table( "SignersDeclarationofIndependence" );
+
+//----------  Add a formula when the New Column is created  ----------
+init_col = signers_dt << New Column( "Initials",
+	Character,
+	Nominal,
+	Width( 5 ),
+	Formula(
+		Substr( Item( 1, :Signer ), 1, 1 ) || Substr( Item( 2, :Signer, " ," ), 1, 1 ) ||
+		Substr( Item( 3, :Signer, " ," ), 1, 1 )
+	),
+	Eval Formula
+);
+	
+//----------  Add the formula to the New Column after it is created  ----------
+init_col = signers_dt << New Column( "Initials", Character, Nominal, Width( 5 ) );
+init_col << Formula(
+	Substr( Item( 1, :Signer ), 1, 1 ) || Substr( Item( 2, :Signer, " ," ), 1, 1 ) ||
+	Substr( Item( 3, :Signer, " ," ), 1, 1 )
+);
+init_col << Eval Formula;
+
+//----------  Get the formula and assign the formula to init_form  ----------
+init_form = init_col << Get Formula;
+
+//Delete the formula from the column, this retains the values in the column
+init_col << Delete Formula;
+
+//----------  Delete Column  ----------
+signers_dt << Delete Columns( "Initials" );
+
+//----------  Execute all formulas in a data table  ----------
+signers_dt << Run Formulas;
+
+//Control formula evaluation
+signers_dt << Suppress Formula Eval( 1 );   //formulas not evaluated
+signers_dt << Suppress Formula Eval( 0 );   //formulas evaluated
+
+//Use Set Each Value rather than a column formula
+//The syntax for Set Each Value is identical to setting a formula
+init_col = signers_dt << New Column( "Initials", Character, Nominal, Width( 5 ) );
+init_col << Set Each Value(
+	Substr( Item( 1, :Signer ), 1, 1 ) || Substr( Item( 2, :Signer, " ," ), 1, 1 ) ||
+	Substr( Item( 3, :Signer, " ," ), 1, 1 )
+);
+
+//----------  USING VARIABLES IN FORMULAS  ----------
+candybars_dt = Open("$SAMPLE_DATA\Candy Bars.jmp");
+cal_fat_slope = 8;
+cal_fat_int = 140;
+
+//Uses variables in the formula
+candybars_dt << New Column( "Line using Total fat",
+	Numeric,
+	Continuous,
+	Formula( cal_fat_int +  cal_fat_slope  * :Total fat g )
+);
+
+//Uses values of the variables in the formula
+form_Expr = Expr(Column("Line using Total fat") << Formula(Expr(cal_fat_int) +  Expr(cal_fat_slope)  * :Total fat g));
+Eval(EvalExpr(form_Expr));

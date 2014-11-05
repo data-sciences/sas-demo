@@ -1,0 +1,13 @@
+
+DOE(
+	Custom Design,
+	{Add Response( "Match Target", "Thickness", 0.7, 1.1, 1 ), Add Response( "Match Target", "L*", 8, 12, 1 ),
+	Add Response( "Match Target", "a*", 0, 4, 1 ), Add Response( "Match Target", "b*", -2, 2, 1 ),
+	Add Factor( Continuous, 60, 90, "Anodize Temp", 0 ), Add Factor( Continuous, 20, 40, "Anodize Time", 0 ),
+	Add Factor( Continuous, 170, 205, "Acid Conc", 0 ), Add Factor( Continuous, 5, 6.5, "Dye pH", 0 ),
+	Add Factor( Continuous, 10, 15, "Dye Conc", 0 ), Set Random Seed( 31675436 ), Number of Starts( 40 ),
+	Add Term( {1, 0} ), Add Term( {1, 1} ), Add Term( {2, 1} ), Add Term( {3, 1} ), Add Term( {4, 1} ),
+	Add Term( {5, 1} ), Add Term( {1, 1}, {2, 1} ), Add Term( {1, 1}, {3, 1} ), Add Term( {2, 1}, {3, 1} ),
+	Add Term( {4, 1}, {5, 1} ), Set Sample Size( 10 ), Make Design, Center Points( 2 ), Make Table}
+);
+

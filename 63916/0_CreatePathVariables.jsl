@@ -1,0 +1,19 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	0_CreatePathVariables. jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Defines a path variable that is used in several JSL Companion scripts.
+
+
+//  After you download the JSL Companion scripts and data, run this script, and point to your download.
+//  If you do not have this path variable defined, then the path in several script will need to be modified "manually".
+
+usrDir = Pick Directory("Select the directory where you stored JSL Companion Support scripts and data ");
+
+Set Path Variable ("JSL_Companion", usrDir);
+
+//once the script above is run, you specify this path variable with $JSL_Companion
+open("$JSL_Companion/2_ReadData.jsl"); 
+open("$JSL_Companion/Deli Items.jmp"); 
+
+//A JMP table titled JSL_Companion_Scripts.jmp is included in the downloaded
+//files.  It is useful when searching for and running scripts.

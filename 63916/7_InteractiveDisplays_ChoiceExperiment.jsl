@@ -1,0 +1,187 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_InteractiveDisplays_ChoiceExperiment.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for creating interactive dialogs and retrieving user input 
+
+/*
+
+This script creates a survey for a choice experiment.  This choice experiment example is documented
+in the JMP Design of Experiments Guide in the chapter on Discrete Choice Designs.
+
+The script creates a dialog requesting personal information and 8 choice questions.  
+When completed a button box can be selected that produces a JMP table 
+with the personal information and the results of the questions.
+
+*/
+
+Clear Globals();
+user_name = "Unknown";
+choice_win = New Window( "Laptop Choice Experiment Questions",
+	tb1 = Text Box( "Laptop Preferences" ),
+	Text Box( " " ), 
+	//Gather personal information
+	Panel Box( "Personal Information",
+		V List Box(
+			Lineup Box(
+				2,
+				Text Box( "Name:" ),
+				teb_name = Text Edit Box( "Last, First", <<Script(user_name = teb_name<<Get Text) ),
+				Text Box( "Age:" ),
+				teb_age = Number Edit Box( 29 ),
+				Text Box( "Gender: " ),
+				rb_gender = (Radio Box( {"Male", "Female"} ))
+
+			)
+		)
+	),
+	//Provide instructions and ask for preferences
+	Panel Box( "Instructions",
+		Text Box( " " ),
+		tb2 = Text Box(
+			"Please select your preference between the two options for a personal laptop computer.  The four attributes of interest are disk size, speed, battery life, and price."
+		),
+		Text Box( " " ), 
+		tb3 = Text Box("The options are Disk Size: 40GB or 80GB; Speed: 1.5GHz or 2.0GHz; Battery Life: 4hrs or 6hrs; Price: $1,000, $1,200, or $1,500")
+	),
+	V List Box(
+		H List Box(
+			Panel Box( "8 Choices",
+				Scroll Box(
+					size( 600, 320 ),
+					Lineup Box(
+						NCol(2), Spacing(20), 
+						tb4 = Text Box(
+							"Preference 1:\!N1:  40GB hard drive, 1.5GHz processor speed, 6hrs battery life, cost $1,000 \!N2:  80GB hard drive, 1.5GHz processor speed, 4hrs battery life, cost $1,200"
+					
+						),
+						rb1 = Radio Box( {"1", "2"} ),
+						tb5 = Text Box(
+							"Preference 2:\!N1:  40GB hard drive, 1.5GHz processor speed, 4hrs battery life, cost $1,500 \!N2:  80GB hard drive, 2.0GHz processor speed, 4hrs battery life, cost $1,200"
+						),
+						rb2 = Radio Box( {"1", "2"} ),
+						tb6 = Text Box(
+							"Preference 3:\!N1:  40GB hard drive, 2.0GHz processor speed, 4hrs battery life, cost $1,200 \!N2:  80GB hard drive, 2.0GHz processor speed, 6hrs battery life, cost $1,500"
+						),
+						rb3 = Radio Box( {"1", "2"} ),
+						tb7 = Text Box(
+							"Preference 4:\!N1:  40GB hard drive, 2.0GHz processor speed, 4hrs battery life, cost $1,000 \!N2:  80GB hard drive, 1.5GHz processor speed, 6hrs battery life, cost $1,200"
+						),
+						rb4 = Radio Box( {"1", "2"} ),
+						tb8 = Text Box(
+							"Preference 5:\!N1:  40GB hard drive, 1.5GHz processor speed, 6hrs battery life, cost $1,000 \!N2:  40GB hard drive, 2.0GHz processor speed, 4hrs battery life, cost $1,500"						
+						),
+						rb5 = Radio Box( {"1", "2"} ),
+						tb9 = Text Box(
+							"Preference 6:\!N1:  40GB hard drive, 2.0GHz processor speed, 6hrs battery life, cost $1,200 \!N2:  80GB hard drive, 1.5GHz processor speed, 4hrs battery life, cost $1,500"
+						),
+						rb6 = Radio Box( {"1", "2"} ),
+						tb10 = Text Box(
+							"Preference 7:\!N1:  40GB hard drive, 2.0GHz processor speed, 6hrs battery life, cost $1,500 \!N2:  80GB hard drive, 1.5GHz processor speed, 4hrs battery life, cost $1,000"
+						),
+						rb7 = Radio Box( {"1", "2"} ),
+						tb11 = Text Box(
+							"Preference 8:\!N1:  40GB hard drive, 1.5GHz processor speed, 4hrs battery life, cost $1,200 \!N2:  80GB hard drive, 2.0GHz processor speed, 4hrs battery life, cost $1,000"
+						),
+						rb8 = Radio Box( {"1", "2"} )
+					)
+				)
+			),
+			//Create data table of personal information and responses
+			Panel Box( "Action",
+				Button Box( "Create Data Table", 
+				//Get Responses
+				teb_a = teb_age << Get;
+				rb_gend = rb_gender << Get;
+				if(rb_gend == 1, gend = "Male", gend = "Female");
+				resp_lst = {};
+				for(i=1, i<=8, i++, 
+					tmp = (As Name("rb"||Char(i)));
+					tmp2 = tmp << Get;
+					If(tmp2 == 1, Insert Into(resp_lst, {1,0} ),Insert Into(resp_lst, {0,1} )  )
+				);
+				
+				//Create new data table with responses
+				resp_dt = New Table( "Laptop Preferences",
+					Add Rows( 16 ),
+				New Column( "Name",
+					Character,
+					Nominal,
+					Set Each Value( user_name )
+				),
+				New Column( "Age",
+					Numeric,
+					Nominal,
+					Format( "Best", 10 ),
+					Set Each Value( teb_a )
+				),
+				New Column( "Gender",
+					Character,
+					Nominal,
+					Set Each Value( gend )
+				),
+				New Column( "Choice Set",
+					Numeric,
+					Nominal,
+					Format( "Best", 10 ),
+					Set Values( [1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8] )
+				),
+				New Column( "Response indicator",
+					Numeric,
+					Nominal,
+					Format( "Best", 10 ),
+					Set Values( resp_lst )
+				),
+				New Column( "Disk Size",
+					Character,
+					Nominal,
+					Set Values(
+					{"40 GB", "80 GB", "40 GB", "80 GB", "40 GB", "80 GB", "40 GB", "80 GB",
+					"40 GB", "40 GB", "40 GB", "80 GB", "40 GB", "80 GB", "40 GB", "80 GB"}
+					)
+				),
+				New Column( "Speed",
+					Character,
+					Nominal,
+					Set Values(
+					{"1.5 GHz", "1.5 GHz", "1.5 GHz", "2.0 GHz", "2.0 GHz", "2.0 GHz",
+					"2.0 GHz", "1.5 GHz", "1.5 GHz", "2.0 GHz", "2.0 GHz", "1.5 GHz",
+					"2.0 GHz", "1.5 GHz", "1.5 GHz", "2.0 GHz"}
+					)
+				),
+				New Column( "Battery Life",
+					Character,
+					Nominal,
+					Set Values(
+					{"6 Hrs", "4 Hrs", "4 Hrs", "4 Hrs", "4 Hrs", "6 Hrs", "4 Hrs", "6 Hrs",
+					"6 Hrs", "4 Hrs", "6 Hrs", "4 Hrs", "6 Hrs", "4 Hrs", "4 Hrs", "4 Hrs"}
+					)
+				),
+				New Column( "Price",
+					Character,
+					Nominal,
+					Set Values(
+					{"$1,000", "$1,200", "$1,500", "$1,200", "$1,200", "$1,500", "$1,000",
+					"$1,200", "$1,000", "$1,500", "$1,200", "$1,500", "$1,500", "$1,000",
+					"$1,200", "$1,000"}
+					)
+				));
+				),
+				Button Box( "Cancel", choice_win << CloseWindow )
+				)
+		)
+	)
+);
+	
+
+tb1 << set font( "Calibri" ) << set Font size( 14 )  << set font style("Bold");
+tb2 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 480 );
+tb3 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 480 );
+tb4 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+tb5 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+tb6 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+tb7 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+tb8 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+tb9 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+tb10 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+tb11 << set font( "Calibri" ) << set Font size( 12 ) << set wrap( 550 );
+

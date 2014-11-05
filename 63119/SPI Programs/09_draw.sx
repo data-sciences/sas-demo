@@ -1,0 +1,427 @@
+
+   /********************************************************************/
+   /********** Drawing on a Graph **********/
+
+   /* create a scatter plot */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Vehicles");
+
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "Engine_Liters", "Mpg_Hwy");
+
+
+   /* call SAS procedure to model relationship between variables */
+   submit;
+   ods exclude ModelANOVA;
+   proc glm data=Sasuser.Vehicles;
+      model Mpg_Hwy = Engine_Liters | Engine_Liters;
+      output out=GLMOut P=Pred R=Resid;
+   quit;
+   endsubmit; 
+
+   /* read results and overlay curve on graph of data */
+   use GLMOut;
+   read all var {"Engine_Liters" "Pred"};                  /* 1 */
+   close GLMOut;
+   
+   /* need to sort data by X variable before plotting */
+   m = Engine_Liters || Pred;                              /* 2 */
+   call sort(m, 1);                                        /* 3 */
+   p.DrawUseDataCoordinates();                             /* 4 */
+   p.DrawSetPenColor(BLUE);                                /* 5 */
+   p.DrawLine(m[,1], m[,2]);                               /* 6 */
+
+
+   /* draw a rectangle on a scatter plot */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Vehicles");
+   
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "Engine_Liters", "Mpg_Hwy");
+   p.DrawRectangle(1, 12, 7.2, 20);       /* wrong coordinate system! */
+
+   /* draw a rectangle on a scatter plot (correct version) */
+   p.DrawUseDataCoordinates();             /* specify data coordinates */
+   p.DrawRectangle(1, 12, 7.2, 20);        /* draw rectangle           */
+
+
+
+   /* create a box plot for each MPAA rating */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   
+   declare BoxPlot box;
+   box = BoxPlot.Create(dobj, "MPAARating", "US_Gross");
+
+
+   /* compute mean of revenue for each rating category */
+   use Sasuser.Movies;                /* or use dobj.GetVarData()      */
+   read all var {"MPAARating" "US_Gross"};
+   close Sasuser.Movies;  
+
+   u = unique(MPAARating);            /* find the MPAA categories      */
+   NumGroups = ncol(u);               /* how many categories?          */
+   GrossMean = j(1,NumGroups);        /* allocate a vector for results */
+   do i = 1 to NumGroups;             /* for each group...             */
+      idx = loc(MPAARating=u[i]);     /* find the movies in that group */
+      m = US_Gross[idx];
+      GrossMean[i] = m[:];            /* compute group mean            */
+   end;
+   print GrossMean[c=u];
+
+   box.GetAxisViewRange(YAXIS, YMin, YMax); 
+   box.DrawUseNormalizedCoordinates(0, 1, YMin, YMax);
+
+   /* compute coordinates of horizontal centers of boxes */
+   dX = 1/NumGroups;                  /* 1/5, in this example  */
+   BinEdges = (0:NumGroups-1)*dX;     /* 0, 1/5, ..., 4/5      */
+   XCenters =  BinEdges + dX/2;       /* 1/10, 3/10, ..., 9/10 */
+   print BinEdges, XCenters;
+
+   box.DrawMarker(XCenters, GrossMean, MARKER_CIRCLE, 8);
+   box.SetTitleText("Markers Indicate Mean US Revenue", true);
+
+
+   /* create a scatter plot; overlay curve */
+   submit;
+   ods exclude ModelANOVA;
+   proc glm data=Sasuser.Vehicles;
+      model Mpg_Hwy = Engine_Liters | Engine_Liters;
+      output out=GLMOut P=Pred lcl=Lower ucl=Upper;         /* 1 */ 
+   quit;
+
+   /* need to sort data by explanatory (X) variable before plotting */
+   proc sort data=GLMOut;                                   /* 2 */
+      by Engine_Liters;
+   run;
+   endsubmit;
+   
+   use GLMOut;
+   read all var {"Engine_Liters" "Mpg_Hwy" 
+                 "Pred" "Lower" "Upper"};                   /* 3 */
+   close GLMOut;
+   
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Work.GLMOut");
+   
+   declare ScatterPlot p;                                   /* 4 */
+   p = ScatterPlot.Create(dobj, "Engine_Liters", "Mpg_Hwy");
+   p.DrawUseDataCoordinates();                
+   p.DrawSetPenColor(BLUE);                   
+   p.DrawLine(Engine_Liters, Pred);           
+
+   /* draw 95% prediction band */
+   p.DrawSetRegion(PLOTBACKGROUND);                         /* 5 */
+   p.DrawSetBrushColor(200,200,200);                        /* 6 */
+   p.DrawSetPenStyle(OFF);                                  /* 7 */
+
+   /* create a polygon defined by the upper/lower prediction limits */
+   n = nrow(Engine_Liters);
+   x = Engine_Liters // Engine_Liters[n:1];                 /* 8 */
+   y = Lower // Upper[n:1];
+   p.DrawPolygon(x, y, true);                               /* 9 */
+
+   /* draw simple legend */
+   p.DrawSetPenAttributes(BLACK, SOLID, 1);                /* 10 */
+   p.DrawSetRegion(GRAPHFOREGROUND);                       /* 11 */
+   p.DrawSetTextAlignment(ALIGN_LEFT, ALIGN_CENTER);       /* 12 */
+   p.DrawText(80, 5, "95% Prediction Band");               /* 13 */
+   p.DrawRectangle(75, 3, 79, 7, true);                    /* 14 */
+
+
+   /********************************************************************/
+   /********** Drawing Legends and Insets **********/
+
+
+   /* set markers shape and color based on whether hybrid-electric */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser", "vehicles");
+   
+   /* traditional = black circle; hybrid = blue star */
+   dobj.GetVarData("Hybrid", h);
+   dobj.SetMarkerShape(loc(h=0), MARKER_CIRCLE);
+   dobj.SetMarkerShape(loc(h=1), MARKER_STAR);
+   dobj.SetMarkerColor(loc(h=1), BLUE);
+   
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "Mpg_City", "Mpg_Hwy");
+   p.SetMarkerSize(6);
+
+   /* draw regression lines for traditional and hybrid-electric */
+   /* traditional = solid black; hybrid = dashed blue */
+   x = {5 65};                  /* min and max for Mpg_City            */
+   y0 = 2.71 + 1.20*x;          /* regression for traditional vehicles */
+   y1 = 7.36 + 0.74*x;          /* regression for hybrid-electric      */
+   p.DrawUseDataCoordinates();
+   p.DrawSetPenAttributes(BLACK, SOLID, 1);
+   p.DrawLine(x, y0);
+   p.DrawSetPenAttributes(BLUE, DASHED, 1);
+   p.DrawLine(x, y1);
+
+
+   /* define arguments for DrawLegend module */
+   Labels = {"Traditional" "Hybrid-Electric"};
+   LabelSize = 12;                /* size of font                      */
+   LineColor = BLACK || BLUE;  
+   LineStyle = SOLID || DASHED;
+   Symbol    = MARKER_CIRCLE || MARKER_STAR;
+   BackgroundColor = -1;          /* -1 means "transparent background" */
+   Location  = "IRB";             /* Inside, Right, Bottom             */
+   
+   run DrawLegend(p, Labels, LabelSize, LineColor, LineStyle, 
+                  Symbol, BackgroundColor, Location);
+
+   LabelProps = j(5, 1, .);   /* use default values for labels         */
+   LabelProps[1] = 12;        /* override size of font                 */
+
+   /* define arguments for DrawInset module */
+   Labels = {"Slope: Traditional" "Slope: Hybrid-Electric"};
+   Values = {1.2 0.74};       /* values associated with labels         */
+   LabelProps = j(5, 1, .);   /* use default values for labels         */
+   LabelProps[1] = 12;        /* override size of font                 */
+
+   LabelTypeface = "";        /* empty string means "default typeface" */
+   BackgroundColor = -1;      /* -1 means "transparent background"     */
+   Location  = "ILT";         /* Inside, Left, Top                     */
+   run DrawInset(p, Labels, Values, LabelProps, 
+                 LabelTypeface, BackgroundColor, Location);
+
+   /* determine whether to use default value for a module argument */
+   DefaultArgValue = 12345;       /* define default value for argument */
+   if type(arg)='U' then          /* arg is empty matrix, use default  */
+      argValue = DefaultArgValue;
+   else if arg=. then             /* arg is missing value, use default */
+      argValue = DefaultArgValue;
+   else 
+      argValue = arg;             /* use value passed into module      */
+
+
+   /********************************************************************/
+   /********** Adjusting Graph Margins **********/
+
+   /* get and set margins in the graph area */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser", "vehicles");
+   
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "Mpg_City", "Mpg_Hwy");
+
+   p.GetGraphAreaMargins(left, right, top, bottom);
+   print left right top bottom;
+   p.SetGraphAreaMargins(0.1, 0.15, -1, 0.12);
+
+
+   /********************************************************************/
+   /********** A Module to Add  Lines to a Graph **********/
+
+
+   /* Module to draw a vertical, horizontal, and diagonal lines
+    * on a scatter plot, line plot, or histogram.
+    * The form of the line is  y = a + b*x.
+    * INPUT   p: a Plot2D object: ScatterPlot, LinePlot, or Histogram
+    *         a: specifies the intercept for the line
+    *         b: specifies the slope for the line
+    *    attrib: specifies line attributes.
+    *            If attrib = ., use default attributes
+    *            If attrib = 0xRRGGBB, it specifies a color
+    *            if ncol(attrib)=3, attrib = {color,style,width}
+    *            if ncol(attrib)=4, attrib = {color,style,width,PlotRegion}
+    *            
+    * For a vertical line, a= x-intercept and b=. (MISSING).
+    * To specify multiple lines, the parameters a and b can be column vectors.
+    */
+   start abline(Plot2D p, a, b, attrib);
+      if nrow(a)^=nrow(b) then 
+         Runtime.Error("abline: incompatible intercepts and slopes");
+      
+      p.GetAxisViewRange(XAXIS, xMin, xMax);     /* get range of x     */
+      x0 = xMin - (xMax-xMin);  
+      xf = xMax + (xMax-xMin);
+      p.GetAxisViewRange(YAXIS, yMin, yMax);     /* get range of y     */
+      y0 = yMin - (yMax-yMin);  
+      yf = yMax + (yMax-yMin);
+      
+      p.DrawUseDataCoordinates();
+      if attrib=. then     
+         p.DrawSetPenAttributes(BLUE, DASHED, 1);/* default attributes */
+      else if ncol(attrib)=1 then             
+         p.DrawSetPenColor(attrib);              /* set color          */
+      else if ncol(attrib)>=3 then
+         p.DrawSetPenAttributes(attrib[1], attrib[2], attrib[3]);
+      if ncol(attrib)=4 then
+         p.DrawSetRegion(attrib[4]);
+      
+      do i = 1 to nrow(a);
+         if b[i]=. then                          /* vertical line      */
+            p.DrawLine(a[i], y0, a[i], yf);
+         else                                    /* horiz or diag line */
+            p.DrawLine(x0, a[i]+b[i]*x0, xf, a[i]+b[i]*xf);
+      end;
+   finish;
+
+
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "Mpg_City", "Mpg_Hwy");
+   p.SetMarkerSize(6);
+
+   /* draw regression lines for traditional and hybrid-electric */
+   attrib = BLACK || SOLID || 1;          /* traditional = solid black */
+   run abline(p, 2.71, 1.20, attrib);     /* y = 2.71 + 1.20*x         */
+
+   attrib = BLUE || DASHED || 1;          /* hybrid = dashed blue      */
+   run abline(p, 7.36, 0.74, attrib);     /* y = 7.36 + 0.74*x         */
+
+
+   /********************************************************************/
+   /********** Case Study: A Module to Draw a Rug Plot on a Graph **********/
+
+
+   /* argument of module can be scatter plot or histogram */
+   start RugPlot(Plot2D p);
+      /* draw a "rug plot" for the X variable */
+      if !Histogram.IsInstance(p) & 
+         !ScatterPlot.IsInstance(p) then                    /* 1 */
+         return;
+         
+      declare DataObject dobj;
+      dobj = p.GetDataObject();                             /* 2 */
+      p.GetVars(ROLE_X, xVarName);                          /* 3 */
+      dobj.GetVarData(xVarName, x);                         /* 4 */
+      
+      /* for scatter plot, check for nominal variables */
+      if ScatterPlot.IsInstance(p) then do;
+         p.GetVars(ROLE_Y, yVarName);
+         if dobj.IsNominal(xVarName) | 
+            dobj.IsNominal(yVarName) then                   /* 5 */
+            return;
+      end;         
+      
+      p.GetAxisViewRange(YAXIS, yMin, yMax);                /* 6 */
+      y0 = j(nrow(x),1, yMin);
+      if Histogram.IsInstance(p) then 
+         y1 = y0 + 0.05*(yMax-yMin);                        /* 7 */
+      else 
+         y1 = y0 - 0.05*(yMax-yMin);
+      p.DrawUseDataCoordinates();
+      p.DrawLine(x, y0, x, y1);                             /* 8 */
+   finish;
+
+   /* draw rug plot on scatter plot and histogram */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   
+   declare ScatterPlot scat;
+   scat = ScatterPlot.Create(dobj, "ReleaseDate", "Budget");
+   run RugPlot(scat);
+
+   declare Histogram hist;
+   hist = Histogram.Create(dobj, "Budget");
+   run RugPlot(hist);
+
+
+   /********************************************************************/
+   /********** Case Study: Plotting a Density Estimate **********/
+
+
+   DSName = "Sasuser.Vehicles";
+   VarName = "Engine_Liters";
+   Bandwidth = "MISE";
+   run ComputeKDE(x, f, DSName, VarName, Bandwidth); 
+
+
+   /* overlay density estimate on histogram */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet(DSName);     /* 1 */
+
+   declare Histogram hist;                       
+   hist = Histogram.Create(dobj, VarName);                /* 2 */
+
+   hist.ShowDensity(); /* display density instead of frequency */
+   hist.DrawUseDataCoordinates();
+   hist.DrawLine(x, f);                                   /* 3 */
+
+
+   /********************************************************************/
+   /********** Case Study: Plotting a Loess Curve **********/
+
+
+   /* create a scatter plot */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "ReleaseDate", "Budget");
+
+
+   /* compute loess curve for data */
+   submit;
+   proc loess data=Sasuser.Movies;
+      model Budget = ReleaseDate / select=AICC(presearch);  /* 1 */
+      score;                                                /* 2 */
+      ods output ScoreResults=LoessOut;                     /* 3 */
+      ods select SmoothingCriterion FitSummary; 
+   run;
+   
+   proc sort data=LoessOut;                                 /* 4 */
+      by ReleaseDate;
+   run;
+   endsubmit;
+
+
+   /* overlay loess curve on scatter plot */
+   use LoessOut;
+   read all var {"ReleaseDate" "P_Budget"};
+   close LoessOut;
+   
+   p.DrawUseDataCoordinates();
+   p.DrawSetPenColor(BLUE);   
+   p.DrawLine(ReleaseDate, P_Budget);
+
+   /********************************************************************/
+   /********** Changing Tick Positions for a Date Axis **********/
+
+   /* plot tick marks at beginning of each month when data has DATE format */
+   xData = ReleaseDate;                                    /* 5  */
+   fmt = "DATE7.";
+
+   allX = min(xData):max(xData);                           /* 6  */
+   allXText = putn(allX, fmt);                             /* 7  */
+
+   q = substr(allXText, 1, 2);                             /* 8  */
+   idx = loc(q="01");                                      /* 9  */
+   pos = allX[idx];
+   values = allXText[idx];
+   print (pos[1:5])[label= "pos"] (values[1:5])[label= "value"];
+   p.SetAxisTicks(XAXIS, pos, values);                     /* 10 */
+
+
+   /********************************************************************/
+   /********** Case Study: Drawing Arbitrary Figures and Diagrams **********/
+
+
+   /* create "blank canvas"; draw arbitrary shapes and figures */
+   coords = {-3 0,                    /* window shows [-3,3]x[0,0.5]   */
+              3 0.5};
+   declare DataObject dobj;
+   dobj = DataObject.Create("Canvas", {"x" "y"}, coords);
+   dobj.SetMarkerColor(OBS_ALL, NOCOLOR); /* make markers invisible    */
+
+   declare ScatterPlot canvas;
+   canvas = ScatterPlot.Create(dobj, "x", "y");
+   canvas.DrawUseDataCoordinates();   /* window range: min/max of data */
+   
+   x = do(-3.3, 3.3, 0.05);           /* evenly spaced points          */
+   canvas.DrawLine(x, 0*x);           /* draw reference line at y=0    */
+   y = pdf("normal", x);              /* evaluate function at x values */
+   canvas.DrawSetPenColor(BLUE);      /* set pen color to blue         */
+   canvas.DrawLine(x, y);             /* draw normal curve             */
+
+   /* draw lines at certain locations to indicate quantiles */
+   canvas.DrawSetPenStyle(DASHED);
+   canvas.DrawSetPenColor(GRAY);
+   q = {0.05 0.95};                   /* list of quantiles             */
+   do i = 1 to ncol(q);            
+      a = quantile("normal", q[i]);              /* find quantile      */
+      canvas.DrawLine(a, 0, a, pdf("normal",a)); /* draw dashed line   */
+   end;
+

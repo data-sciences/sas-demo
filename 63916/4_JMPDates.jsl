@@ -1,0 +1,94 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_JMPDates.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates JMP Date functions, Format(), and Informat()
+
+
+//----------  Initial Examples  -----------
+Date MDY( 1, 1, 1904 );
+//0   The Beginning of JMP Time
+
+Date MDY( 10, 1, 2010 );
+//3368736000   number of seconds since midnight January 1, 1904
+
+Date MDY( 10, 1, 2010 ) / In Hours( 1 );
+//935760   number of hours since midnight January 1, 1904
+
+Date MDY( 12, 31, 1903 ) / In Hours( 1 );
+//-24   number of hours since midnight January 1, 1904
+
+
+//----------  Format and Informat Functions  -----------
+Format( 3368736000, "m/d/y" );
+//"10/01/2010"   number of seconds output in a more readable format
+
+Informat( "10/01/2010", "m/d/y" );
+//01Oct2010   JMP date format from character string
+
+Format( Informat( "10/01/2010", "m/d/y" ), "y/m/d" );
+//"2010/10/01"  use the functions together to read and change date format
+
+
+//----------  EXAMPLE  -----------
+tpt_dt = Open("$JSL_Companion\TPT Operation12.jmp" );
+tpt_dt = Data Table( "TPT Operation12" );
+
+//Create a new column that contains the difference between the times
+tpt_col = New Column( "TPT hr:min",
+	Numeric,
+	Continuous,
+	Formula( :Name( "Completion Date/Time" ) - :Name( "Start Date/Time" ), Eval Formula )
+);
+
+//Format the column so that it outputs hours and minutes
+//Note that we want a Duration so the format is hr:m, this is a different result
+//than if h:m is used.
+tpt_col << Format( "hr:m", 13, -1 );
+
+//this is needed so that the format is changed before the
+//Select Where statement - if removed the points are not colored red
+Wait( 0 );  
+
+//When selecting dates and times the informat statement must be used
+tpt_dt << Select Where( :Name( "TPT hr:min" ) >= Informat( "12:00", "h:m" ) );
+tpt_dt << Colors( 3 );
+
+
+//Overlay as shown in the text
+Overlay Plot( X( :Name( "Start Date/Time" ) ), Y( :Name( "TPT hr:min" ) ) );
+
+/* Overlay using the Dispatch option to change to the title, add a reference line, 
+rotate the labels, define the marker size, and format the date  */
+Overlay Plot(
+	X( :Name( "Start Date/Time" ) ),
+	Y( :Name( "TPT hr:min" ) ),
+	Separate Axes( 1 ),
+	SendToReport(
+		Dispatch( {}, "Overlay Plot", OutlineBox, {Set Title( "TPT August 2008" )} ),
+		Dispatch(
+			{},
+			"106",
+			ScaleBox,
+			{Add Ref Line( 43200, Dotted, {192, 192, 192}, "TPT Goal" )}
+		),
+		Dispatch( {}, "101", ScaleBox, {Rotated Labels( 1 )} ),
+		Dispatch(
+			{},
+			"Overlay Plot Graph",
+			FrameBox,
+			{Frame Size( 374, 272 ), Marker Size( 3 )}
+		),
+		Dispatch( {}, "101", ScaleBox, {Format( "m/d/y", 10 ), Rotated Labels( 1 )} )
+	)
+);
+
+//---Uncomment, run one line at a time looking at the change in the dat table column
+/*
+tpt_col << Format( "hr:m", 13, -1 ); //a duration format
+//no change
+
+tpt_col << Format( "h:m", 13, -1 ); //interpreted as time format
+//incorrect
+
+tpt_col << Format( "hr:m", 13, -1 ); //reset to a duration format
+*/

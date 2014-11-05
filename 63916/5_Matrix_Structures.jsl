@@ -1,0 +1,70 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_Matrix_Structures.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax and statements for structuring matrices.
+
+
+A=[];					      // This script makes an empty matrix.
+B=[2  3  5  7];   	   // This script makes a row vector.
+C=[2,3,5,7];			   // This script makes a column vector.
+D=[2 3 5 7,       	   // This script makes a 4-by-4 matrix...
+   11 13 17 19, 		   // ...spaces or tabs define columns...
+   23 29 31 37, 		   // ...commas or semicolons define rows.
+   41 43 47 53];
+E=[+ + -,- + +,- - +]; 	// This makes a 3-by-3 matrix of +1s and -1s
+
+
+// Run one line at a time, see the Log:
+M = [10 -25 22 0, 2 -17 28 11];
+M = Matrix({ {10, -25, 22, 0}, {2, -17, 28, 11} });
+
+// Reverse: Use As List() to convert M to a list 
+// Returns a list of 2 lists,where each list is 1 row
+L = As List( M );  //{ {10, -25, 22, 0}, {2, -17, 28, 11} }
+
+// Note that Matrix() evaluates expressions since matrices must be numeric
+F = Matrix(
+	{{Sqrt( 4 ), 3, 5, 1},          	   //row 1
+	{7, 11, Ceiling( Pi() * 4 ), -1}, 	//row 2 
+	{17, 19, 23, 0}}					      //row 3
+);            
+
+// Makes a 5X5 Identity Matrix
+G = Identity( 5 );
+
+// Makes a 2X3 matrix of 5's
+H = J( 2, 3, 5 );
+
+// Makes a 1X4 vector from 20 to 29 by 3's
+K = Index( 20, 30, 3 );
+
+// Reshapes the 4X4 matrix D from above into a 4X3 matrix
+L = Shape(D,4,3);
+
+// Since matrix D is square, this returns the determinant
+M = If( Is Matrix( D ) & N Row( D ) == N Col( D ),
+	Det( D ),
+	Caption( "Determinant not calculated because the matrix is not 
+   square" )
+);
+
+// Makes two matrices N and P for demonstrations of 
+// addition, subtraction, multiplication and division
+N = [2 3 5, 7 11 13, 17 19 23];
+P = [29 31 37, 41 43 47, 53 59 61];
+
+Q = N + P;
+R = P - N;
+S = N * P;
+T = P / N;            // Alternatively, use T = P * Inv(N);
+
+// Elementwise operations
+U = EMult( N, P );   // Alternatively, use U = N :* P
+V = EDiv( P, N );    // Alternatively, use V = P :/ N
+
+// Most of the mathematical operations that work on numbers
+// work on matrices too, and return a matrix as a result
+W = Modulo( Q, 2 );
+X = Sqrt( Q );
+Y = Arctan( Q );
+Z = Log( Q );

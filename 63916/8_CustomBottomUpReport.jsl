@@ -1,0 +1,298 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_CustomBottomUpReport.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates building an active ("live") report one feature at a time.
+
+//Read the notes.  Run the entire program.  Study the report layout by
+//open and closing outline boxes. Then read through the code.
+
+/*------------------------------------------------------------------------------
+ This is a concept script that includes steps and ideas of what it takes to put
+ together a custom report.
+ 
+ Don't be put off by the number of lines of code.  The block of code
+ trendExpr is a slightly modified JMP written script.  It could easily be
+ saved in a different file and read into memory with an Include() statement.
+ 
+ You may find the function ModifyTrends() a challenging section to read.
+ The dense portion of code occurs while building rList to store information in 
+ the associative array ::ent_aa.  Do look at the modifications to the displaybox, 
+ then you may want to skip past reading the code to build rList at least 
+ in the first pass read. 
+
+ This script includes a function to find the median of a vector of data.  
+ Uncomment the show statements in the med() function and look up the matrix function
+ rank.  The authors use this function often.
+ 
+ This code also includes an example of building a table box.  
+ A nested "Tool Summary" OutlineBox enables the user to right click and make 
+ a combined data table.
+ 
+ The next set of improvement tasks for this report would include: 
+	- better formatting of the summary stats,
+	- adding the list of lots that were out of bounds
+	- adding controls for saving portions of the output or 
+	- adding comments and sending email. 
+ 
+ The code layout (program flow) is
+     1) read in data and define constants and parameters
+     2) create the display window with place holders for each report feature
+     3) create functions and expressions
+     4-6) 3 blocks of code to create trends, tool comparisons and summary stats.
+ 
+ This code has numerous places to make it more "elegant." However, brute force
+ explicit code remains for readability...well, at least linear readibility.
+-----------------------------------------------------------------------------*/
+  
+  
+ror_dt = open("$JSL_Companion/Rate of Rise.jmp");
+allCols = {"DateTime", "Tool", "Lot", "Wfr", 
+           "T0", "T1", "T2", "T3", "Time 240 degrees C",
+           "T4", "Max ROR"};
+params = {"T0", "Time 240 degrees C", "Max ROR"};
+//parameter limits,[min, max, inc, lcl, cl, ucl]
+pLimits= {[14, 36, 3, 17, 25, 33],
+          [10, 31, 2, 13, 20, 27],
+          [2, 32, 5, 7, 12, 25] };
+stats = {"nLots", "LotAvg", "RTR", "MaxWTW", "MedianWTW", "nOOB_Upper", "nOOB_Lower" };
+          
+//create template window
+ror_win = New Window( "Rate of Rise",
+   LineupBox(ncol(1),
+	  ob_sum = OutlineBox("Overall Summary",
+	    obs_lub = LineupBox(ncol(1), )
+	  ),
+	  ob_cmpr = OutlineBox("Tool Comparisons",
+	    obc_lub =LineupBox(ncol(1), )
+	  ),
+	  ob_trend = OutlineBox("Tool Trends",
+		 obt_lub =LineupBox(ncol(1), )
+	  )
+));
+
+//--Simple hard-coded methods will be used here.  Since the number of tools may vary
+//--each time the report is run, the number and names of each tool needs to be determined.
+//--Also since a summary report is needed Table Summary would work, this will use an associative 
+//--array method to find unique tools and create a custom table.
+ent_aa= Associative Array(column(ror_dt,"Tool"));
+ent_aa << Set Default Value(0);  // each default value is an empty list, an associative array also works 
+ent_id = ent_aa << Get Keys;
+
+ror_dt << color by Column( :Tool, Color Theme("JMP Default"), Marker Theme("Solid") );
+
+/*//-----Extra example 
+//---- Create alphanumeric row markers as "1"" for Wfr==1 , "2"" for Wfr==2 and "3"" for Wfr==3
+//Note 0-9 are ASCII decimal values 48-59 so "1" is 49, etc.
+//     A-Z are ASCII decimal values 65-90
+//     a-z are ASCII decimal value  97-122
+ror_dt <<select where (:Wfr ==1 ) << Markers(49);
+ror_dt <<select where (:Wfr ==2 ) << Markers(50);
+ror_dt <<select where (:Wfr ==3 ) << Markers(51);
+ror_dt << clear select;
+*/
+
+//-----------------------------------------------------------------------------------
+//set axis settings in the column to eliminate multiple graph custoimization
+CreateAxisSettings = Function({s1,vv}, {Default Local},
+ AxisExpr = Expr(_cRef << Set Property(
+			"Axis",
+			{Min( _lo ), Max( _hi ), Inc( _inc ), Minor Ticks( 0 ), Show Major Ticks( 1 ),
+			Show Minor Ticks( 1 ), Show Major Grid( 0 ), Show Minor Grid( 0 ),
+			Show Labels( 1 ), Scale( Linear ), Add Ref Line( _lcl ),
+			Add Ref Line( _cl ), Add Ref Line( _ucl )}
+		););
+  Eval(Substitute(NameExpr(AxisExpr), Expr(_cRef), Parse(s1),
+	  Expr(_lo), vv[1], Expr(_hi), vv[2], Expr(_inc), vv[3],
+	  Expr(_lcl), vv[4], Expr(_cl), vv[5], Expr(_ucl), vv[6]));	
+);  //end function
+
+//---Instead of repeating Axis settings, write the code once in a function and
+// use as many times as needed
+CreateAxisSettings(":T0", pLimits[1]);
+CreateAxisSettings(":Time 240 degrees C", pLimits[2]);
+CreateAxisSettings(":Max ROR", pLimits[3]);
+
+//----------------------------------------------------------------------------------------------
+//---function to get the median of a matrix
+med = Function ({vec}, {default local},
+	val = .;
+	if(IsMatrix(vec),
+	  if( mod(nrow(vec),2)==0, k = nrow(vec)/2; 
+	    val = 0.5*(vec[rank(vec)][k] + vec[rank(vec)][k+1]), //even 
+	    k = (nrow(vec) +1)/2;    //odd
+	    val = vec[rank(vec)][k] 
+	  );   //show(k, rank(vec), vec,);
+	);
+	val
+);
+
+//----------Create an expression for the trend graphs----------------------
+trendExpr = Expr(gg=VlistBox( _gRef = Oneway(
+		Y( _yvar ),
+		X( :Lot ),
+		Where( :Tool == ent_id[i] ),
+		Means and Std Dev( 1 ),
+		Box Plots( 1 ),
+		Connect Means( 1 ),
+		X Axis Proportional( 0 ),
+		Points Jittered( 1 ),
+		Grand Mean( 0 ),
+		Mean Lines( 0 ),
+		Mean Diamonds( 0 ),
+		Mean Error Bars( 0 ),
+		Std Dev Lines( 0 ),
+		SendToReport(
+			Dispatch(
+				{},
+				"Oneway Plot",
+				FrameBox,
+				{Frame Size( 419, 194 ), DispatchSeg(
+					CustomStreamSeg( 6 ),
+					{Line Color( {167, 167, 167} )}
+				)}
+			)
+		))));
+//----------Create a function to get information and clean up the display--------------
+ModifyTrends = Function ({spRef,spLim,k}, {Default Local},
+// spRef = sp1; spLim = pLimits[1]; k=1;
+	If( Char(spRef<<Get Name)!="Oneway[]", 0; Throw("Not a Oneway analysis"));
+//get rid of "Where()" text box
+	rpt = spRef << Top Report;
+	rpt[TextBox(1)] <<delete;
+// clean up lot summary
+    rpt["Means and Std Deviations"][NumberColBox("Upper 95%")] << delete;
+    rpt["Means and Std Deviations"][NumberColBox("Lower 95%")] << delete;
+    rpt["Means and Std Deviations"][NumberColBox("Std Err Mean")] << delete;
+
+	rList ={}; //create a summary for each parameterName, nlots, mean, stdev, #oob uper and lower and lot lists
+//count up the number of rows and the number of times the Mean was outside of its control limits
+    if( !isList(::ent_aa[::ent_id[k]]), ::ent_aa[ent_id[k]]={});
+    m = nitems(::ent_aa[::ent_id[k]]) +1;
+    InsertInto(::ent_aa[::ent_id[k]], m ) ;
+    rmat = rpt["Means and Std Deviations"][TableBox(1)] << get as Matrix;
+    lotList = (rpt["Means and Std Deviations"][TableBox(1)][StringColBox(1)] << get);
+    rpt["Means and Std Deviations"]<<Close;
+    rpt["Means and Std Deviations"]<< Set Title("Lot Level Summary");
+    insert into(rlist, Insert(Expr(Assign(nLots)),nrow(rmat)));
+    insert into(rlist, Insert(Expr(Assign(LotAvg)),mean(rmat[0,2])));
+    insert into(rlist, Insert(Expr(Assign(RTR)),std dev(rmat[0,2])));
+    insert into(rlist, Insert(Expr(Assign(MaxWTW)),max(rmat[0,3])));
+    insert into(rlist, Insert(Expr(Assign(MedianWTW)), med(rmat[0,3])));
+    ul = loc(rmat[0,2]>spLim[6]);
+    uln = nrow(ul);
+    uOOB = if(uln == 0, {}, lotList[ul]);
+    insert into(rlist, Insert(Expr(Assign(nOOB_Upper)),uln));
+    insert into(rlist, Insert(Expr(Assign(OOB_Upper_Lots)),uOOB));
+    ll = loc(rmat[0,2]<spLim[4]);
+    lln = nrow(ll);
+    lOOB = if(lln == 0, {}, lotList[ll]);
+    insert into(rlist, Insert(Expr(Assign(nOOB_Lower)),lln));
+    insert into(rlist, Insert(Expr(Assign(oob_Lower_Lots)),lOOB));
+    ::ent_aa[::ent_id[k]][m] = rList;
+    show(ent_id[k], m, rList);
+    
+);
+//----------Tool Comparison Uses Include--------------------------------------- 
+Include("$JSL_Companion\8_CustomExpr_vc.jsl");
+/*--------Notes: place holders requiring substitution-----------------
+_vname  column name
+_vstr = _vname << Get Name
+_vttl = "Variability Chart for "||_vstr
+ _ll _cl _ul 
+--------------------------------------*/
+
+//----------Create Trend Views--------------------------------------------------------
+/*
+ Finding items nested inside other structures like list boxes becomes more difficult. 
+ Like the top down method discussed in Chapter 6 the "bottom up" method should try to 
+ customize each base analysis window. 
+ Placing each base analysis report in a single list box makes makes it easy to reference
+ and edit.
+ 
+ Below trendExp creates gg=VListBox(spx = Oneway()), where spx = sp1, sp2 or sp3.
+ Then messages can be sent to spx, keeping it invisible, live and active. Once the
+ cutomization is complete, gg is appended to a custom outline box and eventually appended
+ to the report window's line-up box.
+ 
+ Note "Eval(Substitute)" for sp2 and sp3 have an identical pattern. If more parameters need 
+ to be added to this trend report, it is easy to see that it
+ is ready for a for-loop for parameters 2-n. It is explict in this program for readability.
+*/
+
+//---Create and customize Tool trends
+For( i=1, i <= nitems(ent_aa), i++,
+	sp = HListBox(
+		eval(Substitute(NameExpr(trendExpr), Expr(_gRef), Parse("sp1"),
+		    Expr(_yvar), Expr(:T0)))
+	);  //end HlistBox  //Test//  nw=new window("test", sp);   sp1<<select
+	ModifyTrends(sp1, pLimits[1],i);
+	obt_lub << Append( Outline Box(ent_id[i], sp));
+
+	eval(Substitute(NameExpr(trendExpr), Expr(_gRef), Parse("sp2"), 
+	    Expr(_yvar), Expr(:Time 240 degrees C )));
+	ModifyTrends(sp2, pLimits[2],i);
+    sp << Append (gg);
+    
+	eval(Substitute(NameExpr(trendExpr), Expr(_gRef), Parse("sp3"), 
+	    Expr(_yvar), Expr(:Max ROR)));
+	ModifyTrends(sp3, pLimits[3],i);
+    sp << Append (gg)	
+);
+
+//----------Create and customize Tool Comparisons---------------------------------------------
+For( i=1, i <= nitems(params), i++,
+	sp=VListBox(
+		eval(Substitute(NameExpr(vcExpr), 
+		Expr(_vname), Column(params[i]), 
+		Expr(_vstr), params[i], 
+		Expr(_vttl), "Variability Chart for " || params[i],
+		Expr(_ll), pLimits[i][4],
+		Expr(_cl), pLimits[i][5],
+		Expr(_ul) ,pLimits[i][6]) )
+	);  //end HlistBox  //Test//  nw=new window("test", sp);  
+	nsp = Repeat(" ", 45 - length(params[i]) - 12);
+	report(vc)[OutlineBox(1)]<< Set Title(params[i] || " by Tool Lot"||nsp);
+	obc_lub << Append( sp );
+);
+//----------Create a Custom Table Box--------------------------------------------------------
+/*
+ ::ent_aa["entity"] is a list with # items in params (3 for this example) 
+ Each item is another list of information accumulated.  This enables a very flexible layout
+ of information. If a request was made to restructure the report, say all tools in one table
+ only this section below would needto be modified.
+ 
+ The code below is organized by Tool and Param and Statistics across the top.
+ This uses a nested outline box titled "Tool Summary" which may seem redundant.
+ It enables the user to right click and make a combined data table because they all 
+ have the same outline box name.
+*/
+For( i=1, i <= nitems(ent_aa), i++,
+      curr_ent = ::ent_id[i];
+      info = ::ent_aa[curr_ent];
+      np = nitems(params); 
+      ns = nitems(stats);
+      if(nitems(info) != np, Caption("Error in Stats for " || curr_ent);
+       wait(5); Caption(remove); Continue
+      );
+      estr = StringColBox("Tool", Repeat({curr_ent}, np)) ;  
+      pstr = StringColBox("Parameter", params);
+      vmat = J(np, ns, empty());
+      For(j = 1, j<= np, j++, 
+        For(k = 1, k <= ns, k++,
+         vmat[j,k] = info[j][stats[k]];
+        ); //end k
+       );  //end j   // show (vmat);
+       tb = table box(estr, pstr);
+        For(k = 1, k <= ns, k++,
+         tb<< append (NumberColBox(stats[k], vmat[0,k]))
+        ); //end k
+       obs_lub << Append( OutlineBox(curr_ent || " Summary Report",
+       	 OutlineBox("Tool Summary", tb)
+       ));
+); 
+      
+//----------Close Outline Boxes------------------------------------------------------
+ob_cmpr << Close (1);  //close tool comparison outline box
+ob_trend << Close(1);  //close tool trends outline box
+
+ror_win << Bring Window to Front;

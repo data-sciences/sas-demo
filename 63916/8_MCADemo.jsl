@@ -1,0 +1,160 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_MCADemo.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the Handle()to help demonstrate the impact of 
+//          metrology bias and variation on the observed process variation, 
+//          using two common quality control indicators, P/T, and Cpk. 
+
+
+Sp = 1;
+USL = 4;
+LSL = -4;
+
+// These parameters should not be changed.
+Sm = 0;
+y_handle = 6;
+mb = 0;
+rsqrt2pi = 1 / Sqrt( 2 * Pi() );
+
+rflow = New Window( "MCA Demo Output", 
+//Create top graph
+	V List Box(
+		Graph Box(
+			FrameSize( 650, 400 ),
+			X Scale( -6, 6 ),
+			Y Scale( -5.5, 20 ),
+			Double Buffer, 
+
+		// Process Variation
+			Pen Color( 4 );
+			Y Function( 6 + 20 * Normal Density( x / Sp ), x );
+
+			Pen Color( 0 );
+			H Line( 6.0 );
+			V Line( 0, 6, 20 );
+
+			Pen Color( 3 );
+			V Line( LSL, 6, 11 );
+			V Line( USL, 6, 11 );
+	
+		// Measurement Variation
+			Pen Color( 5 );
+			Y Function( 6 + 20 * Normal Density( (x - mb) / Sm ), x );
+
+			Handle(
+				mb,
+				y_handle,
+				mb = x;
+				If(
+					y < 6, y = 6,
+					y > 20, y = 20
+				);
+				y_handle = y;
+				Sm = (y - 6) / (rsqrt2pi * 20 / Sp);
+			);
+	
+		//Create trend graph
+		// Simulated Random Normal Data
+			Pen Color( 0 );
+
+		// Simulated Random Normal Data
+			Pen Color( 0 );
+
+			x_trend = -600 :: 600;
+			x_trend = x_trend / 100;
+		
+			yprocess = J( 1201, 1, Sp * (Random Normal()) );
+			ymeasurement = J( 1201, 1, mb + Sm * (Random Normal()) );
+			y = yprocess + ymeasurement;
+//show(mb);
+			Line( x_trend, y );
+
+		//Add dashed lines on graph
+			Pen Color( 5 );
+			Line Style( 2 );
+			H Line( 1 );
+			H Line( 2 );
+			H Line( 3 );
+			H Line( -1 );
+			H Line( -2 );
+			H Line( -3 );
+	
+			Line Style( 0 );
+			St = Sqrt( Sp ^ 2 + Sm ^ 2 );
+			Cpu = (USL - mb) / (3 * St);
+			Cpl = (mb - LSL) / (3 * St);
+			Cpk = Minimum( Cpu, Cpl );
+			PT = 6 * Sm / (USL - LSL);
+			Sr = (Sm / Sp) * 100;
+		
+		//Add statistics to graph
+			Cpk = Round( Cpk, 2 );
+			PT = Round( PT, 2 );
+			Sm = Round( Sm, 2 );
+			Sp = Round( Sp, 2 );
+			St = Round( St, 2 );
+			Sr = Round( Sr, 1 );
+			mb = Round( mb, 2 );
+			
+			Text Size(10);
+			Text( {-5.5, 18}, " StDev Measurement System (Sms) = ", Sm );
+			Text( {-5.5, 17}, " StDev Process (Sp) = ", Sp );
+			Text( {-5.5, 16}, " Sms/Sp % = ", Sr, " %" );
+			Text( {-5.5, 15}, " StDev Total Observed = ", St );
+			Text( {-5.5, 14}, " Measurement Bias = ", mb );
+			Text( {-5.5, 13}, " P/T = ", PT );
+			Text( {-5.5, 12}, " Cpk = ", Cpk );
+			Text( {-5.5, USL}, "USL" );
+			Text( {-5.5, LSL - 1}, "LSL" );
+                     
+			Pen Color( 3 );
+			H Line( USL );
+			H Line( LSL );
+			H Line( 0 );
+
+		// Legend
+			Pen Color( 0 );
+			Text Size(9);
+			Rect( 2, 19.1, 5.5, 15 );
+			Text Color( 0 );
+			Text( {2.2, 18.1}, " Legend: " );
+			Pen Color( 5 );
+			H Line( 2.2, 3, 17.4 );
+			Text Color( 5 );
+			Text( {3, 16.9}, " Measurement Variation " );
+			Text Color( 0 );
+			Pen Color( 4 );
+			H Line( 2.2, 3, 16 );
+			Text Color( 4 );
+			Text( {3, 15.5}, " Process Variation " );
+
+
+		), // End of Graph
+		//Text Box("Measurement Bias = "); Global Box(mb),
+		//Text Box("StDev Measurement System (Sms) = "); Global Box(Sm),
+		Text Box("  "),
+		Button Box( "Help",
+			Caption(
+				{10, 10},
+				Spoken( 0 ),
+				"MCA Demo allows you to investigate the effect of measurement errors on process capability, Cpk."
+			);
+			Wait(2);
+			Caption(
+				{10, 10},
+				Spoken( 0 ),
+				Delayed( 10 ),
+				"The demo starts with a Cpk of 1 and no measurement errors.  Move the mouse trap square to change measurement errors."
+			);
+			Wait(2);
+			Caption(
+				{10, 10},
+				Spoken( 0 ),
+				Delayed( 6 ),
+				"A move up inflates measurement variability.  A move left or right induces measurement bias.");
+			Wait(2);
+			Caption(Remove)
+		),
+		Button Box( "Exit", rflow << close window )  //end ButtonBox
+	) //end of VListBox
+);  // End of RFLOW Window

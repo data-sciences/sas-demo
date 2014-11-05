@@ -1,0 +1,281 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="Generator" content="SAS Software Version 9.3, see www.sas.com">
+<meta http-equiv="Content-type" content="text/html; charset=windows-1252">
+<title>Hawaii Population (SAS/Graph gchart)</title>
+<style type="text/css">
+<!--
+.batch
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.bycontentfolder
+{
+  margin-left: 6pt;
+}
+.bylinecontainer
+{
+  width: 100%;
+}
+.contentfolder
+{
+  margin-left: 6pt;
+}
+.contentitem
+{
+  margin-left: 6pt;
+}
+.contents
+{
+}
+.folderaction
+{
+  margin-left: 6pt;
+}
+.graph
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.indexaction
+{
+  margin-left: 6pt;
+}
+.indexitem
+{
+  margin-left: 6pt;
+}
+.list
+{
+  list-style-type: disc;
+  text-align: left;
+  width: 100%;
+}
+.list10
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list2
+{
+  list-style-type: circle;
+  text-align: left;
+  width: 100%;
+}
+.list3
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list4
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list5
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list6
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list7
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list8
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list9
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.output
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.pages
+{
+}
+.pagesitem
+{
+  margin-left: 6pt;
+}
+.paragraph
+{
+  text-align: left;
+  width: 100%;
+}
+.systitleandfootercontainer
+{
+  width: 100%;
+}
+.table
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.top_stacked_value
+{
+  padding-bottom: 1px;
+}
+.middle_stacked_value
+{
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.bottom_stacked_value
+{
+  padding-top: 1px;
+}
+.titleandnotecontainer
+{
+  width: 100%;
+}
+.l {text-align: left }
+.c {text-align: center }
+.r {text-align: right }
+.d {text-align: right }
+.j {text-align: justify }
+.t {vertical-align: top }
+.m {vertical-align: middle }
+.b {vertical-align: bottom }
+TD, TH {vertical-align: top }
+.stacked_cell{padding: 0 }
+-->
+</style>
+<script language="javascript" type="text/javascript">
+<!-- 
+function startup(){
+
+}
+function shutdown(){
+
+}
+
+//-->
+</script>
+
+</head>
+<body onload="startup()" onunload="shutdown()" class="body">
+
+<script language="javascript" type="text/javascript">
+<!-- 
+var _info = navigator.userAgent
+var _ie = (_info.indexOf("MSIE") > 0
+          && _info.indexOf("Win") > 0
+          && _info.indexOf("Windows 3.1") < 0);
+var _ie64 = _info.indexOf("x64") > 0
+
+//-->
+</script>
+
+<div class="branch">
+<a name="IDX"></a>
+<div>
+<map name="g5ccank2_map">
+<area shape="RECT" href='' coords="344,43,350,56">
+<area shape="RECT" href="http://www.census.gov/prod/cen2000/doc/sf3.pdf" coords="114,43,344,56">
+<area shape="RECT" title="Age: 0-4Male:     3.8%Female: 3.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,443,623,463">
+<area shape="RECT" title="Age: 5-9Male:     4.1%Female: 3.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,422,630,443">
+<area shape="RECT" title="Age: 10-14Male:     4.0%Female: 3.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,402,628,422">
+<area shape="RECT" title="Age: 15-19Male:     3.7%Female: 3.5%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,381,621,402">
+<area shape="RECT" title="Age: 20-24Male:     3.3%Female: 3.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,361,615,381">
+<area shape="RECT" title="Age: 25-29Male:     3.2%Female: 3.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,340,615,361">
+<area shape="RECT" title="Age: 30-34Male:     3.3%Female: 3.4%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,319,619,340">
+<area shape="RECT" title="Age: 35-39Male:     3.9%Female: 3.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,299,630,319">
+<area shape="RECT" title="Age: 40-44Male:     3.9%Female: 4.0%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,278,632,299">
+<area shape="RECT" title="Age: 45-49Male:     3.5%Female: 3.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,258,623,278">
+<area shape="RECT" title="Age: 50-54Male:     3.0%Female: 3.1%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,237,613,258">
+<area shape="RECT" title="Age: 55-59Male:     2.3%Female: 2.4%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,217,598,237">
+<area shape="RECT" title="Age: 60-64Male:     1.8%Female: 2.0%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,196,590,217">
+<area shape="RECT" title="Age: 65-69Male:     1.6%Female: 1.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,176,586,196">
+<area shape="RECT" title="Age: 70-74Male:     1.4%Female: 1.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,155,586,176">
+<area shape="RECT" title="Age: 75-79Male:     1.1%Female: 1.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,134,581,155">
+<area shape="RECT" title="Age: 80-84Male:     0.7%Female: 1.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,114,573,134">
+<area shape="RECT" title="Age: 85+Male:     0.4%Female: 1.1%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="548,93,571,114">
+<area shape="RECT" title="Age: 0-4Male:     3.8%Female: 3.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="428,443,513,463">
+<area shape="RECT" title="Age: 5-9Male:     4.1%Female: 3.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="421,422,513,443">
+<area shape="RECT" title="Age: 10-14Male:     4.0%Female: 3.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="424,402,513,422">
+<area shape="RECT" title="Age: 15-19Male:     3.7%Female: 3.5%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="430,381,513,402">
+<area shape="RECT" title="Age: 20-24Male:     3.3%Female: 3.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="439,361,513,381">
+<area shape="RECT" title="Age: 25-29Male:     3.2%Female: 3.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="441,340,513,361">
+<area shape="RECT" title="Age: 30-34Male:     3.3%Female: 3.4%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="439,319,513,340">
+<area shape="RECT" title="Age: 35-39Male:     3.9%Female: 3.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="426,299,513,319">
+<area shape="RECT" title="Age: 40-44Male:     3.9%Female: 4.0%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="426,278,513,299">
+<area shape="RECT" title="Age: 45-49Male:     3.5%Female: 3.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="435,258,513,278">
+<area shape="RECT" title="Age: 50-54Male:     3.0%Female: 3.1%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="446,237,513,258">
+<area shape="RECT" title="Age: 55-59Male:     2.3%Female: 2.4%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="462,217,513,237">
+<area shape="RECT" title="Age: 60-64Male:     1.8%Female: 2.0%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="473,196,513,217">
+<area shape="RECT" title="Age: 65-69Male:     1.6%Female: 1.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="477,176,513,196">
+<area shape="RECT" title="Age: 70-74Male:     1.4%Female: 1.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="482,155,513,176">
+<area shape="RECT" title="Age: 75-79Male:     1.1%Female: 1.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="488,134,513,155">
+<area shape="RECT" title="Age: 80-84Male:     0.7%Female: 1.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="497,114,513,134">
+<area shape="RECT" title="Age: 85+Male:     0.4%Female: 1.1%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="504,93,513,114">
+<area shape="RECT" title="Age: 0-4Male:     0.6%Female: 0.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,443,211,463">
+<area shape="RECT" title="Age: 5-9Male:     1.2%Female: 1.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,422,224,443">
+<area shape="RECT" title="Age: 10-14Male:     1.9%Female: 1.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,402,236,422">
+<area shape="RECT" title="Age: 15-19Male:     3.0%Female: 2.5%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,381,251,402">
+<area shape="RECT" title="Age: 20-24Male:     4.8%Female: 3.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,361,280,381">
+<area shape="RECT" title="Age: 25-29Male:     5.8%Female: 5.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,340,308,361">
+<area shape="RECT" title="Age: 30-34Male:     6.0%Female: 5.5%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,319,314,340">
+<area shape="RECT" title="Age: 35-39Male:     5.8%Female: 5.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,299,316,319">
+<area shape="RECT" title="Age: 40-44Male:     5.1%Female: 5.0%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,278,303,299">
+<area shape="RECT" title="Age: 45-49Male:     4.0%Female: 4.1%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,258,284,278">
+<area shape="RECT" title="Age: 50-54Male:     3.2%Female: 3.4%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,237,270,258">
+<area shape="RECT" title="Age: 55-59Male:     2.2%Female: 2.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,217,253,237">
+<area shape="RECT" title="Age: 60-64Male:     1.8%Female: 2.3%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,196,247,217">
+<area shape="RECT" title="Age: 65-69Male:     1.4%Female: 1.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,176,238,196">
+<area shape="RECT" title="Age: 70-74Male:     1.1%Female: 1.7%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,155,234,176">
+<area shape="RECT" title="Age: 75-79Male:     0.9%Female: 1.3%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,134,226,155">
+<area shape="RECT" title="Age: 80-84Male:     0.5%Female: 0.7%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,114,213,134">
+<area shape="RECT" title="Age: 85+Male:     0.4%Female: 0.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="198,93,217,114">
+<area shape="RECT" title="Age: 0-4Male:     0.6%Female: 0.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="150,443,164,463">
+<area shape="RECT" title="Age: 5-9Male:     1.2%Female: 1.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="137,422,164,443">
+<area shape="RECT" title="Age: 10-14Male:     1.9%Female: 1.8%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="121,402,164,422">
+<area shape="RECT" title="Age: 15-19Male:     3.0%Female: 2.5%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="96,381,164,402">
+<area shape="RECT" title="Age: 20-24Male:     4.8%Female: 3.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="56,361,164,381">
+<area shape="RECT" title="Age: 25-29Male:     5.8%Female: 5.2%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="34,340,164,361">
+<area shape="RECT" title="Age: 30-34Male:     6.0%Female: 5.5%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="29,319,164,340">
+<area shape="RECT" title="Age: 35-39Male:     5.8%Female: 5.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="34,299,164,319">
+<area shape="RECT" title="Age: 40-44Male:     5.1%Female: 5.0%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="49,278,164,299">
+<area shape="RECT" title="Age: 45-49Male:     4.0%Female: 4.1%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="74,258,164,278">
+<area shape="RECT" title="Age: 50-54Male:     3.2%Female: 3.4%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="92,237,164,258">
+<area shape="RECT" title="Age: 55-59Male:     2.2%Female: 2.6%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="114,217,164,237">
+<area shape="RECT" title="Age: 60-64Male:     1.8%Female: 2.3%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="123,196,164,217">
+<area shape="RECT" title="Age: 65-69Male:     1.4%Female: 1.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="132,176,164,196">
+<area shape="RECT" title="Age: 70-74Male:     1.1%Female: 1.7%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="139,155,164,176">
+<area shape="RECT" title="Age: 75-79Male:     0.9%Female: 1.3%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="143,134,164,155">
+<area shape="RECT" title="Age: 80-84Male:     0.5%Female: 0.7%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="152,114,164,134">
+<area shape="RECT" title="Age: 85+Male:     0.4%Female: 0.9%" href="http://www.census.gov/prod/2003pubs/c2kbr-34.pdf" coords="155,93,164,114">
+</map>
+<div  class="c">
+<img src="example13.png" style=" background-color: #FFFFFF; height: 500px; width: 700px;" border="0" usemap="#g5ccank2_map" class="c graph">
+</div>
+</div>
+<br>
+</div>
+</body>
+</html>

@@ -1,0 +1,288 @@
+/*-------------------------------------------------------------------*/
+/*       Jump into JMP(r) Scripting                                  */
+/*          by Wendy Murphrey and Rosemary Lucas                     */
+/*       Copyright(c) 2009 by SAS Institute Inc., Cary, NC, USA      */
+/*                   SAS Publications order                          */
+/*                   ISBN 978-1-59994-658-0                          */
+/*-------------------------------------------------------------------*/
+/*                                                                   */
+/* This material is provided "as is" by SAS Institute Inc.  There    */
+/* are no warranties, expressed or implied, as to merchantability or */
+/* fitness for a particular purpose regarding the materials or code  */
+/* contained herein. The Institute is not responsible for errors     */
+/* in this material as it now exists or will exist, nor does the     */
+/* Institute provide technical support for it.                       */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+/* Date Last Updated: 12SEP2009                                      */
+/*-------------------------------------------------------------------*/
+/* Questions or problem reports concerning this material may be      */
+/* addressed to the author:                                          */
+/*                                                                   */
+/* SAS Institute Inc.                                                */
+/* SAS Press                                                         */
+/* Attn: Wendy Murphrey and Rosemary Lucas                           */
+/* SAS Campus Drive                                                  */
+/* Cary, NC   27513                                                  */
+/*                                                                   */
+/*                                                                   */
+/* If you prefer, you can send email to:  saspress@sas.com           */
+/* Use this for subject field:                                       */
+/*     Comments for Wendy Murphrey and Rosemary Lucas                */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+
+/* Chapter 8 */
+
+/* Solution 8.1 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ov = dt << Overlay Plot( X( :height ), Y( :weight ), Separate Axes( 1 ) );
+Report( ov )[AxisBox( 1 )] << Remove Axis Label();
+Report( ov )[AxisBox( 1 )] << Add Axis Label( "Class Weight" );
+
+/* Remove and replace the X axis label. */
+Report( ov )[AxisBox( 2 )] << Remove Axis Label();
+Report( ov )[AxisBox( 2 )] << Add Axis Label( "Class Height" );
+
+/* Solution 8.2 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ov = dt << Overlay Plot( X( :age ), Y( :height, :weight ), Y Scale( Left, Right ) );
+
+/* Remove and replace the axis labels. */
+Report( ov )[Axisbox( 1 )] << Remove Axis Label();
+Report( ov )[Axisbox( 1 )] << Add Axis Label( "Class Height" );
+Report( ov )[Axisbox( 2 )] << Remove Axis Label();
+Report( ov )[Axisbox( 2 )] << Add Axis Label( "Class Weight" );
+Report( ov )[Axisbox( 3 )] << Remove Axis Label();
+Report( ov )[Axisbox( 3 )] << Add Axis Label( "Class Age" );
+
+/* Solution 8.3 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ow = Oneway( Y( :height ), X( :sex ), Means( 1 ), Box Plots( 1 ), Mean Diamonds( 1 ) );
+
+/* Y axis label is TextEditBox(1) in this example. */
+Report( ow )[Text Edit Box( 1 )] << Set Font Size( 14 );
+Report( ow )[Text Edit Box( 1 )] << Set Font( "Arial" );
+Report( ow )[Text Edit Box( 1 )] << Set Font Style( "Italic" );
+Report( ow )[Text Edit Box( 1 )] << Font Color( "Red" );
+
+/* X axis label is TextEditBox(2) in this example. */
+Report( ow )[Text Edit Box( 2 )] << Set Font Size( 14 );
+Report( ow )[Text Edit Box( 2 )] << Set Font( "Arial" );
+Report( ow )[Text Edit Box( 2 )] << Set Font Style( "Italic" );
+Report( ow )[Text Edit Box( 2 )] << Font Color( "Red" );
+
+/* Solution 8.4 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ov = dt << Overlay Plot( X( :height ), Y( :weight ), Separate Axes( 1 ) );
+
+/* Set the style, size, and face using Tick Font. */
+Report( ov )[AxisBox( 1 )] << Tick Font( Style( 2 ), Size( 14 ), Face( "Arial Black" ) );
+
+/* Solution 8.5 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ov = dt << Overlay Plot( X( :height ), Y( :weight ), Separate Axes( 1 ) );
+
+/* Rotate the axis labels. */
+Report( ov )[AxisBox( 2 )] << Rotated Labels( 1 );
+
+/* Set the axis label format to 2 decimal places. */
+Report( ov )[AxisBox( 2 )] << Format( Fixed Dec, 4, 2 );
+
+/* Solution 8.6 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Assign the Value Ordering column property. */
+Column( "age" ) << Set Property( Value Ordering, {17, 15, 16, 12, 13, 14} );
+
+/* Create a Bar Chart to see the effect. */
+Chart( X( :age ), Y( Mean( :height ) ), Bar Chart( 1 ) );
+
+/* Solution 8.7 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Assign a global variable to represent the list. */
+myset = {17, 15, 16, 12, 13, 14};
+
+/* Wrap the global variable in an Eval() function. */
+Column( "age" ) << Set Property( Value Ordering, Eval( myset ) );
+
+/* Create a Distribution to see the effect. */
+Distribution( Nominal Distribution( Column( :age ) ) );
+
+
+/* Solution 8.8 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ov = dt << Overlay Plot( X( :height ), Y( :weight ), Separate Axes( 1 ) );
+
+/* Add a reference line to the Y axis. */
+Report( ov )[Axisbox( 1 )] << Add Ref Line( 120, "Solid", "Red" );
+
+/* Add a reference line to the X axis. */
+Report( ov )[Axisbox( 2 )] << Add Ref Line( 62.5, "Dashed", "Green" );
+
+/* Solution 8.9 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ov = dt << Overlay Plot( X( :height ), Y( :weight ), Separate Axis( 1 ) );
+
+/* Add a reference line to the Y axis. */
+Report( ov )[AxisBox( 1 )] << Add Ref Line( 120, Solid, "Medium Dark Blue" );
+
+Wait( 2 ); /* Added for demonstration purposes only. */
+
+/* Remove the reference line. */
+Report( ov )[AxisBox( 1 )] << Remove Ref Line( 120 );
+
+/* Solution 8.10 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the desired analysis. */
+ov = dt << Overlay Plot( X( :height ), Y( :weight ), Separate Axis( 1 ) );
+
+/* Add a reference line to the Y axis */
+Report( ov )[AxisBox( 1 )] << Add Ref Line( 120 );
+
+Wait( 2 ); /* Added for demonstration purposes only */
+
+/* Cover the reference line with another that is a similar Color to the background. */
+Report( ov )[AxisBox( 1 )] << Add Ref Line( 120, Solid, {255, 255, 250} );
+
+/* Solution 8.11 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_Data/Big Class.jmp" );
+
+/* Generate the desired graph. */
+cc = Control Chart(
+    Sample Label( :age ),
+    KSigma( 3 ),
+    Chart Col( :height, Individual Measurement )
+);
+
+/* Use the Text function within Add Graphics Script()to add the desired text to the graph. */
+Report( cc )[Framebox( 1 )] << Add Graphics Script(
+    Text( right justified, {30, 55.0}, "ABC" );
+    Text( right justified, {30, 70.0}, "XYZ" );
+);
+
+/* Solution 8.12 */
+
+/* Open the Fitness sample data table. */
+dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+/* Create the desired analysis. */
+op = dt << Overlay Plot(
+    X( :Age ),
+    Y( :Weight, :Oxy, :Runtime ),
+    Y Scale( Left, Left, Right ),
+    Connect Thru Missing( 1 )
+);
+
+/* Added for demonstration purposes. */
+Wait( 0.5 );
+
+/* Change the properties of each legend item */
+op << (weight(
+    Overlay Marker( 3 ),
+    Overlay Marker Color( Black ),
+    Connect Color( Black ),
+    Line Style( 1 ),
+    Line Width( 2 )
+));
+
+/* Added for demonstration purposes. */
+Wait( 0.5 );
+
+op << (oxy(
+    Overlay Marker( 6 ),
+    Overlay Marker Color( Red ),
+    Connect Color( Red ),
+    Line Style( 4 ),
+    Line Width( 1 )
+));
+
+/* Added for demonstration purposes. */
+Wait( 0.5 );
+op << (runtime(
+    Overlay Marker( 1 ),
+    Overlay Marker Color( Green ),
+    Connect Color( Green ),
+    Line Style( 0 ),
+    Line Width( 1 )
+));
+
+/* Solution 8.13 */
+
+/* Open the sample data table, Big Class.jmp. */
+dt1 = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* For demonstration purposes, create a table with spec limits. */
+dt2 = New Table( "Spec Limits Table",
+    Add Rows( 2 ),
+    New Column( "Process Column", Character, Nominal, Set Values( {"height", "weight"} ) ),
+    New Column( "Lower Spec Limit",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [60, 90] )
+    ),
+    New Column( "Upper Spec Limit",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [70, 150] )
+    )
+);
+
+/* List of variables to be used in Oneway analyses. */
+varList = {:height, :weight};
+
+/* Use a For loop to create a Oneway ANOVA for each member of the variable list. */
+For( i = 1, i <= N Items( varList ), i++,
+    ow = dt1 << Oneway( Y( varList[i] ), X( :sex ), Means( 1 ), Box Plots( 0 ), Mean Diamonds( 1 ) );
+
+/* Find the row in the data table that matches the column variable name. */
+    rownum = dt2 << Get Rows Where( :Process Column == Char( varList[i] ) );
+/* Assign the limit value from adjacent columns on that row, using the rownum variable value. */
+    lower = Column( dt2, "Lower Spec Limit" )[rownum[1]];
+    upper = Column( dt2, "Upper Spec Limit" )[rownum[1]];
+/* Add reference lines to the Oneway plot, based on the spec limit values assigned. */
+    Report( ow )[Axisbox( 1 )] << Add Ref Line( lower, Solid, Red );
+    Report( ow )[Axisbox( 1 )] << Add Ref Line( upper, Solid, Red );
+);
+
+/* End of Chapter 8 solutions */

@@ -1,0 +1,130 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_Extra_Modular_MutipleCheckBox.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for modular checkboxes for multiple inputs.
+
+
+//Recommendation:
+//  - Run the entire script
+//  - The first time through skip reading the fenced (+++) block of code
+//    containing the define functions and and expressions. Start reading the code
+//    at "Create win_usr.." 
+//  - Once the layout of the dialog window is understood and which expression is 
+//    used to create each bank of checkboxes, go back and investigate these expressions.
+//Note: This script does not retrive the user settings.
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//---------------Create some functions to make this task more manageable
+
+//---------------------Run these Functions----------------------------------------------
+//Function to create check box names and settings into an Aasociative Array
+//The Key will be its order, the value will be a list of 2 values
+// [1] checkbox prompt  [2] checkbox setting
+makeCheckBoxAA = Function({cblist, cbset}, {Default Local},
+	_aa = [=>] ;
+	_aa << set default Value({});
+	for(i=1, i<=nitems(cblist), i++,
+	    xx = EvalList({cblist[i], cbset[i]});
+		_aa[i] = xx	
+	);
+	_aa
+);
+//Test it:
+// testAA = MakeCheckBoxAA({"a", "b", "c", "d", "e"}, [0,1,1,0,0]);
+// show(testAA);
+
+//---------------------------------------------------------------------------------
+//Function to create an expression for a VListBox with multiple checkboxes
+//This could be generalized more by using a list and <<set(n,0) and <<get(n)
+//That's another level deep and decided to make it a staright conversion of brute force
+//AAname must be the string name for an existing associative array with the structure defined above. 
+//Uncomment the show statement to watch the expression progression
+MakeCheckBoxExpr = Function({AAname, cbid="cb",hdid=""}, {Default Local},
+  _aa = Eval(Parse(AAname));  //simple type checking
+  if(!IsAssociative Array(_aa), Throw() );
+  vlExpr = Expr(VListBox());
+  tbExpr = Expr(TextBox(xx));
+  setExpr = Expr(<<Set(1,xx));
+  dsblExpr = Expr(<<Enable(1,0));
+  lblExpr = Expr(xx=yy);
+  getExpr = Expr(xxtmp = xxcb<<get(1);   xxset = xxtmp   );
+  if(length(hdid)>0,
+     tExpr = Substitute(NameExpr(tbExpr),Expr(xx), NameExpr(hdid));
+     Insert into(vlExpr, NameExpr(tExpr)));
+//show(vlExpr);
+   For(i=1, i<=nitems(_aa), i++,
+     cbExpr = Expr(CheckBox());
+//--Insert the checkbox name
+   	  insert into(cbExpr, NameExpr(_aa[i][1]));
+     _cb = Parse(cbid || char(i));
+     _setStr = Parse(AAname||"["||Char(i)||"][2]");
+//     show(i, cbExpr, _cb, _setStr, eval(NameExpr(_setStr)));
+//--Insert the checkbox set value the 2nd item in the AA
+     tExpr = Substitute(NameExpr(setExpr), Expr(xx), NameExpr(_setStr));
+   	 insert into(cbExpr, NameExpr(tExpr));
+//   	 show(tExpr, cbExpr);
+//--Insert the get script
+   	 tExpr = Substitute(NameExpr(getExpr), Expr(xxcb), NameExpr(_cb), Expr(xxset), NameExpr(_setStr));
+   	 InsertInto(cbExpr, NameExpr(tExpr));
+//   	 show(tExpr, cbExpr);
+//--Insert the entire CheckBoxExpression into the VlistBox
+     tExpr = Substitute(NameExpr(lblExpr), Expr(xx), NameExpr(_cb), Expr(yy), NameExpr(cbExpr));
+     Insert into(vlExpr, NameExpr(tExpr))
+   );  //end for
+   NameExpr(vlExpr)   //return the expression
+);
+//Testit:
+//Note if the set value of a checkbox = 2 it is disbled
+ /*
+ myAA = Associative Array( {1, 2, 3},{{"z", 2}, {"b",0}, {"A", 1} });   
+ zz=MakeCheckBoxExpr("myAA", "mcb", "Playing");
+ show(zz);
+  dlg = New Window("junk" ,<<Modal,
+	 zz
+  );
+ Show(myAA);  //the set values are captured in the Associative Array
+*/
+//-----------------------------------------------------------------------------------------------
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+//-----------Create win_usr with New Window & MakeCheckBoxExpr functions-------------------------
+//Usage: CheckBox(list, <<Set(n,0|1)|2), <getscript>)
+//This code is easier to read and if options are added to Stats or Display this code
+//will probably not need to be changed except for maybe window spacing
+statOpt = {"Quantiles", "Means and Std Dev", "t Test"};
+statSet = [1,1,0]; //default settings
+nprobOpt = {"Plot Actual by Quantile", "Plot Quantile by Actual",
+	         "Line of Fit", "CDF Plot"};
+nprobSet = [0,1,0,0];  //default settings
+dispOpt = {"All Graphs", "Points", "Box Plots", "Grand Mean",
+          "Std Dev Lines", "X Axis Proportional", "Points Spread",
+          "Points Jittered"};
+dispSet = [1,1,1,1,0,0,0,1]; //default settings	         
+//Turn settings into an assocaitive Arrary
+statsAA = makeCheckBoxAA(statOpt, statSet);
+nProbAA = makeCheckBoxAA(nprobOpt, nprobSet);
+dispAA = makeCheckBoxAA(dispOpt, dispSet);
+
+
+win_usr = New Window("Select Options and click OK", <<Modal,
+	LineupBox(ncol(3), 
+	VlistBox(
+		Eval(MakeCheckBoxExpr("statsAA", "scb", "")),
+		TextBox("  "),
+		Eval(MakeCheckBoxExpr("nProbAA", "ncb", "Normal Quantile Plot"))
+	),
+	SpacerBox( Size(20,0)),
+    Eval(MakeCheckBoxExpr("dispAA", "dcb", "Display Graphs"))
+	),
+	SpacerBox(Size(0,20)),
+	HListBox(SpacerBox(Size(150,0)), ButtonBox("OK"), ButtonBox("Cancel"))
+);
+/*
+The user settings for the checkbox are captured in the Associative Array no need to
+unload at the OK button box. This code would work for a non-Modal window as well.
+If you are new to scripting,you may wonder why would I want to write all this dense
+code.
+When writing applications that may use 6 checkboxes for one interface and 15 for another,
+generic functions and expressions can be written once and used many times.
+*/
+

@@ -1,0 +1,178 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Messy.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates how to read a messy text file using two different methods
+
+
+jcpath = "$JSL_Companion\";
+
+//--------Method #1 Two Pass Open -------------------------------------------------
+// This method uses the information that the 24x24 grid data starts on line 8
+// and goes to the end of file.  Reading the data utilizes the options Data Starts
+// and End of Field.  If the fields were tab delimited, no parsing would be 
+// necessary.  However, some latitudes are 8.8N^^/^50: which includes multiple spaces (^).
+// The multiple spaces makes this very messy.  The first read will use ":" as the delimiter, 
+// which does the hard part of finding latitude, and then parses the data into columns.
+
+// Open #1 - use ":" as the delimiter and parse into columns
+dtdata = Open(
+	jcpath || "cloudhigh1.txt",
+	Import Settings(
+		End Of Line( CR ),
+		End Of Field( Other( ":" ) ),
+		Labels( 0 ),
+		Data Starts( 8 ),
+		Lines To Read( All )
+	)
+);
+// Name column 1 latitude
+Column( dtdata, 1 ) << set name( "Latitude" );
+ 
+// Open #2 - read the first 7 lines of the file into a single text column table
+dtinfo = Open(
+	jcpath || "cloudhigh1.txt",
+	columns( Name( "Info" ) = Character ),
+	Import Settings(
+		End Of Line( CRLF ),
+		End Of Field( Tab, Comma ),
+		Labels( 0 ),
+		Data Starts( 1 ),
+		Lines To Read( 7 )
+	)
+);
+// Process rows 6 & 7, that define the longitude
+// Run to here and hover over lonList1 and lonList2
+lonList1 = Words( :Info[6], " \!t" );
+lonList2 = Words( :Info[7], " \!t" );
+
+// Check that each have 24 items 
+If( N Items( lonlist1 ) != 24 | N Items( lonlist2 ) != 24,
+	Caption( "Columns/longitude issue" );
+	Wait( 3 );
+	Caption( remove );
+	Throw();
+);
+
+//--Add 24 columns to dtdata and name them
+dtdata << add Multiple Columns( "LG", 24, After Last, numeric );
+
+For( i = 1, i <= 24, i++, 
+// i+2 since the first column has latitude and the data is in column 2
+	Column( dtdata, i + 2 ) << set name( lonList1[i] || " / " 
+	|| lonList2[i] )
+);
+
+// Now populate the columns
+For( i = 1, i <= 24, i++, 
+// i+2 since the first column has latitude and the data is in column 2
+	Column( dtdata, i + 2 ) << set each value( 
+	Num( Trim( Word( i, Column( dtdata, 2 )[] ) ) ) );
+// format each column so it is easier to check
+// since this is % cloud cover 6 wide and 2 decimals should be ok
+	Column( dtdata, i + 2 ) << Format( "Fixed Dec", 6, 2 );
+);
+
+// Close dtinfo, if no need to retieve more information
+Close( dtinfo, NoSave );
+
+// Rename the table
+dtdata << set name( "cloudhigh1 Method Two Pass Open" );
+
+// Before deleting column 2 check if the values are correct
+dtdata << Delete Columns( 2 );
+
+
+//--------Method #2 LoadTextFile & Parse -------------------------------------------------
+
+ 
+// Alternately read the file as a text string
+fidtext = Load Text File( jcpath || "cloudhigh1.txt" );
+// Mouse over fidtext to see the results
+
+//--Words() partitions a string by delimiters 
+//--Use newline (\!n) and carriage return (\!r)
+fidlines = Words( fidtext, "\!n\!r" );
+Show( N Items( fidlines ) );  //31 text strings 
+
+// The next set of code will be similar to Method #1.
+// Note this method allows you to look for certain names & patterns
+
+// get the first 5 lines to add as notes to the new table
+// get name and date
+dtname = "";
+Local( {i, tt = ""},
+	For( i = 1, i <= 7, i++,
+		fidlines[i] = Trim( fidlines[i] );  //removes leading and trailing tabs
+		If( Contains( fidlines[i], "NAME" ),
+			dtname = Trim( Word( 2, fidlines[i], ":." ) )
+		);
+		If( Contains( fidlines[i], "TIME" ),
+			dtdate = Trim( Word( 2, fidlines[i], ":" ) );
+			tt = Words( dtdate, " -" );
+			dtname = dtname || "_" || tt[2] || Substr( tt[3], 3, 2 );
+		);
+	)
+);
+dtnotes = Concat Items( fidlines[1 :: 5], "\!r" );
+// note the leading tab of line 6-7 has been stripped as well
+
+// Separate string by a space and tab delimiter which was the same as in Method #1
+lonList1 = Words( fidlines[6], " \!t" );
+lonList2 = Words( fidlines[7], " \!t" );
+
+// Check that each have 24 items 
+If( N Items( lonlist1 ) != 24 | N Items( lonlist2 ) != 24,
+	Caption( "Columns/longitude issue" );
+	Wait( 3 );
+	Caption( remove );
+	Throw();
+);
+
+dt_List = New Table( dtname, New Column( "Latitude", character ) );
+dt_List << add Multiple Columns( "LG", 24, After Last, numeric );
+Eval( Substitute( Expr( dt_List << New Property( "Notes", _notes ) ), Expr( _notes ), dtnotes ) );
+
+Local( {i},
+	For( i = 1, i <= 24, i++, 
+// i+1 since there is one column for Latitide 
+		Column( dt_List, i + 1 ) << set name( lonList1[i] || " / " || lonList2[i] )
+	)
+);
+
+// The next code of nested for loops is dense. 
+// Run this snippet and look at the log to help comprehend the dense code.
+// This segment is optional.
+i = 1; j = 1; crow = 1;
+Show( fidlines[crow + 7] );
+tt = Words( fidlines[crow + 7], ":" );
+Show( "step1- get latitude", tt, tt[1], tt[2] );
+tt = Words( Trim( tt[2] ), " \!t" ); //tt is repurposed
+Show( "step2 - get values", tt ); 
+// end optional
+
+// Use a local function to manage/limit the number of globals
+Local( {i, j, tt, crow = 1},
+// Nested For() is populatiing the table by row(i) and each column (j) in that row
+	For( i = 1, i <= 24, i++,
+		dt_List << add row( 1 );
+		tt = Words( fidlines[crow + 7], ":" );
+		Column( dt_List, 1 )[crow] = Trim( tt[1] );
+		tt = Words( Trim( tt[2] ), " \!t" );
+		For( j = 1, j <= 24, j++,
+			Column( dt_List, j + 1 )[crow] = Num( Trim( tt[j] ) );
+// set the format, just once per column
+            if(i==1, Column(dt_list,j+1) << Format("Fixed Dec", 6,2))			
+		);
+		crow++;
+	)
+);
+
+// Look at both tables, the only differences are their names.
+// This second table is named ISCCPMonthly.. and has Notes attached.
+
+// Run to delete these files
+Try( Close( dtdata, NoSave ) );  //use a try, in case it has already been closed
+Try( Close( dt_List, NoSave ) ); //use a try, in case it has already been closed
+
+//=================================================================================
+/* See 2_Extra_MessyPatterns.jsl for using regular expressions to parse this file

@@ -1,0 +1,205 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	10_LearningMistakes.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the functions Try() and Throw()to catch syntax
+//          and semantic errors (usage errors)and an example of looking for
+//          date errors which are common. 
+
+//---------- Example 1 ----------
+// Script to display character date issues
+// and examples to capture errors
+airport_dt = Open("$SAMPLE_DATA/Quality Control/Airport.jmp");
+
+//Note that Day is not in a date format and is a character data type
+//Add a row to the data table
+airport_dt << Add Rows({:Day="30NOV88", :Flight=1, :Delay=10});
+rst = airport_dt << Fit Y by X(
+	Y( :Delay ),
+	X( :Day ),
+	X Axis Proportional( 0 )
+);
+
+//-------Run in blocks-----------
+//If the format is known to be ddMONyy, convert
+mon_AA = ["JAN"=>1, "FEB"=>2, "MAR"=>2, "APR"=>4, "MAY"=>5, "JUN"=>6,
+	"JUL"=>7, "AUG"=>8, "SEP" =>9, "OCT" =>10, "NOV"=>11, "DEC"=>12];
+Try(:Date << Delete Formula);
+:Date << Data Type("Numeric");
+:Date << Set Modeling Type("Continuous");
+:Date << Set Each Value(
+	As Date(
+		Date DMY(
+			Num( Substr( :Day, 1, 2 ) ),
+			mon_AA[Substr( :Day, 3, 3 )],
+			1900 + Num( Substr( :Day, 6, 2 ) )			
+		) //end DMY
+	)  //end As Date
+); //end set each value
+
+//Function Parse Date() may be useful here see 4_JMPDates.jsl
+ 
+:Date << Input Format( "d/m/y" ) << Format( "m/d/y", 12 );
+wait(0);
+Try(biv = airport_dt << Bivariate(
+	Y( :Delay ),
+	X( :Date )),
+//if errors
+   Caption("Either X or Y is not numeric..aborting");
+   wait(5);
+   Caption(remove);
+   Throw( "Non-numeric input columns")
+);	
+// if no errors 	
+bivr = Report(biv);
+bivr[ScaleBox(1)] << {Interval( "Day" ), Inc( 1 ),
+			Minor Ticks( 0 ), Rotated Labels( "Angled" )};
+bivr[FrameBox(1)] << {Frame Size( 431, 195 )}; 
+
+//options to capture errors
+//---------Example 2 -------------------------------------------------------
+//#1 check for expected data types prior to calling a JMP platform
+If ( (:Day << Get Data Type) != "Numeric", 
+      Caption("Day is not a valid date, aborting"); 
+      wait(5); Caption(remove); Throw("Incorrect data type, X")
+   );
+//next block will not run    
+rst = airport_dt << Fit Y by X(
+	Y( :Delay ),
+	X( :Day ),
+	X Axis Proportional( 0 )
+);
+//-----------------------------------------------------------------------
+
+//----------Example 3 --------------------------------------------------- 
+rst = airport_dt << Fit Y by X(
+	Y( :Delay ),
+	X( :Day ),
+	X Axis Proportional( 0 )
+);
+//Check results for the expected platform using get CLass Name
+rst_cn = rst << get Class Name;
+If(rst_cn != "Bivariate", 
+   rst << Close Window();  //get rid of incorrect analyses
+   Caption("Either X or Y is not numeric..aborting");
+   wait(5);
+   Caption(remove);
+   Throw( "Non-numeric input columns")
+);
+
+Caption("Continue running");
+
+//-----------------------------------------------------------------------
+
+//----------Example 4 --------------------------------------------------- 
+//Use a try statement and use the specific platform expected
+Try(rst = airport_dt << Bivariate(
+	Y( :Delay ),
+	X( :Day )),
+//if errors
+   Caption("Either X or Y is not numeric..aborting");
+   wait(5);
+   Caption(remove);
+   Throw( "Non-numeric input columns")
+);
+Caption("Continue running");
+
+//-----------------------------------------------------------------------
+
+//----------Example 5---------------------------------------------------
+// Try/Throw will capture an error but does not specify where/what occurred.
+// Run
+
+Try(
+	A = Sqrt( 0 );
+	B = Sqrt( 2 );
+	C = Sqrt( -9 );
+	D = Sqrt( "4" );
+	E = Sqrt( 4 );
+,  //else
+	Throw()
+);
+
+//--Check the Log, nothing is reported.  Now run just the statements
+//-------------------
+A = Sqrt( 0 );
+B = Sqrt( 2 );
+C = Sqrt( -9 );
+D = Sqrt( "4" );
+E = Sqrt( 4 );
+
+//--Check the Log, JMP provides a detailed error message
+//Lesson:  Do not put Try() on a large block of statements, be selective!
+
+//----------Example 6---------------------------------------------------
+// Try/Throw often gives a false sense of error capture
+x = -4;
+Try( y = Sqrt( x ), Throw() ); //no error, JMP handles this y =.
+Show( x, y );
+
+//----------Example 7---------------------------------------------------
+// If it is important to capture specific conditions, then test for the specific condition
+Clear Globals( x, y );
+x = -4;
+If( x <= 0,
+	Throw( "negative value, x = " || Char( x ) ),
+	y = Sqrt( x )
+);
+Show( x, y );
+
+//----------Example 8---------------------------------------------------
+// If it is important to capture specific conditions, then test for the specific condition
+Clear Globals( x, y );  //x and y are now empty
+If( x <= 0,
+	Throw( "negative value, x = " || Char( x ) ),
+	y = Sqrt( x )
+);
+Show( x, y );
+/* The Log shows
+x = x;
+y = y;
+which can be confusing. JMP remembers there are symbols but they have no values
+*/
+
+//----------Example 9---------------------------------------------------
+// If it is important to capture specific conditions, then test for the specific condition
+Clear Globals( x, y );   //x and y are now empty
+If( IsMissing(x),
+	Throw( "x is missing"  ),
+   x <= 0,
+	Throw( "negative value, x = " || Char( x ) ),
+	y = Sqrt( x )
+);
+Show( x, y );
+
+//----------Example 10---------------------------------------------------
+Clear Globals( x, y );   //x and y are now empty
+Delete Symbols( x, y);   //x and y are no longer variables
+If( IsMissing(x),
+	Throw( "x is missing"  ),
+   x <= 0,
+	Throw( "negative value, x = " || Char( x ) ),
+	y = Sqrt( x )
+);
+Show( x, y );
+//JMP throws an error and program aborts.
+//This error can occur when a step was not run that created the variable x
+
+//----------Example 11---------------------------------------------------
+Clear Globals( x, y );   //x and y are now empty
+Delete Symbols( x, y);   //x and y are no longer variables
+If( IsEmpty(x),
+    Throw("x is not a JMP symbol, it was never created."), 
+    IsMissing(x),
+	 Throw( "x is missing"  ),
+    x <= 0,
+	 Throw( "negative value, x = " || Char( x ) ),
+	 y = Sqrt( x )
+);
+Show( x, y );
+//JMP throws an error and program aborts
+//This error can occur when a step was not run that created the variable x
+//If you had to do this may times, write a function to return a name or flag
+
+
+
+

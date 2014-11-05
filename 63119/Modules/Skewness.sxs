@@ -1,0 +1,23 @@
+start Skewness(DataObject dobj, VarNames);              /* 1 */
+/* define a module that computes the skewness of variables in a
+ * data object 
+ */
+   dobj.WriteVarsToServerDataSet(VarNames, 
+                         "Work", "Temp", true);         /* 2 */
+   submit VarNames;
+      proc means data=Temp noprint;                     /* 3 */
+         var &VarNames;
+         output out=Skew skewness= ;                    /* 4 */
+      run;
+   endsubmit;
+   
+   use Skew;
+   read all var VarNames into x;                        /* 5 */
+   close Skew;
+
+   call delete("Work", "Temp");                         /* 6 */
+   call delete("Work", "Skew");
+   
+   return ( x );
+finish;
+store module=Skewness;

@@ -1,0 +1,26 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_DragFunctions.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates interactive graphics using drag functions. 
+
+
+New Window( "Drag Functions",
+	first_x = [5 25 42],
+	second_x = [55 75 92],
+	first_y = [7 35 4],
+	second_y = [57 85 54];
+	Graph Box(
+		Frame Size( 400, 400 ),
+		Drag Line( first_x, second_y );
+		Drag Marker( second_x, second_y );
+		Drag Polygon( first_x, first_y );
+		Drag Text( second_x, first_y, "text" );
+		Line( second_x, first_y )
+	)
+);
+
+/*------------------------------------------------------------
+Run this script. Drag the end of any line segment or any point.
+Sharing globals (first_x, first_y, second_x, second_y) among
+multiple drag features creates this synchronized behavior.  
+-------------------------------------------------------------*/

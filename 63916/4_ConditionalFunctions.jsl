@@ -1,0 +1,208 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_ConditionalFunctions.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates the syntax and behavior of conditional functions
+
+
+//  Uses
+//  If    - with valid and missing values
+//  IfMZ  - with valid and missing values
+//  Match() and Choose() with more uages based examples 
+//  for IfMin() and IfMax())
+// 
+//  Also uses IsMissing(), IsEmpty(), and Type() functions for type checking.
+//
+  
+//---------- Simple examples of Conditional If & IfMZ-----------------------------------
+
+//If and IfMZ simple syntax & behavior
+xx = 5;
+yy = If( xx > 0, "+1", xx < 0, "-1", "0" );
+Show( yy );  //yy = "+1";
+
+xx=.;  //same as xx=empty();
+yy = If( xx > 0, "+1", xx < 0, "-1", "0" );
+show( yy, Type ( yy ) ); //yy = .; Type(yy)= "Number";
+
+//Control empties with type checking  
+show( Type(xx), Is Empty(xx), Is Missing(xx), xx==Empty());
+//Type(xx) = "Number"; Is Empty(xx) = 0; Is Missing(xx) = 1; 
+//xx == Empty() = .;    
+
+yy=If( Is Missing(xx), "??", xx > 0, "+1", xx < 0, "-1", "0");
+show(yy, Type(yy)); //yy = "??"; Type(yy)="String";
+
+//IfMZ - a missing value is forced to zero
+xx = .;  //xx=empty();
+yy = IfMZ( xx > 0, "+1", xx < 0, "-1", "0" );
+Show( yy, Type( yy ) ); //yy = "0"; Type(yy)="String";
+
+xx=.;  //xx=empty();
+//Matched condition-result pairs & last condition is always true
+yy = If( xx > 0, "+1", xx < 0, "-1", 1, "0" );
+Show( yy, Type( yy ) ); //yy= "0"; Type(yy)="String";
+
+
+//---------- Simple examples of Conditional Match & MatchMZ ---------------------------
+
+//Match(a, value1, result1, value2, result2, ...);
+//MatchMZ(a, value1, result1, value2, result2, ...);
+
+xx="F";
+yy=Match(xx,"F","Female", "M", "Male", "Unknown");
+show(xx, yy);
+
+//identical to If() when the conditions are equivalency (==)
+xx="";
+yy=Match(xx,"F","Female", "M", "Male", "Unknown");
+zz=If(xx=="F", "Female", xx=="M", "Male", "Unknown");
+show(xx, yy, zz);
+
+//--Assign xx="M" and rerun teh last 3 statements.
+//---------- Alternate options for Choose, Match, If ----------------------------------
+
+//Syntax: Choose(a, result1, result2, result3, ..., resultk, Else);
+//a must evaluate to an integer from 1 to k otherwise else
+
+xx = Today();
+yy = Choose( Day Of Week( xx ), "Sun", "Mon", "Tue", "Wed", 
+    "Thu", "Fri", "Sat" );  //preferred code
+
+zz = Match( Day of Week(xx),1, "Sun", 2, "Mon", 3, "Tue",
+   4, "Wed", 5, "Thu", 6, "Fri", "Sat" );
+
+ww = if( Day Of Week( xx )==1, "Sun", Day Of Week( xx )==2, "Mon", 
+        Day Of Week( xx )==3, "Tue", Day Of Week( xx )==4, "Wed",
+        Day Of Week( xx )==5, "Thu", Day Of Week( xx )==6, "Fri",
+        Day Of Week( xx )==7, "Sat");
+Show( AsDate(xx), Day of Week(xx), yy, zz, ww );
+
+
+//----------- Example #1 simple IF usage for a computing values/formula ---------------
+dt_diam=Open("$Sample_Data\Quality Control\Diameter.jmp");
+uclCol=dt_diam<<New Column("UCL", numeric, continuous);
+lclCol=dt_diam<<New Column("LCL", numeric, continuous);
+clCol=dt_diam<<New Column("CL", numeric, continuous);
+
+
+uclCol<<set each Value(5.);
+lclCol<<set each value(3.6);
+clCol<<set each value(4.4);
+
+//If conditional commands
+oocCol=dt_diam<<New Column("OOC", character);
+oocCol<<set each value(If( :DIAMETER > :UCL, ">+3sig", 
+  :DIAMETER< :LCL, "<-3sig", ""));
+
+ovp=dt_diam<<Overlay Plot(
+	Y( :UCL, :LCL, :CL, :DIAMETER ),
+	:UCL(
+		Connect Points( 1 ),
+		Show Points( 0 ),
+		Connect Color( 3 ),
+		Overlay Marker( 8 )
+	),
+	:LCL(
+		Connect Points( 1 ),
+		Show Points( 0 ),
+		Connect Color( 3 ),
+		Overlay Marker( 1 )
+	),
+	:CL(
+		Connect Points( 1 ),
+		Show Points( 0 ),
+		Connect Color( 5 ),
+		Line Width( "Medium" )
+	),
+	:DIAMETER( Overlay Marker Color( 16 ), 
+	  Overlay Marker( 2 ),
+	  Connect Points(1),
+	  Connect Color(16) )
+);
+
+dt_diam<<select where(oocCol[]!="");
+//uses JMP 9 feature for Marker Selection Mode
+report(ovp)[FrameBox(1)]<<{Frame Size( 437, 227 ),
+         Marker Selection Mode( "Selected Haloed" )};
+
+//---------- Usage based case fot IfMin [lower is better]----------------------------         
+//--Example #2 IfMin() and IfMax() Conditional functions that make survey ranking easy.
+//--High School students from different demographics were asked which of 3 
+//--was most important: good grades, athletic ability, or popularity.
+//--They were then asked to rank the importance of Grades, Sports, Looks, and Money
+//--for popularity with 1 being highest 4 being lowest. The goal is to compare goals 
+//--popularity.  For each student find which colum was ranked 1 (minimum)
+//--this is very easy without stacking or other analysis using IfMin
+
+hs_students_dt=Open("$Sample_data\Children's Popularity.jmp"); 
+pop_impCol= hs_students_dt<<New Column("Most Important for Popularity",
+   character);
+pop_impCol<<Set each value(
+  IfMin( :Grades, "Grades", :Sports, "Sports", :Looks, "Looks", :Money, "Money", "" ));
+
+cat_analysis= hs_students_dt<<Contingency(
+	Y( :Most Important for Popularity ),
+	X( :Goals ),
+	Contingency Table(Count( 1 ),
+		Total %( 1 ), Col %( 0 ), Row %( 1 ),
+		Expected( 0 ),	Deviation( 0 ),
+		Cell Chi Square( 0 ),
+		Col Cum( 0 ),Col Cum %( 0 ),
+		Row Cum( 0 ),Row Cum %( 0 )
+	)
+);
+
+//----------- Usage based example for conditional program flow
+//--Example #3 works on Diameter Sample Data and uses an example of Choose from button box dialog
+
+dt_diam = Open("$SAMPLE_DATA/Quality Control/Diameter.jmp");
+LJ_cc=expr(
+cc=dt_diam<<Control Chart(
+	Sample Label( :DAY ),
+	Phase( :Phase ),
+	KSigma( 3 ),
+	Chart Col(:DIAMETER,
+		Levey Jennings( Shade Zones( 1 ))
+	))
+);
+
+XR_cc_All=expr(
+cc=dt_diam<<Control Chart( Sample Size( :DAY ), 
+	KSigma( 3 ), 
+	Chart Col( :DIAMETER, XBar, R ) )
+);
+XR_cc_Phase=expr(
+cc=dt_diam<<Control Chart(
+	Phase( :Phase ),
+	Sample Size( :DAY ),
+	KSigma( 3 ),
+	Chart Col( :DIAMETER, XBar, R ))
+);
+//simple dialog
+usr_dlg=Dialog(HList(VList("Diameter Control Charts",
+HList(VList("Select Type of Chart",
+type = RadioButtons( "XBar R no phase", 
+      "Xbar R phase", 
+      "Levey Jennings phase zone" )
+)),
+synch = Check Box( "Journal", 0 ),
+"Enter 4digit code", usrId = EditNumber( ),
+),
+VList( Button( "OK" ), Button( "Cancel" ) )
+));
+
+//Take user input and create reports 
+If(usr_dlg["Button"]==1,
+	Choose(usr_dlg["type"], 
+		XR_cc_All,
+		XR_cc_Phase,
+		LJ_cc
+	);
+	x_usrid = num(usr_dlg["usrid"]);
+	If(!Is Missing(x_usrid), 
+	   ttl = report(cc)[OutlineBox(1)] << get title;
+	   report(cc)[OutlineBox(1)] << set title (Char (x_usrid) || ": " ||ttl);
+	);
+	If(usr_dlg["synch"]==1, cc << Journal Window)
+);
+

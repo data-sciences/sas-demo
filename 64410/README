@@ -1,0 +1,32 @@
+This page contains SAS code and data sets for the book "SAS Encoding: Understanding the Details".
+
+Sample code:
+
+utf8_estimate.sas  (Chapter 4, p. 112): macro code to estimate the lengths of character variables (and format widths) when migrating data from a legacy encoding to UTF-8.
+
+Expected input is the data set you want to investigate; the input data set should be in the current SAS
+session encoding. The output data set needs to be specified after the out= macro keyword; the data is
+converted to UTF-8 after estimating the required character variable lengths. The macro code also
+creates a temporary data set _utf8_est_ with information about 'Current Variable Length', 'Estimated
+Variable Length' and 'Required Variable Length') and if there was a 'Conversion Required'. If an
+adjustment was necessary the current and estimated/required lengths differ, if not they are the same.
+
+If you just want to display the estimates, you can leave out the output data set.
+
+correctencoding.sas (Chapter 4, p. 121): macro code to correct the encoding attributes of an entire library.
+
+Expected input is the physical path name for the SAS data library. You may want to replace the libref (the sample has TEMP) and the encoding value (the sample has ASCIIANY) - valid encoding values can be found in the SAS(R) 9.3 National Language Support (NLS): Reference Guide.
+
+
+Data sets:
+
+allprd.sas7bdat (a modified version of SASHELP.PRDSALE): a UTF-8 data set which has data from more than 15 languages: English, French, Russian, Japanese, Korean, Simplified Chinese, Thai, Arabic (Egypt), Indic (Hindi, Tamil, etc.), Vietnamese, Greek, Lithuanian, Polish, Hebrew and Turkish. The country, scountry and region variables have translated values.
+
+class_ru.sas7bdat (Chapter 4, p. 113): a Cyrillic SASHELP.CLASS 
+
+contacts.sas7bdat (Chapter 3, p. 50): a multilingual data set with name and address data from several countries.
+
+
+You should be able to save the SAS code (and data sets) to your hard drive, and then run or use it. Contacts.sas7bdat and allprd.sas7bdat require SAS Unicode Server; class_ru.sas7bdat requires a SAS session encoding of wcyrillic.  
+
+

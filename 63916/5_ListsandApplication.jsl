@@ -1,0 +1,51 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_ListsandApplication.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates applications for Lists, with Eval List.
+
+
+a_lst = List(1, 2, 3);    //equivalent to a = {1, 2, 3}
+b_lst = {"a", "B", "Cc"};  //{"a", "B", "Cc"}
+c_lst = {Sqrt(1),Log(5),8*5};  //output to log: {Sqrt( 1 ), Log( 5 ), 8 * 5}
+
+Eval List(c_lst);  //output to log: {1, 1.6094379124341, 40}
+
+d_lst = {1, "a", sqrt(4)};  //{1, "a", Sqrt( 4 )}
+Eval List(d_lst);  //{1, "a", 2}
+
+x = "string";
+y = 12;
+z = Expr(bc_dt = Open("$SAMPLE_DATA/Big Class.jmp"); 
+bc_dt << Distribution(Y(:age)));  
+
+e_lst = {[2,2], {1,1}, x, y, z};  //{[2, 2], {1, 1}, x, y, z}
+Eval List(e_lst);  //{[2, 2], {1, 1}, "string", 12, Distribution[]}
+
+//Assignment Lists
+assign_lst = {a = 2, b = 3, c = 5};  //{a = 2, b = 3, c = 5}
+//Before a, b, and c are assigned values, the list must be evaluated
+Show(a, b, c);  //gives an error since assignment list has not been evaluated
+Eval List(assign_lst);  //{2, 3, 5}
+Show(a, b, c);  //a = 2; b = 3; c = 5;
+
+//Function Lists
+mp = Function({p}, (2^p) - 1);
+func_lst = {mp(2), mp(3), mp(5)};  //{mp( 2 ), mp( 3 ), mp( 5 )}
+Eval List({mp(a), mp(b), mp(c)});  //{3, 7, 31}
+Eval List(func_lst);  //{3, 7, 31}
+mp(assign_lst);  //{3, 7, 31}
+
+//This gives an error since b is a string
+assign_lst2 = {a=2, b="b"};
+mp(assign_lst2);  //error in log "expecting list or number"
+
+Show(a_lst[1], b_lst[2], c_lst[3]);  //a_lst[1] = 1; b_lst[2] = "B"; c_lst[3] = 8 * 5;
+Show(Subscript(a_lst,1), Subscript(b_lst,2), Subscript(c_lst,3)); 
+Show(d_lst[3], e_lst[2][1], e_lst[3]);  //d_lst[3] = Sqrt(4); e_lst[2][1] = 1; e_lst[3] = x;
+Show(Eval(e_lst[3]), Eval(e_lst[5]));  //Eval(e_lst[3]) = "string"; Eval(e_lst[5]) = Distribution[];
+Show(c_lst[e_lst[1][1]]);  //c_lst[e_lst[1][1]] = Log(5);
+Subscript(c_lst, Subscript(Subscript(e_lst, 1), 1));  //Log(5)
+v = assign_lst[1];  //a = 2
+w = Eval(assign_lst[1]);  //2
+
+

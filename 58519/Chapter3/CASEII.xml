@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace>
+<NODES>
+<NODE COMPONENT="DataSource" X="106.0" Y="228.0" DESCRIPTION="CHARI_NTARG" ID="$1">
+<PROPERTIES DataSource="CHARINTARGB" Scope="LOCAL" Role="RAW" Library="THEBOOK" Table="CHARI_NTARG_B" NCols="21.0" NObs="2920.0" SamplingRate="NaN" Segment="" UseExternal="" OutputType="VIEW" ForceRun="N" DataSelection="DATASOURCE" NewTable="" Component="DataSource" Description="" UseExternalData="">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Partition" X="220.0" Y="227.0" DESCRIPTION="Data Partition" ID="$2">
+<PROPERTIES Method="DEFAULT" TrainPct="40.0" ValidatePct="30.0" TestPct="30.0" RandomSeed="12345.0" Component="Partition">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="VariableSelection" X="345.0" Y="226.0" DESCRIPTION="Variable Selection" ID="$3">
+<PROPERTIES TargetModel="DEFAULT" HideRejectedVars="Y" MaxMissingPercent="50.0" MaxLevel="100.0" RejectUnusedInputVars="Y" UseAov16="N" UseInteractions="N" UseGroups="Y" MinR2="0.0050" StopR2="5.0E-4" MaxRows="3000.0" Passes="6.0" ChiSquare="3.84" Bins="50.0" SASSPDS="Y" PrintOption="DEFAULT" Component="VariableSelection" VarselLabel="VARSELLABEL">
+<VariableProperties/>
+<Notes/>
+<ManualSelectionVariables/>
+<NameMappings/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="SASCode" X="466.0" Y="138.0" DESCRIPTION="SAS Code" ID="$4">
+<PROPERTIES Catalog="" ScoreCodeFormat="DATASTEP" ScoreExternal="" External="" MetaAdvisor="BASIC" ForceRun="N" ScoreLocation="INTERNAL" UsePriors="Y" ToolType="UTILITY" DataNeeded="N" PublishCode="PUBLISH" Location="INTERNAL" ScoreCatalog="" Component="SASCode" Code=" ">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties>
+<USERTRAINCODE Type="EXTERNAL">
+<Data><![CDATA[proc freq data=&em_import_data ; ]]><![CDATA[
+]]><![CDATA[  table cvar03 / missing ; ]]><![CDATA[
+]]><![CDATA[run ;]]><![CDATA[
+]]><![CDATA[proc contents data=&em_import_data;]]><![CDATA[
+]]><![CDATA[run ; ]]><![CDATA[
+]]><![CDATA[proc freq data=&em_import_data;]]><![CDATA[
+]]><![CDATA[ table g_cvar03 / missing ; ]]><![CDATA[
+]]><![CDATA[run ;]]><![CDATA[
+]]></Data>
+</USERTRAINCODE>
+<USERSCORECODE Type="EXTERNAL">
+<Data/>
+</USERSCORECODE>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Regression" X="472.0" Y="303.0" DESCRIPTION="Regression" ID="$5">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2.0" Terms="N" Error="LOGISTIC" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0.0" Stop="0.0" Force="0.0" Hierarchy="CLASS" Rule="NONE" MaxStep="NaN" StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="NaN" MaxFunctionCalls="NaN" MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0.0" AbsFTime="1.0" AbsGValue="1.0E-5" AbsGTime="1.0" AbsXValue="1.0E-8" AbsXTime="1.0" FConvValue="0.0" FConvTimes="1.0" GConvValue="1.0E-6" GConvTimes="1.0" ClParm="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" Component="Regression">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes>
+<DEPV>
+<DecData Table="EMWS2.Reg_DEPV_DD">
+<Data>
+<Obs DEPV="2.6390573296"/>
+<Obs DEPV="13.996890288"/>
+</Data>
+<Metadata>
+<Variable NAME="DEPV" LABEL="" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS2.Reg_DEPV_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="NaN" MEAN="NaN" MAX="NaN"/>
+<Obs _TYPE_="TARGET" VARIABLE="DEPV" LABEL="" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="2.6390573296" MEAN="9.0997133398" MAX="13.996890288"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_DEPV" LABEL="Predicted: DEPV" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="NaN" MEAN="NaN" MAX="NaN"/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_DEPV" LABEL="Residual: DEPV" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="NaN" MEAN="NaN" MAX="NaN"/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="40" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</DEPV>
+</EmTargetAttributes>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+</NODES>
+<CONNECTIONS>
+<CONNECTION FROM="$1" TO="$2"/>
+<CONNECTION FROM="$2" TO="$3"/>
+<CONNECTION FROM="$3" TO="$4"/>
+<CONNECTION FROM="$3" TO="$5"/>
+</CONNECTIONS>
+</Workspace>

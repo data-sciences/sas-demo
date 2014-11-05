@@ -1,0 +1,14 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	1_ScriptWindow.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates features of the Script Window
+
+
+CO2_dt = Open( "$SAMPLE_DATA/Time Series/CO2.jmp" );
+//Scatter plot of CO2 vs. Time
+CO2_dt << Bivariate(
+	Y( :CO2 ),
+	X( :Name( "Year&Month" ) ),
+	Fit Line(),
+	Fit Spline( 0.0001 )
+);

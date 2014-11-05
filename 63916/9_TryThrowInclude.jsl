@@ -1,0 +1,142 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_TryThrowInclude.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the use of Try and Throw functions and exception_msg.
+
+//---- Script #1 ----------------------------------------------------------------------
+// Matrix Box requires a matrix argument
+// Since xx=25 is not a matrix, an error will be thrown (see the Log) and
+// program execution stops before Big Class is opened.
+xx=25;
+//same as incl1.jsl
+Try( New Window( "Example",
+	mb = Matrix Box( xx )
+   );
+   1 ,   //returns 1 if successful
+  err_str = "xx is not a matrix..aborting";
+  Caption(err_str);wait(3); Caption(Remove); 
+  Throw(err_str)
+);
+
+//same as incl2.jsl
+open("$Sample_data\Big Class.jmp");
+//---- End Script #1----------------------------------------------------------------------
+
+//---- Create files incl1 and incl2
+SaveTextFile("$JSL_Companion\incl1.jsl",
+	"\[Try( New Window( "Example",
+	mb = Matrix Box( xx )
+   );
+   1 ,   //returns 1 if successful
+  err_str = "xx is not a matrix..aborting";
+  Caption(err_str);wait(3); Caption(Remove); 
+  Throw(err_str)
+   ); ]\" 
+);  //end save text file incl1
+
+SaveTextFile("$JSL_Companion\incl2.jsl",
+  "\[open("$Sample_data\Big Class.jmp");]\"	
+);  //end save text file incl2
+
+//---- End create files incl1 and incl2-------------------------------------------------
+
+//---- Script #2 ----------------------------------------------------------------------
+// Script to demonstrate the behavior of a Throw() in an included file
+// Big Class will open since, Throw halts incl1   
+//xx = [1 2 3 , 4 5 6];
+xx = 25;
+inc1 = Include( "$JSL_Companion\incl1.jsl" );
+inc2 = Include( "$JSL_Companion\incl2.jsl" );
+Show( inc1, inc2 );
+//---- End Script #2----------------------------------------------------------------------
+
+//---- Script #3 ----------------------------------------------------------------------
+// Script to demonstrate how to use the return flag of an include file
+// to control program execution. 
+// If inc1 ==1 then Big Class will open since   
+//xx = [1 2 3 , 4 5 6];
+xx = 25;
+inc1 = 0; inc2=0;
+inc1 = Include( "$JSL_Companion\incl1.jsl" );
+If (inc1, inc2 = Include( "$JSL_Companion\incl2.jsl" ));
+Show( inc1, inc2 );
+//---- End Script #3----------------------------------------------------------------------
+
+//---- Script #4 ----------------------------------------------------------------------
+// Script to demonstrate how to use type checking and handling a special case
+// to control program execution. 
+// If inc1 ==1 then Big Class will open since   
+//xx = [1 2 3 , 4 5 6];
+xx = 25;
+If (!Is Matrix(xx) & IsNumber(xx), xx = J(1,1,xx);
+ New Window( "Example",
+	mb = Matrix Box( xx )
+   ),
+//else   
+  err_str = "xx is not a matrix..aborting";
+  Caption(err_str);wait(3); Caption(Remove); 
+  Throw(err_str)
+);
+
+//same as incl2.jsl
+open("$Sample_data\Big Class.jmp");
+//---- End Script #4----------------------------------------------------------------------
+
+// Script #5----------------------------------------------------------------------
+// Script to demonstrate pros and cons of Try and the usage of execption_msg
+// to control program execution. 
+exception_msg = "";
+Try(
+  a = sqrt(4);	
+  b = sqrt(-4);
+  c = sqrt( "4");
+  show(a , b, c) ,
+  Throw() 	
+);
+//Run to here and look at the log
+//note no errors in the log file when using Try()
+//Throw() halts the program, but the error is stored in exception_msg
+show(exception_msg);
+
+//---now rerun throwing the exception_msg
+//start
+exception_msg = "";
+Try(
+  a = sqrt(4);	
+  b = sqrt(-4);
+  c = sqrt( "4");
+  show(a , b, c)  	
+);
+If(IsList(exception_msg), show(exception_msg); Throw());
+//end run to here...Log has the error string
+
+//This is a short script. If Try() is wrapped around a long script, there is
+//no indication of where it occurred.
+
+//With no Try the log flags the errant code at the occurrence of the error.
+//We prefer capturing the log or having the user send the log
+//start run
+  a = sqrt(4);	
+  b = sqrt(-4);
+  c = sqrt( "4");
+  show(a , b, c);
+//end run
+
+//Rule of thumb: use Try judiciously.  Using Include() and Throw() allows capturing 
+//errors by task.  Exception_msg and the Log helps here.
+
+//-----example of checking incoming values
+usrValues = {4, -4, "4", 100, 0, empty(), [1 ,2, 4], {100, 225, 256} };
+
+for(i=1, i<=nitems(usrValues), i++,
+   xx = usrValues[i];
+   if( IsNumber( xx ) | IsMatrix ( xx ) | xx==empty(),
+       vv=sqrt(xx);
+       Write( "The square root of "|| Char(xx) ||" = " ||Char(vv) ||"\!n"),
+       
+     IsString( xx ),
+        Write(xx || " is a string not a number"||"\!n"),
+     IsList( xx ),
+        Write(Char(xx) || " is a list and this script does not handle this case." ||"\!n")
+     ) // end If 	
+); // end for i

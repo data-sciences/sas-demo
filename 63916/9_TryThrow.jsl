@@ -1,0 +1,18 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_TryThrow.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the use of Try and Throw functions.
+
+//Run the entire script. Task #2 will not be performed, since x is not a matrix.
+xx=25;
+//task #1: same as incl1.jsl
+Try( New Window( "Example",
+	mb = Matrix Box( xx ) );
+   1 ,   //returns 1 if successful
+  err_str = "xx is not a matrix..aborting";
+  Caption( err_str ); wait( 3 ); Caption( Remove ); 
+  Throw( err_str )
+);
+
+//task #2: same as incl2.jsl
+open("$Sample_data\Big Class.jmp");

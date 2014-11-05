@@ -1,0 +1,29 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_ColumnPropertiesOther.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates getting custom column properties and using the values
+
+
+//Define data table to be used
+bigclass_dt = Open("$JSL_Companion\BigclassCustomProperties.jmp" );
+Current Data Table(bigclass_dt);
+
+//Get list of continuous variables in data table
+cont_list = bigclass_dt << Get Column Names( Continuous );
+
+//Create new window and do a one sample test using custom table properties
+New Window( "Test of Continuous Variables",
+	For( i = 1, i <= N Items( cont_list ), i++,
+		Distribution(
+			Continuous Distribution(
+				Column( Eval( cont_list[i] ) ),
+				Horizontal Layout( 1 ),
+				Vertical( 0 ),
+				Count Axis( 1 ),
+				Normal Quantile Plot( 1 ),
+				Test Std Dev( Column( cont_list[i] ) << Get Property( "Ref Sigma" ) ),
+				Test Mean( Column( cont_list[i] ) << Get Property( "Ref Mean" ) )
+			)
+		)
+	)
+);

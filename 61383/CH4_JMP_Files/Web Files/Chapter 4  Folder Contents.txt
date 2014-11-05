@@ -1,0 +1,18 @@
+CHAPTER 4: Comparing the Measured Performance of a Material, Process, or Product to a Standard
+
+In this folder you will find 3 files that contain the JMP data tables and statistical computations or analyses that are used in this chapter. Each file name begins with the acronym AICDUJ, which stands for 'Analyzing and Interpreting Continuous Data Using JMP', followed by 'Chapter 4' and the name of the data or statistical techniques illustrated in the book. The file names and their content are provided below. The Equivalence Test with Standard script is also included.
+
+1. AICDUJ-Chapter 4 Figures 4-2 to 4-5.JMP
+
+There are 2 columns and 51 rows in this JMP table, along with 3 scripts. The scripts can be used to reproduce one sample tests for the means and standard deviations shown in Figures 4.2, 4.3, 4.4, and 4.5 in Section 4.3 "Overview of One-Sample Tests of Significance" in this book.
+
+
+2. AICDUJ-Chapter 4 Furnace Qualification.JMP
+
+This file contains the Oxide Thickness data used in the case study for this chapter, which is partially shown in Figure 4.19 in Section 4.4 "Step-by-Step JMP Analysis Instructions". There are 8 scripts included with this table. The first 2 scripts create Figures 4.22a and 4.22b in Step 4 of the step-by-step instructions. The next 4 scripts reproduce Figures 4.24, 4.26a, 4.26b, and 4.27 discussed in Step 5 of the instructions. Finally, the last 2 scripts display Figures 4.35b and 4.37 in Step 6 of the analysis.     
+
+
+3. AICDUJ-Chapter 4 Oxide Vertical.JMP
+
+The Furnace qualification data in the case study is presented in this JMP table in a different format from above. All Oxide Thickness readings are provided in one column, with an additional column added to keep track of the wafer position. The attached script will produce the variability chart shown in Figure 4.34 in Step 5 in the step-by-step instructions in Section 4.4 of this Chapter.
+

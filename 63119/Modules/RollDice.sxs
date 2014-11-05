@@ -1,0 +1,12 @@
+start RollDice(N);
+/* Module to roll two six-sided dice N times.
+ * Call the RANDSEED function before calling this module. 
+ * The return value is the sum of the values of the roll. 
+ * This module calls the Table distribution with equal probability.
+ */
+    d = j(N,2);                     /* allocate Nx2 vector          */
+    prob = j(6,1,1)/6;              /* equal prob. for six outcomes */
+    call randgen(d, "Table", prob); /* fill with  integers in 1-6   */
+    return ( d[,+] );               /* values of the N rolls        */
+finish;
+store module=RollDice;

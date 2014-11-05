@@ -1,0 +1,18 @@
+CHAPTER 3: Characterizing the Measured Performance of a Material, Process, or Product
+
+In this folder you will find 3 files that contain the JMP data tables and statistical computations or analyses that are used in this chapter. Each file name begins with the acronym AICDUJ, which stands for 'Analyzing and Interpreting Continuous Data Using JMP', followed by 'Chapter 3' and the name of the data or statistical techniques illustrated in the book. The file names and their content are provided below.  
+
+
+1. AICDUJ-Chapter 3 Strata Example.JMP
+
+This file contains random data for two different stratum, representing two different populations. The JMP table contains 3 scripts to reproduce Figures 3.1a, 3.1b, and 3.2 discussed in Section 3.3 "Overview of Exploratory Data Analysis".
+
+
+2. AICDUJ-Chapter 3 Resistance Data.JMP
+
+This file contains 3200 observations of Resistance data and 4 JMP scripts. The scripts produce Figures 3.6, 3.7, 3.8a, and 3.8b shown in Section 3.3 "Overview of Exploratory Data Analysis".
+
+
+3. AICDUJ-Chapter 3 Socket Thickness Data.JMP
+
+This file contains 400 observations of Effective Thickness data, partially shown in Figure 3.13, that is analyzed in the case study for Chapter 3 in Section 3.4 "Step-by-Step JMP Analysis Instructions". There are 12 JMP scripts saved to this table. The first 9 scripts will reproduce Figures 3.21, 3.24, 3.26, 3.27, 3.28, 3.30, 3.31, 3.34, and 3.36 discussed in Step 5 in the step-by-step instructions. The remaining 3 scripts produce Figures 3.37, 3.38, and 3.40 shown in Step 6 in the step-by-step instructions.

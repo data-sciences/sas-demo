@@ -1,0 +1,37 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_CreateVariables.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates using variables as references
+
+
+//----------  Creating Variables  ----------
+a = 2 + 3;  //Valid assignment
+5 = 2 + 3;  //Invalid assignment because 5 is not a valid variable name
+
+//----------  TABLE SUMMARY  ----------
+//Summarize Football data table and create overlay plot of summarized values
+//Open the Football data table and assign it a variable name
+football_dt = Open( "$SAMPLE_DATA/Football.jmp" );
+
+//Summarize the Weight of the players and assign the new table a name
+fb_sum_dt = football_dt << Summary( Group( :Position ), Mean( :Weight ) );
+
+//When creating an overlay plot specify the data table to be used
+fb_ovlay = fb_sum_dt << Overlay Plot( X( :Position ), Y( :Name( "Mean(Weight)" ) ), Separate Axes( 1 ) );
+
+//----------  SENDING MESSAGES  ----------
+bigclass_dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+//Create Bivariate object
+splot_biv = bigclass_dt << Bivariate( Y( :weight ), X( :height ) ); 
+
+//Send a message to the Bivariate object        
+splot_biv << FitLine;              //linear fit
+splot_biv << FitPolynomial( 2 );   //quadratic fit
+
+
+//----------  EVAL STATEMENT with VARIABLES  ----------
+//Using the Eval statement with variables
+cereal_dt = Open( "$SAMPLE_DATA/Cereal.jmp" );
+cereal_lst = cereal_dt << Get Column Names( Continuous );
+Distribution( Y( Eval( cereal_lst ) ), Normal Quantile Plot( 1 ) );

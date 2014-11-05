@@ -1,0 +1,69 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_CustomByUsingWhere.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates how to build a report using more than one platform 
+//          combining analyses for each unique group (by group)
+
+
+/*
+ Script 8_CustomPlatformSubsetBy.jsl demonstrates a method to build a 
+ By Group analyses using multiple platforms.  This script is a simple 
+ alternative to Platform().
+  
+ It requires only 1 file.  Note, the initial display may take longer
+ if the file is very large and not sorted.
+
+ For this example the overlay plot uses only one Y-axis and uses JMP 
+ default scaling.
+*/
+
+
+dt = Open( "$SAMPLE_DATA\SATByYear.jmp" );
+t0 = Tick Seconds();
+Summarize( _b = By( :State ) );
+
+nw = New Window( "Using Where", 
+     vv = VListBox()
+);
+
+For( i = 1, i <= N Items( _b ), i++, 
+//---create bivariate and customize    
+  plt1 = VListBox( biv = Bivariate(
+	Y( :SAT Verbal ),X( :SAT Math ), 
+	Fit Spline(0),where( :State == _b[i] ),
+	Fit Line( {Report( 0 ), Line Color( {213, 72, 87} )} )
+  ));  // end plt1 
+  bivr = biv << Top Report;  //the "where" text box is in the top report 
+  bivr[TextBox(1)] << delete;
+  bivr[OutlineBox(1)] << Set Title( "SAT Verbal vs. Math: " || _b[i] );
+
+//---create overlay 1 Y axis, let JMP do the scaling & customize
+  plt2 = VListBox( ovl = Overlay Plot( where(:State == _b[i] ),
+    X(:Year), Y( :SAT Verbal, :SAT Math ), 
+	Connect Points( 1 )
+  )); // end plt2
+  ovlr = ovl << Top Report;  //"where" TextBox is in the top report 
+  ovlr[TextBox(1)] << delete;
+  ovlr[ OutlineBox(1) ] << Set Title( "SAT Scores by Year: " || _b[i] );
+
+//---Wrap the two plots in an OutlineBox and HListBox and 
+//    load them into the window  
+  vv << Append( OutlineBox( "State = " || _b[i],
+  	      HListBox( plt1, plt2 )  )); // end Append 
+); // end For
+t1 = Tick Seconds();
+
+Show( t1 - t0 );
+
+/*
+ This is a simple example of building a display "bottom up". This example creates a 
+ custom title and removes a "where" text box.  Then appends an OutlineBox containing
+ an HListBox of the plt1, the bivariate analyses, and plt2, the Oneway analyses.
+ 
+ Note since these plots are single reports, only single analysis navigation is
+ required. They are in an undisplayed VListBox and will be active since the
+ final append is the first time the two plots are loaded into a window.
+
+ Note: Check out Delaware on this report.  Using a common scale is
+ much more informative.
+*/

@@ -1,0 +1,462 @@
+ 
+
+   import javax.swing.JOptionPane;    /* import statements MUST be first */
+
+
+   /********************************************************************/
+   /********** Pausing a Program to Enable Interaction **********/
+
+   /* pause program to enable user to interact with the data */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   
+   declare ScatterPlot plot;
+   plot = ScatterPlot.Create(dobj, "ReleaseDate", "US_Gross");
+   
+   pause "NoDialog: Select observations. Click Resume to color them red.";
+   dobj.GetSelectedObsNumbers(SelObsIdx);
+   if ncol(SelObsIdx) > 0 then 
+      dobj.SetMarkerColor(SelObsIdx, RED);
+
+
+   /********************************************************************/
+   /********** Attaching Menus to Graphs **********/
+
+   /* add action menu to histogram */
+   declare Histogram hist;
+   hist = Histogram.Create(dobj, "Budget");
+   hist.AppendActionMenuItem("Draw a Rug Plot",        /* 1 */
+                             "run OnRugPlot();"        /* 2 */
+                             );
+
+   start OnRugPlot();                                  /* 3 */
+      declare Histogram h;
+      h = DataView.GetInitiator();                     /* 4 */
+      run RugPlot(h);
+   finish;
+
+
+   /* add action menu with two menu items to histogram */
+   declare Histogram hist2;
+   hist2 = Histogram.Create(dobj, "Budget");
+   hist2.AppendActionMenuItem("Draw a Rug Plot",       /* 1 */          
+                              "run OnRugPlot2();" 
+                              );
+   hist2.AppendActionMenuItem("Remove Rug Plot",       /* 2 */
+                              "run OnRemoveRugPlot();"      
+                              );
+   start OnRugPlot2();                                 /* 3 */
+      declare Histogram h;
+      h = DataView.GetInitiator();                         
+      h.DrawRemoveCommands("RugBlock");
+      h.DrawBeginBlock("RugBlock");                    /* 4 */
+      run RugPlot(h);
+      h.DrawEndBlock();
+   finish;
+
+   start OnRemoveRugPlot();                            /* 5 */
+      declare Histogram h;
+      h = DataView.GetInitiator();
+      h.DrawRemoveCommands("RugBlock");                /* 6 */
+   finish;
+
+
+   /********************************************************************/
+   /********** Linking Related Data **********/
+
+
+   /* create a scatter plot of the observations */
+   DSName = "Sasuser.Movies";
+   XVarName = "ReleaseDate";
+   YVarName = "Budget";
+   
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet(DSName);
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, XVarName, YVarName);
+
+
+   /* compute AICC criterion for a range of smoothing values */
+   start ComputeLinkedCriterionPlot(ScatterPlot CritPlot, ScatterPlot p);
+      /* 1. write data to server */
+      p.GetVars(ROLE_X, XVarName);
+      p.GetVars(ROLE_Y, YVarName);
+      declare DataObject dobj = p.GetDataObject();
+      dobj.WriteVarsToServerDataSet(XVarName//YVarName, "Work", "LoessIn", true);
+      
+      /* 2. call PROC loess to compute data for criterion plot */
+      submit XVarName YVarName;
+      proc loess data=Work.LoessIn;
+         model &YVarName = &XVarName / select = AICC
+                                       smooth = 0.05 to 0.9 by 0.01; 
+         ods output ModelSummary=LoessCriteria;
+      run;
+      endsubmit;
+      
+      /* 3. create data object from SmoothingCriterion table */
+      declare DataObject CritDobj;
+      CritDobj = DataObject.CreateFromServerDataSet("Work.LoessCriteria");
+      CritPlot = ScatterPlot.Create(CritDobj, "Smooth", "AICC");
+      
+      /* 4. give the criterion plot a link to the original scatter plot */
+      CritPlot.AddAttachedObject("ObsPlot", p);
+      
+      /* 5. create an action menu */
+      CritPlot.AppendActionMenuItem("Draw Loess Curves for Selected Parameters", 
+                                    "run OnDrawLoessParam();" );
+   finish;
+
+   /* call the module to create the criterion plot */
+   declare ScatterPlot CritPlot;
+   run ComputeLinkedCriterionPlot(CritPlot, p);
+
+
+   /* compute loess curves for selected smoothing parameters */
+   start OnDrawLoessParam();
+      /* 6. get selected parameters */
+      declare ScatterPlot CritPlot;
+      CritPlot = DataView.GetInitiator();
+      declare DataObject CritDobj;
+      CritDobj = CritPlot.GetDataObject();
+      CritDobj.GetVarSelectedData("Smooth", s);
+      if ncol(s)=0 then return;
+
+      /* 7. get linked scatter plot and names of variables */
+      declare ScatterPlot p;
+      p = CritPlot.GetAttachedObject("ObsPlot");
+      p.GetVars(ROLE_X, XVarName);
+      p.GetVars(ROLE_Y, YVarName);
+
+      /* 8. call PROC loess to compute smoothers (assume LoessIn exists) */
+      submit XVarName YVarName s;
+      proc loess data=Work.LoessIn;
+         model &YVarName = &XVarName / smooth = &s; 
+         score / ;   
+         ods output ScoreResults=LoessOut; 
+      run;
+   
+      proc sort data=LoessOut;
+         by SmoothingParameter &XVarName;
+      run;
+      endsubmit;
+   
+      /* 9. read data for loess curves */
+      PredVarName = "P_" + YVarName;
+      use LoessOut;
+      read all var "SmoothingParameter" into smooth;
+      read all var XVarName into allX;
+      read all var PredVarName into allPred;
+      close LoessOut;
+
+      /* 10. overlay loess smoothers on scatter plot */
+      uSmooth = unique(smooth);
+      p.DrawRemoveCommands("LoessCurves");
+      p.DrawBeginBlock("LoessCurves");
+      p.DrawUseDataCoordinates();
+      do i = 1 to ncol(uSmooth);
+         idx = loc(smooth=uSmooth[i]);
+         x = allX[idx];
+         pred = allPred[idx];
+         p.DrawLine(x, pred);
+      end;
+      p.DrawEndBlock();
+   finish;
+
+
+
+   title = "Rolling Dice";
+   message = "This game simulates rolling two six-sided dice.";
+   run DoMessageBoxOK(title, message);
+
+   /********************************************************************/
+   /********** Dialog Boxes in SAS/IML Studio **********/
+
+
+   /* prompt user for a value to use in an algorithm */
+   message = "Please enter the number of times to roll the dice:";
+   N = 100;                            /* default number of rolls */
+   rc = DoDialogModifyDouble(N, title, message);
+   if rc & N>1 then do;                /* valid specification?         */
+       N = int(N);                     /* truncate value to integer    */
+       d = j(N,2);                     /* allocate Nx2 vector (2 dice) */
+       call randgen(d, "uniform");     /* fill with values in (0,1)    */
+       d = ceil(6*d);                  /* convert to integers in 1-6   */
+       sum = d[,+];                    /* values of the N rolls        */
+   end;
+   else 
+      print "Good-bye";                /* canceled or invalid value    */
+
+
+   /* prompt user to determine the behavior of an algorithm */
+   message = "Would you like to see the distribution of the results?";
+   rc = DoMessageBoxYesNo(title, message);
+   if rc then do;                              /* create the bar chart */
+      declare BarChart bar;
+      bar = BarChart.Create(title, sum);
+      bar.SetAxisLabel(XAXIS, "Sum");
+      bar.SetOtherThreshold(0);
+   end;
+
+
+   /* prompt user to choose variables for an analysis */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Vehicles"); 
+   
+   /* get vector of numeric variables */ 
+   do i = 1 to dobj.GetNumVar();             /* 1 */
+      name = dobj.GetVarName(i);             /* get the name           */
+      if dobj.IsNumeric(name) then           /* if variable is numeric */
+         varNames = varNames // name;        /*    add it to the vector*/
+   end;
+   
+   rc = DoDialogGetListItems(selections,     /* 2 */
+           "Correlation Analysis", 
+           "Please select variables for correlation analysis.", 
+           varNames, "Name"); 
+           
+   if rc then do;                            /* 3 */
+      vars = varNames[selections];           /* 4 */ 
+      dobj.WriteVarsToServerDataSet(vars,    /* 5 */
+                       "Work", "In", true);
+
+      submit vars;                           /* 6 */
+         proc corr data=In nosimple noprob;
+            var &vars;                       /* analyze selected vars  */
+         run;
+      endsubmit;
+   end;
+
+   /* get vector of numeric variables (more efficient) */ 
+   k = dobj.GetNumVar();                 /* number of variables        */
+   blank32 = subpad("", 1, 32);          /* string with 32 blanks      */
+   varNames = j(k, 1, blank32);          /* allocate result vector     */
+   count = 0;                            /* keep count of numeric vars */
+   do i = 1 to k;                        /* for each variable...       */
+      name = dobj.GetVarName(i);         /* get the name               */
+      if dobj.IsNumeric(name) then do;   /* if the variable is numeric */
+         count = count + 1;              /*    increment the counter   */
+         varNames[count] = name;         /*    add name to the vector  */
+      end;
+   end;
+   varNames = strip(varNames[1:count]);  /* shrink & strip blanks      */
+
+
+   /********************************************************************/
+   /********** Creating a Dialog Box with Java **********/
+
+
+   /* create a modal dialog by using Java Swing classes */
+   *import javax.swing.JOptionPane;   /* must be first stmt in program */
+   
+   /* Text for the buttons */
+   declare String[] distrib = {"Normal", "Uniform", "Exponential"};
+           
+   response = JOptionPane.showOptionDialog(
+              null,                              /* parent component   */
+              "Sample from what distribution?",  /* message            */  
+              "Pseudorandom Sampling",           /* title of dialog box*/
+              JOptionPane.DEFAULT_OPTION,        /* option type        */
+              JOptionPane.PLAIN_MESSAGE,         /* messageType        */
+              null,                              /* no icon            */
+              distrib,                           /* text for buttons   */
+              distrib[0] );                      /* default selection  */
+   
+   msg = "Note: Modal dialog. Program is blocked until the dialog is closed.";
+   print msg;
+   print "The selected choice was " response " = " (distrib[response]);
+   call randseed(12345);                         /* set seed           */
+   x = j(5,1);                                   /* allocate vector    */
+   call randgen(x, distrib[response]); /* generate from chosen distrib */
+   print x;
+
+   /********************************************************************/
+   /********** Creating a Dialog Box with R **********/
+
+
+   /* send default value to R; retrieve new value */
+   x = 0;
+   run ExportMatrixToR(x, "Value");
+   submit / R;
+      # The user's choice is recorded in the Value variable.
+      Value <- 1 
+   endsubmit;
+   run ImportMatrixFromR(x, "Value");
+   print x;
+
+
+   /* create modal dialog box in R */
+   x = 0;
+   run ExportMatrixToR(x, "Value");
+   submit / R;
+      library(tcltk)            
+      win <- tktoplevel()             # 1. create a container window
+      tktitle(win) <- "Main Window"   #    set title for container
+   
+      OnButton <- function() {        # 2. define handler for button
+         Value <<- 1                  #    set value at global scope
+         tkdestroy(win)               #    close the parent window
+      }
+      set.but <- tkbutton(            # 3. create button
+          win,                        #    specify parent window
+          text = "Set Return Value",  #    button text
+          command = OnButton          #    func to call upon button press
+          )
+      tkgrid(set.but)                 # 4. add button to window
+
+      tkfocus(win)                    # 5. move the focus to window
+      tkwait.window(win)              #    wait until window is closed
+   endsubmit;
+   run ImportMatrixFromR(x, "Value");
+   print x;
+
+
+   /* create dialog box in R; retrieve options that the user selects */
+   covOption = 0;
+   run ExportMatrixToR(covOption, "cov.option");
+   submit / R;
+      require(tcltk)
+      OK.pressed <- FALSE
+      win <- tktoplevel()                  # 1. create a container window
+      tktitle(win) <- "CORR Options"       #    set title for container
+      tcl.cov.option <- tclVar(cov.option) # 2. create Tcl var for widget
+      
+      cb.cov.option <- tkcheckbutton(win)  # 3. create checkbox for option
+      label.cov.option <- tklabel(win, text="Show covariances")
+      tkconfigure(cb.cov.option, variable=tcl.cov.option)
+      
+      tkgrid(cb.cov.option,                # 4. arrange widgets
+             label.cov.option, sticky="w") 
+      onOK <- function() {                 # 5. define handler for buttons
+          cov.option <<- as.numeric(tclvalue(tcl.cov.option))
+          OK.pressed <<- TRUE
+          tkdestroy(win)
+      }
+      onCancel <- function() {
+          tkdestroy(win)
+      }
+      
+      buttonsFrame <- tkframe(win)         # 6. create and layout OK/Cancel
+      OK.but <- tkbutton(buttonsFrame, text="OK", 
+                         command=onOK, default="active")
+      cancel.but <- tkbutton(buttonsFrame, text="Cancel", command=onCancel)
+      tkgrid(OK.but, tklabel(buttonsFrame, text="  "), cancel.but)
+      tkgrid(buttonsFrame, columnspan=2)
+      
+      tkfocus(win)                         # 7. move the focus to window
+      tkwait.window(win)                   #    wait until window is closed
+   endsubmit;
+
+
+   /* retrieve user's choices from R variables */
+   run ImportMatrixFromR(pressed, "OK.pressed");
+
+   if pressed then do;                        /* OK was pressed        */
+      run ImportMatrixFromR(covOption, "cov.option");
+      if covOption then                 
+         covParam = "COV";                    /* checkbox was selected */
+      else 
+         covParam="";                         /* not selected          */
+      submit covParam;                        /* pass option to CORR   */
+         proc corr data=Sasuser.Movies noprob &covParam;
+            var Sex Violence Profanity;
+         run;
+      endsubmit;
+   end;
+   else do;
+      /* Cancel button was pressed */
+   end;
+
+
+   /* define and display modal dialog box in R */
+   descOption = 1;
+   covOption = 0;
+   missOption = "pair";
+   run ExportMatrixToR(descOption, "desc.option");
+   run ExportMatrixToR(covOption,  "cov.option");
+   run ExportMatrixToR(missOption, "miss.option");
+   submit / R;
+      require(tcltk)
+      OK.pressed <- FALSE
+      
+      # 1. create Tcl variables for each widget
+      tcl.desc.option <- tclVar(desc.option)
+      tcl.cov.option  <- tclVar(cov.option)
+      tcl.miss.option <- tclVar(miss.option)
+      
+      # 2. create a container window; set window title
+      win <- tktoplevel()                  
+      tktitle(win) <- "CORR Options"       
+      
+      # 3. create descriptive statistics checkbox
+      cb.desc.option <- tkcheckbutton(win)
+      label.desc.option <- tklabel(win, text="Descriptive statistics")
+      tkconfigure(cb.desc.option, variable=tcl.desc.option)
+      
+      # 4. create covariance checkbox
+      cb.cov.option <- tkcheckbutton(win)
+      label.cov.option <- tklabel(win, text="Show covariances")
+      tkconfigure(cb.cov.option, variable=tcl.cov.option)
+      
+      # 5. create radio button for handling missing values
+      label.miss.option <- tklabel(win, text="-- Exclude missing values --")
+      rb.miss.pair <- tkradiobutton(win)
+      rb.miss.list <- tkradiobutton(win)
+      label.miss.pair <- tklabel(win, text="Pairwise")
+      label.miss.list <- tklabel(win, text="Listwise")
+      tkconfigure(rb.miss.pair, variable=tcl.miss.option, value="pair")
+      tkconfigure(rb.miss.list, variable=tcl.miss.option, value="list")
+      
+      # 6. all widgets created. Arrange them on window
+      tkgrid(cb.desc.option, label.desc.option, sticky="w")
+      tkgrid(cb.cov.option,  label.cov.option, sticky="w")
+      tkgrid(label.miss.option, columnspan=2)
+      tkgrid(rb.miss.pair, label.miss.pair, sticky="w")
+      tkgrid(rb.miss.list, label.miss.list, sticky="w")
+      
+      # 7. define handler for buttons
+      onOK <- function() {
+          desc.option <<- as.numeric(tclvalue(tcl.desc.option))
+          cov.option  <<- as.numeric(tclvalue(tcl.cov.option))
+          miss.option <<- as.character(tclvalue(tcl.miss.option))
+          OK.pressed  <<- TRUE
+          tkdestroy(win)
+      }
+      onCancel <- function() {
+          tkdestroy(win)
+      }
+      
+      # 8. create and layout OK/Cancel buttons
+      buttonsFrame <- tkframe(win)
+      OK.but <- tkbutton(buttonsFrame, text="OK", 
+                         command=onOK, default="active")
+      cancel.but <- tkbutton(buttonsFrame, text="Cancel", command=onCancel)
+      tkgrid(OK.but, tklabel(buttonsFrame, text="  "), cancel.but)
+      tkgrid(buttonsFrame, columnspan=2)
+      
+      # 9. move the focus to window and wait until window is closed
+      tkfocus(win)                         
+      tkwait.window(win)           
+   endsubmit;
+
+
+   /* retrieve user's choices from R variables; call SAS procedure */
+   run ImportMatrixFromR(pressed, "OK.pressed");
+   if pressed then do;
+      run ImportMatrixFromR(descOption, "desc.option");
+      run ImportMatrixFromR(covOption,  "cov.option");
+      run ImportMatrixFromR(missOption, "miss.option");
+      descParam = choose(descOption, "", "NOSIMPLE");
+      covParam  = choose(covOption,  "COV", "");
+      missParam = choose(upcase(missOption)="PAIR", "", "NOMISS");
+
+      submit descParam covParam missParam;
+         proc corr data=Sasuser.Movies noprob 
+                   &descParam &covParam &missParam;
+            var Sex Violence Profanity;
+         run;
+      endsubmit;
+   end;
+   else do;
+      /* Cancel button was pressed */
+   end;
+

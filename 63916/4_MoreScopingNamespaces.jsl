@@ -1,0 +1,150 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_MoreScopingNamespaces.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates using local variables in functions and introduces Namespaces
+
+
+//----------------------------------------------------------------------------------
+//  This script has two purposes:
+//    1: To provide a more intuitive example (no "val" as in 4_Scoping.jsl) demonstrating the use of the
+//       local scoping for the Local() function and user defined functions
+//    2: Provide simple examples of namespaces which is new to JMP9.  Chapter 9
+//       has more advanced features using the Window and Box namespaces 
+//
+//   This script uses the preferred method/syntax for defining a function
+//   funcName = Function( 
+//      {list of varaiables to be passed as arguments},
+//      {list of variables local to this function | Deafult Local},
+//      body
+//    );
+//
+//---------------------------------------------------------------------------------- 
+//Examples of using Local variables in user defined functions
+Clear Globals();
+Delete Symbols();
+x = 6;
+oneFunc = Function( {a}, {Default Local}, a + x );
+twoFunc = Function( {a}, {x}, a + x );        //x is declared as local
+triFunc = Function( {a}, {x = -20}, a + x );  //x is local and assigned a value
+Show( oneFunc( 3 ), twoFunc( 3 ), triFunc( 3 ), x );
+
+//twofunc returns an empty since x is local & no value is assigned
+//x retains its value (6) after triFunc is executed since x is local
+//*: 9; .; -17; x = 6;
+
+morFunc = Function( {a},
+	{Default Local},
+	x = -20;
+	a + x;
+);
+newFunc = Function( {a},
+	{},
+	x = -20;
+	a + x;
+);
+Show( morFunc( 3 ), x, newFunc( 3 ), x );
+
+//*: -17;  x = 6;  -17;  x = -20;
+//Since morFunc declared any assigned variables as local, ::x is unchanged.
+//newFunc did not specify any variables to be local, so internally the
+//global x is used and assigned -20, its value has been changed once
+//newFunc was executed
+
+//--------- Namespaces----------------------------------------------------
+//
+//  Recall name space syntax is:
+//    namepsaceRef = namespace(
+//         namespaceName,   //1st argument of Namespace function, must be unique
+//         {assignment list of variables} //2nd argument
+//    );
+//
+// See JMP menu Help > JSL Function Index > Namespace for a more advanced example
+// where the assignment values are functions to handle complex number arithmetic
+// (real + imaginary part *i)  The examples below use simple variable values.
+
+//---Define two namespaces "one" and "two""
+nsOne = New Namespace( "one", {x = 11, y = 12, z = 13} );
+nsTwo = New Namespace( "two", {x = 21, y = 22, z = 23} );
+
+Show( x, nsOne:x, nsTwo:x );  //  x = -20;  nsOne:x = 11;  nsTwo:x = 21;
+Show Namespaces();  //See Log window 
+
+//---Test Namespace Messages, Functions and case sensitivity
+// See Help > Object Scripting Index > NameSpace
+Show(
+	nsOne << Get Name,         //  "one"
+	nsOne << Get Keys,         // {"x", "y", "z"}
+	nsOne << Get Contents,     // {{"x", 11}, {"y", 12}, {"z", 13}}
+	nsOne << Contains( "y" ),  // 1 
+	nsOne << Contains( "Y" ),  // 1    //note namespace variable name is not case sensitive
+	nsOne << First,            // "x"  //first variable in the namespace
+	nsOne << Next( "x" ),      // "y"  //the variable after "x"
+	//--namespace functions
+	Is Namespace( nsone ),     // 1    //nsone is the refname and not case sensitive
+	Namespace Exists( "one" ), // 1 
+	Namespace Exists( "One" ), // 1    //namespace name is not case sensitive 
+	Namespace Exists( "tri" )  // 0    //no such namespace exists
+);
+
+//Simple example of built-in namespace "Here". It is enabled and disabled with the
+//command Names Default to Here(0|1)
+
+::xval = -20;
+Names Default To Here(1);
+xval = 22; 
+Show( Here:xval, xval, ::xval, Global:xval );
+//*: Here:xval = 22; xval = 22; xval = -20; Global:xval = -20;
+//Note: the 3rd item is global xval, JMP Log did not use the double colon global scope
+
+//Names Default to Here will make more sense when using more than one script
+//-----------------------------------------------------------------------------
+//---Clean the palate
+Clear Globals();
+Delete Symbols();
+
+//--- Run from----------------------------------------------------------------- 
+// ------ start here-------
+txt1="\[ 
+Names Default to Here(1);
+x = 3;
+::x1 = 35;
+show("in txt1", ::x, x, Here:x, ::x1);]\";
+Save Text File("c:\temp\txt1.jsl", txt1);
+
+txt2="\[ 
+Names Default to Here(1);
+x = 60;
+::x2 = 65;
+show("in txt2", ::x,  x, Here:x, ::x2);]\";
+Save Text File("c:\temp\txt2.jsl", txt2);
+wait(0);
+// ------ end here-------
+
+//The script above created two JSL scripts and stored them on your c:\temp drive
+//Both enable Names Default to Here but have different values for X
+//When including a script, if you want the variables in that script to apply only
+//to that script, specify << New Context.  It must be specfied when the script 
+//is called, it cannot be specified later.
+//Also note that each of these scripts show that an external global can create 
+//new globals to be used by the calling program.
+
+Names Default To Here( 0 );
+x = -300;
+Names Default To Here( 1 );
+x = 2.22e-2;
+Include( "c:\temp\txt1.jsl", <<New context ); //its own context
+Wait( 0 );
+// "in txt1"; x = -300; x = 3; Here:x = 3; x1 = 35;
+
+Include( "c:\temp\txt2.jsl", <<New Context ); //its own context
+Wait( 0 );
+// "in txt2"; x = -300; x = 60; Here:x = 60; x2 = 65;
+
+Show( "in main script", ::x, x, Here:x, ::x1, ::x2 );
+// "in main script"; x = -300; x = 0.0222; Here:x = 0.0222; x1 = 35; x2 = 65;
+
+//Recall from the JSL Companion Chapter 4
+//If  your scripts do not call other JSL scripts, using simple scoping syntax 
+//and local declarations may be all you need.  If your scripts call other JSL scripts, 
+//then you should learn more about Namespaces in the JMP Scripting Guide and 
+//in Chapter 9 Using Namespaces. 

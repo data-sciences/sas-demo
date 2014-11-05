@@ -1,0 +1,45 @@
+   /********************************************************************/
+   /********** Overview of the SAS/IML Language **********/
+
+   /* standardize data by using robust estimates of center and scale   */
+   use Sashelp.Class;              /* open data set for reading        */
+   read all var _NUM_ into x[colname=VarNames];   /* read variables    */
+   close Sashelp.Class;            /* close data set                   */
+
+   /* estimate centers and scales of each variable */
+   c = median(x);                  /* centers = medians of each column */
+   s = mad(x);                     /* scales = MAD of each column      */
+   stdX = (x - c) / s;             /* standardize the data             */
+
+   print c[colname=varNames];      /* print statistics for each column */
+   print s[colname=varNames];
+
+
+   /********************************************************************/
+   /********** Overview of SAS/IML Software **********/
+
+   /* convert temperatures from Celsius to Fahrenheit scale */
+   Celsius = {-40, 0, 20, 37, 100};   /* some interesting temperatures */
+   Fahrenheit = 9/5 * Celsius + 32;   /* convert to Fahrenheit scale   */
+   print Celsius Fahrenheit;
+
+   Kelvin = Celsius + 273.15;         /* convert to Kelvin scale       */
+   print Kelvin;
+
+   /* read data installed on local SAS server */
+   use Sasuser.Vehicles;          
+   read all var _NUM_ into x;     
+   close Sasuser.Vehicles;        
+
+
+   /********************************************************************/
+   /********** Data and Programs Used in This Book **********/
+
+   /* read data installed on remote SAS server */
+   /*
+   use SPI.Vehicles;              
+   read all var _NUM_ into x;     
+   close SPI.Vehicles;            
+   */
+
+

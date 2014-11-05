@@ -1,0 +1,70 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_CustomExpr_vc.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: It is a template expression for tool lot comparison for any parameter _vname
+//          It is called by script 8_CustomBottomUpReport.jsl
+
+
+/*--------Notes: place holders requiring substitution-----------------
+_vname  column name
+_vstr = _vname << Get Name
+_vttl = "Variability Chart for "||_vstr
+ _ll _cl _ul 
+--------------------------------------*/
+
+
+vcExpr=
+  Expr(vc = Variability Chart(
+	Y( _vname ),
+	X( :Tool, :Lot ),
+	Analysis Type( Name( "Choose best analysis (EMS REML Bayesian)" ) ),
+	Process Variation( 0 ),
+	Connect Cell Means( 1 ),
+	Std Dev Chart( 1 ),
+	Group Means of Std Dev( 1 ),
+	Points Jittered( 1 ),
+	SendToReport(
+		Dispatch(
+			{ _vttl },
+			"2",
+			ScaleBox,
+			{Add Ref Line( 0, Dotted, "Medium Light Gray" ),
+			Add Ref Line( _ll , Dashed, {255, 0, 0} ),
+			Add Ref Line( _cl , Solid, "Black" ),
+			Add Ref Line( _ul , Dashed, {255, 0, 0} )}
+		),
+		Dispatch(
+			{ _vttl },
+			_vstr,
+			TextEditBox,
+			{Set Font Size( 11 ), Set Font Style( "Bold" )}
+		),
+		Dispatch(
+			{ _vttl },
+			"Variability Chart",
+			FrameBox,
+			{Line Width Scale( 1.5 ), Grid Line Order( 5 ),
+			Reference Line Order( 6 ), DispatchSeg(
+				CustomStreamSeg( 8 ),
+				{Line Color( "Gray" )}
+			)}
+		),
+		Dispatch(
+			{ _vttl },
+			"Std Dev",
+			TextEditBox,
+			{Set Font Size( 11 ), Set Font Style( "Bold" )}
+		),
+		Dispatch(
+			{ _vttl },
+			"Varability Std Chart",
+			FrameBox,
+			{Line Width Scale( 2 ), Grid Line Order( 2 ), Reference Line Order( 3 ),
+			DispatchSeg( LineSeg( 1 ), {Line Color( "Gray" )} ),
+			DispatchSeg(
+				MarkerSeg( 1 ),
+				{Color( "Black" ), Marker( FilledSquare )}
+			)}
+		)
+	)
+));

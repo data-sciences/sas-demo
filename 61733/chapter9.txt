@@ -1,0 +1,217 @@
+/*-------------------------------------------------------------------*/
+/*       Jump into JMP(r) Scripting                                  */
+/*          by Wendy Murphrey and Rosemary Lucas                     */
+/*       Copyright(c) 2009 by SAS Institute Inc., Cary, NC, USA      */
+/*                   SAS Publications order                          */
+/*                   ISBN 978-1-59994-658-0                          */
+/*-------------------------------------------------------------------*/
+/*                                                                   */
+/* This material is provided "as is" by SAS Institute Inc.  There    */
+/* are no warranties, expressed or implied, as to merchantability or */
+/* fitness for a particular purpose regarding the materials or code  */
+/* contained herein. The Institute is not responsible for errors     */
+/* in this material as it now exists or will exist, nor does the     */
+/* Institute provide technical support for it.                       */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+/* Date Last Updated: 12SEP2009                                      */
+/*-------------------------------------------------------------------*/
+/* Questions or problem reports concerning this material may be      */
+/* addressed to the author:                                          */
+/*                                                                   */
+/* SAS Institute Inc.                                                */
+/* SAS Press                                                         */
+/* Attn: Wendy Murphrey and Rosemary Lucas                           */
+/* SAS Campus Drive                                                  */
+/* Cary, NC   27513                                                  */
+/*                                                                   */
+/*                                                                   */
+/* If you prefer, you can send email to:  saspress@sas.com           */
+/* Use this for subject field:                                       */
+/*     Comments for Wendy Murphrey and Rosemary Lucas                */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+
+/* Chapter 9 */
+
+/* Solution 9.1 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create a few Bivariate plots to demonstrate the Where text. */
+For( i = 12, i <= 14, i++,
+    biv = Bivariate(
+        Y( :height ),
+        X( :weight ),
+        Where( :age == i ),
+        Fit Polynomial( 3, {Line Color( "Green" ), Line Style( Smooth )} )
+    );
+
+    Wait( 2 ); //For demonstration purposes.
+
+/* Delete the TextBox containing the Where text. */
+    (Report( biv ) << Parent)[Text Box( 1 )] << Delete;
+
+    Wait( 2 ); //For demonstration purposes.
+);
+
+/* Solution 9.2 */
+
+/* Open the Fitness sample data table. */
+dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+/* Assign the criteria to a global variable. */
+selVar = "M";
+
+/* Build the main expression. */
+bivExpr = Expr(
+    Bivariate(
+        Y( :MaxPulse ),
+        X( :RstPulse ),       
+/* Identify the global variable by wrapping it with the Expr function. */
+        Where( :sex == Expr( selVar ) )
+    )
+);
+
+/* Resolve the global variable expression first. Then resolve the main expression. */
+Eval( Eval Expr( bivExpr ) );
+
+
+/* Solution 9.3 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create the Overlay Plot and include the Arrange Plots option. */
+Overlay Plot(
+    X( :weight ),
+    Y( :height ),
+    Grouping( :age ),
+    Arrange Plots( 3 ),
+    Connect Points( 1 ),
+    By( :sex )
+);
+
+
+/* Solution 9.4 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Capture a list of each level of the By variable. */
+Summarize( ageLevs = By( :age ) );
+
+/* Determine the number of rows needed by dividing the number of levels in the By variable by the desired number of graphs per row. */
+numLev = Ceiling( N Items( ageLevs ) / 2 );
+
+/* Create an empty window where the graphs will be placed. */
+New Window( "Bivariate by Age", vb = V List Box() );
+
+/* Start a count at zero. */
+ct = 0;
+
+/* Loop through the number of rows needed. */
+For( l = 1, l <= numLev, l++,     
+/* Create an empty HListBox that will hold a single row of graphs. */
+    hb = H List Box();
+/* Loop through the desired number of graphs per row. */
+    For( i = 1, i <= 2, i++,     
+/* Proceed as long as the count does not exceed the number levels of the By variable. */
+        If( ct + i <= N Items( ageLevs ),     
+/* Create the Bivariate for each By variable. */
+            biv = Bivariate(
+                Y( :weight ),
+                X( :height ),
+                Fit Line( {Line Color( "Red" )} ),
+                Where( :age == Num( ageLevs[ct + i] ) ),
+                Invisible
+            );
+/* Set the title of the OutlineBox to show the correct By variable level. */
+            Report( biv )[Outline Box( 1 )] << Set Title( ageLevs[ct + i] );
+/* Append the report to the HListBox. */
+            hb << Append( Report( biv )[Outline Box( 1 )] << Clone Box );
+/* Close the Bivariate. */
+            biv << Close Window;
+        )
+    );
+/* Append the HListBox to the VListBox contained in the New Window. */
+    vb << Append( hb );
+/* Increment the count by 2. */
+    ct += 2;
+);
+
+
+/* Solution 9.5 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Generate the desired analysis. */
+biv = dt << Bivariate( Y( :weight ), X( :height ), Fit Line );
+
+/* Create a journal of the report. */
+Report( biv ) << Journal;
+
+/* Obtain a handle to the current journal. */
+jrn = Current Journal();
+
+/* Save the journal. */
+jrn << Save Journal( "C:\DistJournal.jrn" );
+
+
+/* Solution 9.6 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Generate the desired analysis. */
+biv = dt << Bivariate( Y( :weight ), X( :height ), Fit Line );
+
+/* Create a journal of the report. */
+Report( biv ) << Journal;
+
+/* Set the title of the journal window. */
+Current Journal() << Set Window Title( "My New Journal" );
+
+
+/* Solution 9.7 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Generate the desired analysis. */
+biv = dt << Bivariate( Y( :weight ), X( :height ), Fit Line );
+
+/* Create a journal of the report. */
+Report( biv ) << Journal;
+
+/* Obtain a handle to the current journal. */
+jrn = Current Journal();
+
+/* Save and close the journal. */
+jrn << Save Journal( "C:\Bivariate.jrn" );
+jrn << Close Window;
+
+/* Journal the data table. */
+dt << Journal;
+
+/* Obtain a handle to the active journal. */
+dt_jrn = Current Journal();
+
+/* Get a script of journal. */
+contents = dt_jrn << Get Journal();
+
+/* Close the journaled table. */
+dt_jrn << Close Window();
+
+/* Put journal script into JournalBox constructor. */
+jbox = Journal Box( contents );
+
+/* Open saved journal of Bivariate report. */
+jrn = Open( "C:\Bivariate.jrn" );
+
+/* Insert an OutlineBox containing the JournalBox under the Summary of Fit table. */
+Current Journal()["Summary of Fit"] << Append( Outline Box( "Data Table", jbox ) );
+
+/* End of Chapter 9 solutions */

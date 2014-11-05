@@ -1,0 +1,117 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_ColumnProperties.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates setting and getting column properties
+
+
+//reference data table
+wear_rev_dt = Open("$JSL_Companion\RunningShoesRevised.jmp" );
+Current Data Table(wear_rev_dt);
+
+//Set Range Check property on Wear columns
+//Alternative Syntax:  left_col << Set Property("Range Check", LTLE( 0, 250 ))
+left_col = Column( "Wear (microns) Left Foot" ) << Range Check( LTLE( 0, 250 ) );
+right_col = Column( "Wear (microns) Right Foot" ) << Range Check( LTLE( 0, 250 ) );
+
+left_col << Set Property(
+	"Note on Range Check",
+	Values outside the range check are set to missing.
+   See the log window to determine if points are outside the range.
+);
+
+right_col << Set Property(
+	"Note on Range Check",
+	Values outside the range check are set to missing.
+   See the log window to determine if points are outside the range.
+);
+
+//reorder columns so that they are sorted by name
+wear_rev_dt << Reorder by Name();
+
+//define maximum for axis of difference
+diff_col = Column( wear_rev_dt, "Wear Diff (microns)" );
+max_axis_diff = Ceiling( Col Maximum( diff_col ) + 0.5 * Col Std Dev( diff_col ) );
+min_axis_diff = Floor( Col Minimum( diff_col ) - 0.5 * Col Std Dev( diff_col ) );
+
+//set column max axis property on difference
+diff_col << Set Property(
+	"Axis",
+	{Min( min_axis_diff ), Max( max_axis_diff ), Inc( 5 ), Minor Ticks( 0 ), Show Major Ticks( 1 ),
+	Show Minor Ticks( 1 ), Show Major Grid( 0 ), Show Minor Grid( 0 ), Show Labels( 1 ),
+	Scale( Linear )}
+);
+
+//--Note: the commands above set properties for diff_col max and min 
+
+//select continuous columns and create distribution plots
+cont_list = wear_rev_dt << Get Column Names( Continuous );
+Distribution(	
+   Stack( 1 ),
+	Column( Eval( cont_list ) ),
+	Horizontal Layout( 1 ),
+	Vertical( 0 ),
+	Count Axis( 1 ),
+	Normal Quantile Plot( 1 )
+);
+
+//Add comment on how shoes were assigned to runners
+Column( "Runner" ) << Set Property(
+	"Runner Comments",
+Runners were randomly selected from a population and shoes were 
+randomly assigned to each foot.);
+
+//Get comment from Runner column and print to log
+runner_comments = Column( "Runner" ) << Get Property( "Runner Comments" );
+Print( runner_comments );
+
+//-----------------Extra Color Cell
+//---- Extra
+//  This example shows how to set a Color Gradient property and toggle
+//  on and off coloring table cells by value.  Chapter 9 includes an
+//  addin called ColorCells that uses the color cell message sent to
+//  one or more columns.  This example demonstrates statemnts to change
+//  cell color for the entire table or a spcific color and how to enable and 
+//  disable ths feature.
+
+dt = Open( "$sample_data\big class.jmp" );
+
+//--- color cells for the entire row by rowstate ------------------------
+dt << color by Column( :height, Color Theme( "Blue to Gray to Red" ) );
+dt << color rows by row state;
+Wait( 2 );
+dt << clear row states();
+wait(0);
+
+current data table(dt);
+//--- set color range by current column values --------------------------
+:height << Set Property(
+	"Color Gradient",
+	{"White to Blue", Range( Col Minimum( :height ), Col Maximum( :height ) )}
+);
+wait(0);
+
+//--- toggle on/off-----------------------------------------------------
+:height << Color Cell By Value( 1 );
+Wait( 2 );
+:height << Color Cell By Value( 0 );
+Wait( 2 );
+:height << Color Cell By Value( 1 );
+Wait( 2 );
+:height << Color Cell By Value( 0 );
+wait(0);
+
+//--- set color range by fixed values ----------------------------------
+:height << Set Property( "Color Gradient", 
+  {"Blue to Gray to Red", Range( 40, 76 )} 
+ );
+
+//--- toggle on/off-----------------------------------------------------
+:height << Color Cell By Value( 1 );
+Wait( 2 );
+:height << Color Cell By Value( 0 );
+Wait( 2 );
+:height << Color Cell By Value( 1 );
+
+//-------Table clean up------------
+//Close(dt, NoSave);
+//Close(wear_rev_dt, NoSave);

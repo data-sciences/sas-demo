@@ -1,0 +1,1140 @@
+Logistic Regression Using SAS: Theory and Application, Second Edition
+By Paul D. Allison
+
+PROGRAMS
+
+
+
+/* The following program is found on page 9 */
+PROC REG DATA=penalty;
+  MODEL death=blackd whitvic serious;
+RUN;
+
+/* The following program is found on page 13 */
+PROC REG DATA=penalty;
+  MODEL death=blackd whitvic serious / HCC;
+RUN;
+
+/* The following program is found on page 22 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1')=blackd whitvic serious;
+RUN;
+
+/* The following program is found on page 29 */
+PROC QLIM DATA=penalty;
+  ENDOGENOUS death~DISCRETE(DIST=LOGISTIC);
+  MODEL death = blackd whitvic serious;
+  OUTPUT OUT=a MARGINAL;
+PROC PRINT DATA=a(OBS=10);
+  VAR meff_p2_blackd meff_p2_whitvic meff_p2_serious;
+RUN;
+
+/* The following program is found on page 30 */
+PROC LOGISTIC DATA=penalty;
+  CLASS culp /PARAM=REF;
+  MODEL death(EVENT='1') = blackd whitvic culp ;
+RUN;
+
+/* The following program is found on page 36 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1') = blackd whitvic culp blackd*whitvic;
+RUN;
+
+/* The following program is found on page 40 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1') = blackd whitvic culp / CLPARM=BOTH;
+RUN;
+
+/* The following program is found on pages 46-47 */
+DATA compsep;
+  INPUT x y;
+  DATALINES;
+1 0
+2 0
+3 0
+4 1
+5 1
+6 1
+;
+PROC LOGISTIC;
+  MODEL y(EVENT='1') = x;
+RUN;
+
+/* The following program is found on page 49 */
+DATA quasisep;
+  INPUT x y;
+  DATALINES;
+1 0
+2 0
+3 0
+4 0
+4 1
+5 1
+6 1
+;
+PROC LOGISTIC;
+  MODEL y(EVENT='1') = x;
+RUN;
+
+
+/* The following program is found on page 50 */
+PROC LOGISTIC DATA=penalty;
+  WHERE blackd=0;
+  CLASS culp /PARAM=REF;
+  MODEL death(EVENT='1') = culp serious;
+RUN;
+
+
+/* The following program is found on page 52 */
+DATA;
+  SET penalty;
+  IF culp=1 THEN culp=2;
+PROC LOGISTIC;
+  WHERE blackd=0;
+  CLASS culp / PARAM=REF;
+  MODEL death(EVENT='1')=culp serious;
+RUN;
+
+
+/* The following program is found on page 53 */
+PROC LOGISTIC DATA=penalty;
+  WHERE blackd=0 AND culp > 1;
+  CLASS culp / PARAM=REF;
+  MODEL death(EVENT='1')=culp serious;
+RUN;
+
+
+/* The following program is found on page 54 */
+PROC LOGISTIC DATA=penalty;
+  WHERE blackd=0;
+  CLASS culp /PARAM=REF;
+  MODEL death(EVENT='1') = culp serious / CLPARM=PL ALPHA=.01;
+RUN;
+
+
+/* The following program is found on page 55 */
+PROC LOGISTIC DATA=penalty;
+  WHERE blackd=0;
+  CLASS culp /PARAM=REF;
+  MODEL death(EVENT='1') = culp serious;
+  EXACT culp serious / ESTIMATE=BOTH;
+RUN;
+
+
+/* The following program is found on page 58 */
+PROC LOGISTIC DATA=penalty;
+  WHERE blackd=0;
+  CLASS culp /PARAM=REF;
+  MODEL death(EVENT='1') = culp serious / FIRTH 
+    CLPARM=PL;
+RUN;
+
+
+
+/* The following program is found on page 61 */
+PROC REG DATA=penalty;
+  MODEL death = blackd whitvic serious serious2 / TOL VIF; 
+RUN;
+
+/* The following program is found on page 62 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1') = blackd whitvic serious serious2;
+  OUTPUT OUT=a PRED=phat;
+DATA b;
+  SET a;
+  w = phat*(1-phat);
+PROC REG DATA=b;
+  WEIGHT w;
+  MODEL death = blackd whitvic serious1 serious2 / TOL VIF; 
+RUN;
+
+
+/* The following program is found on page 64 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1') = blackd whitvic culp / AGGREGATE SCALE=NONE;
+RUN;
+
+
+/* The following program is found on page 65 */
+PROC LOGISTIC DATA=penalty;
+CLASS culp;
+MODEL death(EVENT='1') = blackd whitvic culp blackd*whitvic  blackd*culp whitvic*culp blackd*whitvic*culp ;
+RUN;
+
+/* The following program is found on page 66 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1') = blackd whitvic culp / LACKFIT;
+RUN;
+
+/* The following program is found on page 70 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1')=culp whitvic blackd;
+  OUTPUT OUT=a PRED=yhat;
+PROC MEANS; 
+ CLASS death;
+ VAR yhat; 
+RUN;
+
+/* The following program is found on page 76 */
+PROC LOGISTIC DATA=penalty PLOTS(ONLY)=ROC;
+  MODEL death(EVENT='1')=blackd whitvic culp ;
+RUN;
+
+/* The following program is found on page 78 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1')=blackd whitvic culp;
+  ROC 'omit culp' blackd whitvic;
+  ROC 'omit blackd' whitvic culp;
+  ROC 'omit whitvic' blackd culp;
+  ROCCONTRAST / ESTIMATE=ALLPAIRS;
+RUN;
+
+/* The following program is found on page 82 */
+PROC LOGISTIC DATA=penalty PLOTS(UNPACK LABEL)=  
+    (INFLUENCE DFBETAS PHAT DPC LEVERAGE);
+  MODEL death(EVENT='1')=blackd whitvic culp ;
+RUN;
+
+/* The following program is found on page 92 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1') = culp blackd whitvic / LINK=PROBIT 
+    STB;
+RUN;
+
+
+/* The following program is found on page 99 */
+PROC QLIM DATA=promo;
+  ENDOGENOUS promo~DISCRETE(DIST=LOGISTIC);
+  MODEL promo = female dur dur*dur select arts prestige;
+run;
+
+/* The following program is found on page 101 */
+PROC QLIM DATA=promo;
+  ENDOGENOUS promo~DISCRETE(DIST=LOGISTIC);
+  MODEL promo = female dur dur*dur select arts prestige arts*female;
+  HETERO promo~female / NOCONST;
+run;
+
+/* The following program is found on page 102 */
+PROC QLIM DATA=promo;
+  ENDOGENOUS promo~DISCRETE(DIST=LOGISTIC);
+  MODEL promo = female dur dur*dur select arts prestige arts*female;
+  HETERO promo~ dur arts prestige / NOCONST;
+RUN;
+
+/* The following program is found on page 105 */
+PROC LOGISTIC DATA=promo;
+  MODEL promo(EVENT='1') = female dur select arts;
+  EFFECTPLOT FIT(X=arts);
+run;
+
+/* The following program is found on page 106 */
+PROC LOGISTIC DATA=promo;
+  MODEL promo(EVENT='1') = female dur select arts arts*arts;
+  EFFECTPLOT FIT(X=arts);
+run;
+
+/* The following program is found on page 107 */
+PROC LOGISTIC DATA=promo;
+  MODEL promo(EVENT='1') = female dur select arts prestige arts*female ;
+  EFFECTPLOT SLICEFIT(X=arts SLICEBY=female=0 1);
+run;
+
+/* The following program is found on page 111 */
+PROC LOGISTIC DATA=penalty;
+  MODEL death(EVENT='1') = blackd;
+RUN;
+
+
+/* The following programs are found on page 112 */
+DATA tab4_1a;
+  INPUT f blackd death;
+  DATALINES;
+22 0 1
+28 1 1
+52 0 0
+45 1 0
+;
+
+PROC LOGISTIC DATA=tab4_1a;
+  FREQ f;
+  MODEL death(EVENT='1') = blackd 
+RUN;
+
+DATA tab4_1b;
+  INPUT death total blackd;
+  DATALINES;
+22 74 0
+28 73 1
+;
+
+PROC LOGISTIC DATA=tab4_1b;
+  MODEL death/total = blackd;
+RUN;
+
+/* The following program is found on page 113 */
+PROC FREQ DATA=tab4_1a;
+  WEIGHT f;
+  TABLES blackd*death / CHISQ RELRISK;
+RUN;
+
+/* The following program is found on page 114 */
+DATA interco;
+  INPUT white male yes no;
+  total=yes+no;
+  DATALINES;
+1 1 43 134
+1 0 26 149
+0 1 29 23
+0 0 22 36
+;
+PROC LOGISTIC DATA=interco;
+  MODEL yes/total=white male / SCALE=NONE;
+RUN;
+
+/* The following program is found on page 115 */
+PROC LOGISTIC DATA=interco;
+  MODEL yes/total=white male white*male/ SCALE=NONE	;
+RUN;
+
+/* The following programs are found on page 117 */
+DATA working;
+  INPUT france manual famanual total working;
+  DATALINES;
+1   1   1  107  85
+1   1   0   65  44
+1   0   1   66  24
+1   0   0  171  17
+0   1   1   87  24
+0   1   0   65  22
+0   0   1   85   1
+0   0   0  148   6
+;
+
+PROC LOGISTIC DATA=working;
+  MODEL working/total = france manual famanual / SCALE=NONE;
+RUN;
+
+/* The following program is found on page 118 */
+PROC LOGISTIC DATA=working;
+  MODEL working/total = france manual famanual 
+    france*manual france*famanual manual*famanual /
+    SCALE=NONE;
+RUN;
+
+/* The following program is found on pages 122-123 */
+DATA wisc;
+  INPUT iq parent ses total coll;
+  DATALINES;	
+1   1   1   353     4
+1   1   2   234     2
+1   1   3   174     8
+1   1   4    52     4
+1   2   1    77    13
+1   2   2   111    27
+1   2   3   138    47
+1   2   4    96    39
+2   1   1   216     9
+2   1   2   208     7
+2   1   3   126     6
+2   1   4    52     5
+2   2   1   105    33
+2   2   2   159    64
+2   2   3   184    74
+2   2   4   213   123
+3   1   1   138    12
+3   1   2   127    12
+3   1   3   109    17
+3   1   4    50     9
+3   2   1    92    38
+3   2   2   185    93
+3   2   3   248   148
+3   2   4   289   224
+4   1   1    77    10
+4   1   2    96    17
+4   1   3    48     6
+4   1   4    25     8
+4   2   1    92    49
+4   2   2   178   119
+4   2   3   271   198
+4   2   4   468   414
+; 
+
+
+/* The following program is found on page 123 */
+PROC LOGISTIC DATA=wisc;
+  CLASS iq ses /PARAM=REF;
+  MODEL coll/total=iq|ses|parent @2;
+RUN;
+
+/* The following program is found on page 124 */
+PROC LOGISTIC DATA=wisc;
+  CLASS iq ses /PARAM=REF;
+  MODEL coll/total=iq|ses|parent @2;
+RUN;
+
+/* The following program is found on pages 130-131 */
+DATA nihdoc;
+  INPUT nih docs pdoc;
+  DATALINES; 
+.5 8 1
+.5 9 3
+.835 16 1
+.998 13 6
+1.027 8 2
+2.036 9 2
+2.106 29 10
+2.329 5 2
+2.523 7 5
+2.524 8 4
+2.874 7 4
+3.898 7 5
+4.118 10 4
+4.130 5 1
+4.145 6 3
+4.242 7 2
+4.280 9 4
+4.524 6 1
+4.858 5 2
+4.893 7 2
+4.944 5 4
+5.279 5 1
+5.548 6 3
+5.974 5 4
+6.733 6 5
+7 12 5
+9.115 6 2
+9.684 5 3
+12.154 8 5
+13.059 5 3
+13.111 10 8
+13.197 7 4
+13.433 86 33
+13.749 12 7
+14.367 29 21
+14.698 19 5
+15.440 10 6
+17.417 10 8
+18.635 14 9
+21.524 18 16
+;
+
+/* The following program is found on page 131 */
+PROC LOGISTIC DATA=nihdoc;
+  MODEL pdoc/docs=nih / SCALE=NONE;
+RUN;
+
+/* The following program is found on page 134 */
+PROC LOGISTIC DATA=nihdoc;
+  MODEL pdoc/docs=nih / SCALE=WILLIAMS;
+RUN;
+
+/* The following program is found on page 137 */
+PROC LOGISTIC DATA=nihdoc;
+  MODEL pdoc/docs=nih docs/ SCALE=NONE;
+RUN;
+
+/* The following program is found on page 143 */
+PROC LOGISTIC DATA=wallet;
+  MODEL wallet = male business punish explain / LINK=GLOGIT;
+RUN;
+
+
+/* The following program is found on page 147 */
+PROC LOGISTIC DATA=wallet;
+  MODEL wallet = male business punish explain / LINK=GLOGIT;
+  TEST male_1=male_2, business_1=business_2, 
+    punish_1=punish_2, explain_1=explain_2;
+RUN;
+
+
+/* The following programs are found on page 148 */
+PROC LOGISTIC DATA=wallet;
+  MODEL wallet = male business punish explain / LINK=GLOGIT
+    AGGREGATE SCALE=NONE;
+  OUTPUT OUT=predicted PREDPROBS=I;
+RUN;
+
+PROC TABULATE DATA=predicted;
+  CLASS male business punish explain;
+  var IP_1 IP_2 IP_3;
+  TABLE male*business*punish*explain, IP_1 IP_2 IP_3;
+RUN;
+
+
+/* The following program is found on page 151 */
+PROC LOGISTIC DATA=wallet;
+  MODEL wallet = male business punish explain / LINK=GLOGIT;
+  EFFECTPLOT FIT(X=punish) / NOOBS NOLIMITS GRIDSIZE=3;
+RUN;
+
+
+/* The following program is found on page 152 */
+PROC LOGISTIC DATA=wallet;
+  WHERE wallet NE 2;
+  MODEL wallet=male business punish explain;
+PROC LOGISTIC DATA=wallet;
+  WHERE wallet NE 1;
+  MODEL wallet=male business punish explain;
+PROC LOGISTIC DATA=wallet;
+  WHERE wallet NE 3;
+  MODEL wallet=male business punish explain;
+RUN; 
+
+
+/* The following program is found on pages 154-155 */
+DATA afterlif;
+  INPUT white female belief count;
+  DATALINES;
+1 1 1 371
+1 1 2  49
+1 1 3  74
+1 0 1 250
+1 0 2  45
+1 0 3  71
+0 1 1  64
+0 1 2   9
+0 1 3  15
+0 0 1  25
+0 0 2   5
+0 0 3  13
+;
+PROC LOGISTIC DATA=afterlif;
+  FREQ count;
+  MODEL belief=white female / LINK=GLOGIT AGGREGATE 
+   SCALE=NONE;
+RUN;
+
+/* The following program is found on page 160 */
+PROC LOGISTIC DATA=wallet;
+  MODEL wallet = male business punish explain;
+RUN;
+
+/* The following program is found on page 163 */
+DATA a;
+  SET wallet;
+  IF wallet=1 THEN wallet=2;
+PROC LOGISTIC DATA=a;
+  MODEL wallet = male business punish explain;
+RUN;
+
+/* The following program is found on page 164 */
+DATA b;
+  SET wallet;
+  IF wallet=3 THEN wallet=2;
+PROC LOGISTIC DATA=b;
+  MODEL wallet = male business punish explain;
+RUN;
+
+/* The following program is found on page 171 */
+DATA happy;
+  INPUT year married happy count;
+  DATALINES;
+1 1 1 473
+1 1 2 493
+1 1 3  93
+1 0 1  84
+1 0 2 231
+1 0 3  99
+2 1 1 332
+2 1 2 387
+2 1 3  62
+2 0 1 150
+2 0 2 347
+2 0 3 117
+3 1 1 571
+3 1 2 793
+3 1 3 112
+3 0 1 257
+3 0 2 889
+3 0 3 234
+;
+
+/* The following program is found on page 172 */
+PROC LOGISTIC DATA=happy;
+  FREQ count;
+  CLASS year / PARAM=GLM;
+  MODEL happy = married year / AGGREGATE SCALE=NONE;
+RUN;
+
+/* The following program is found on pages 174-175 */
+DATA a;
+ SET happy;
+ lesshap=happy GE 2;
+ nottoo=happy EQ 3;
+PROC LOGISTIC DATA=a;
+  FREQ count;
+  CLASS year / PARAM=GLM;
+  MODEL lesshap=married year;
+PROC LOGISTIC DATA=a;
+  FREQ count;
+  CLASS year / PARAM=GLM;
+  MODEL nottoo=married year;
+RUN;
+
+/* The following program is found on page 176 */
+DATA happy2;
+  set happy;
+  yr94=year EQ 3;
+  yr84=year EQ 2;
+PROC QLIM data=happy2;
+  FREQ count;
+  MODEL happy=married / DISCRETE(D=LOGISTIC);
+  HETERO happy ~ yr94 yr84 / NOCONST;
+RUN; 
+
+
+/* The following program is found on page 178 */
+PROC CATMOD DATA=happy;
+  WEIGHT count;
+  RESPONSE ALOGIT;
+  MODEL happy = _RESPONSE_ married year / PARAM=REF;
+RUN;
+
+/* The following programs are found on page 183 */
+DATA afqt;
+  INPUT white old faed ed count @@;
+  DATALINES;
+1  0  1  1   39	0  0  1  1   19
+1  0  1  2   29	0  0  1  2   40
+1  0  1  3    8	0  0  1  3   19
+1  0  2  1    4	0  0  2  1    5
+1  0  2  2    8	0  0  2  2   17
+1  0  2  3    1	0  0  2  3    7
+1  0  3  1   11	0  0  3  1    2
+1  0  3  2    9	0  0  3  2   14
+1  0  3  3    6	0  0  3  3    3
+1  0  4  1   48	0  0  4  1   49
+1  0  4  2   17	0  0  4  2   79
+1  0  4  3    8	0  0  4  3   24
+1  1  1  1  231	0  1  1  1  110
+1  1  1  2  115	0  1  1  2  133
+1  1  1  3   51	0  1  1  3  103
+1  1  2  1   17	0  1  2  1   18
+1  1  2  2   21	0  1  2  2   38
+1  1  2  3   13	0  1  2  3   25
+1  1  3  1   18	0  1  3  1   11
+1  1  3  2   28	0  1  3  2   25
+1  1  3  3   45	0  1  3  3   18
+1  1  4  1  197	0  1  4  1  178
+1  1  4  2  111	0  1  4  2  206
+1  1  4  3   35	0  1  4  3   81
+;
+
+
+DATA first;
+  SET afqt;
+  stage=1;
+  advance = ed GE 2;
+RUN;
+
+DATA second;
+  SET afqt;
+  stage=2;
+  IF ed=1 THEN DELETE;
+  advance = ed EQ 3;
+RUN;
+
+/* The following programs are found on page 184 */
+DATA concat;
+  SET first second;
+RUN;
+
+DATA combined;
+  SET afqt;
+   stage=1;
+   advance = ed GE 2;
+  OUTPUT;
+   stage=2;
+   IF ed=1 THEN DELETE;
+   advance = ed EQ 3;
+  OUTPUT;
+RUN;
+
+PROC LOGISTIC DATA=combined;
+  FREQ count;
+  CLASS faed / PARAM=REF;
+  MODEL advance(EVENT='1')=stage white old faed / AGGREGATE 
+    SCALE=NONE;
+RUN;
+
+
+/* The following program is found on page 186 */
+PROC LOGISTIC DATA=first;
+  FREQ count;
+  CLASS faed /PARAM=GLM;
+  MODEL advance(EVENT='1')= white old faed;
+PROC LOGISTIC DATA=second;
+  FREQ count;
+  CLASS faed /PARAM=GLM;
+  MODEL advance(EVENT='1')= white old faed;
+RUN;
+
+/* The following program is found on pages 190-191 */
+DATA chocs;
+   INPUT id choose dark soft nuts @@;
+   DATALINES;
+ 1 0 0 0 0    1 0 0 0 1   1 0 0 1 0    1 0 0 1 1
+ 1 1 1 0 0    1 0 1 0 1   1 0 1 1 0    1 0 1 1 1
+ 2 0 0 0 0    2 0 0 0 1   2 0 0 1 0    2 0 0 1 1
+ 2 0 1 0 0    2 1 1 0 1   2 0 1 1 0    2 0 1 1 1
+ 3 0 0 0 0    3 0 0 0 1   3 0 0 1 0    3 0 0 1 1
+ 3 0 1 0 0    3 0 1 0 1   3 1 1 1 0    3 0 1 1 1
+ 4 0 0 0 0    4 0 0 0 1   4 0 0 1 0    4 0 0 1 1
+ 4 1 1 0 0    4 0 1 0 1   4 0 1 1 0    4 0 1 1 1
+ 5 0 0 0 0    5 1 0 0 1   5 0 0 1 0    5 0 0 1 1
+ 5 0 1 0 0    5 0 1 0 1   5 0 1 1 0    5 0 1 1 1
+ 6 0 0 0 0    6 0 0 0 1   6 0 0 1 0    6 0 0 1 1
+ 6 0 1 0 0    6 1 1 0 1   6 0 1 1 0    6 0 1 1 1
+ 7 0 0 0 0    7 1 0 0 1   7 0 0 1 0    7 0 0 1 1
+ 7 0 1 0 0    7 0 1 0 1   7 0 1 1 0    7 0 1 1 1
+ 8 0 0 0 0    8 0 0 0 1   8 0 0 1 0    8 0 0 1 1
+ 8 0 1 0 0    8 1 1 0 1   8 0 1 1 0    8 0 1 1 1
+ 9 0 0 0 0    9 0 0 0 1   9 0 0 1 0    9 0 0 1 1
+ 9 0 1 0 0    9 1 1 0 1   9 0 1 1 0    9 0 1 1 1
+10 0 0 0 0   10 0 0 0 1  10 0 0 1 0   10 0 0 1 1
+10 0 1 0 0   10 1 1 0 1  10 0 1 1 0   10 0 1 1 1
+;
+
+/* The following program is found on page 191 */
+PROC LOGISTIC DATA=chocs;
+  MODEL choose(EVENT='1')=dark soft nuts;
+  STRATA id;
+RUN;
+
+/* The following program is found on page 198 */
+PROC LOGISTIC DATA=travel;
+  MODEL choice(EVENT='1') = ttme time cost;
+  STRATA id;
+RUN;
+
+/* The following program is found on page 199 */
+PROC LOGISTIC DATA=travel;
+  CLASS mode / PARAM=GLM;
+  MODEL choice(EVENT='1') = mode;
+  STRATA id;
+RUN;
+
+/* The following program is found on page 201 */
+PROC LOGISTIC DATA=travel;
+  CLASS mode / PARAM=REF;
+  MODEL choice(EVENT='1') = mode mode*hinc mode*psize;
+  STRATA id;
+RUN;
+
+/* The following program is found on page 202 */
+PROC LOGISTIC DATA=travel;
+  WHERE choice=1;
+  MODEL mode(EVENT='1')=hinc psize / LINK=GLOGIT;
+RUN;
+
+/* The following program is found on page 204 */
+PROC LOGISTIC DATA=travel;
+  CLASS mode / PARAM=REF;
+  MODEL choice(EVENT='1') = mode mode*hinc mode*psize ttme 
+     time cost;
+  STRATA id;
+RUN;
+
+/* The following program is found on page 207 */
+PROC PHREG DATA=judgernk NOSUMMARY;
+  MODEL rank=blackd whitvic death / TIES=DISCRETE;
+  STRATA judgid;
+RUN;
+
+/* The following program is found on page 209 */
+DATA travel2;
+  SET travel;
+  air = mode EQ 1;
+  train = mode EQ 2;
+  bus = mode EQ 3;
+RUN;
+
+/* The following program is found on page 210 */
+PROC MDC DATA=travel2;
+  MODEL choice = air train bus ttme time cost / CHOICE=(mode) 
+    TYPE=clogit;
+  ID id;
+RUN;
+
+/* The following program is found on page 211 */
+PROC MDC DATA=travel;
+  MODEL choice = ttme time cost / CHOICE=(mode) 
+    TYPE=HEV;
+  ID id;
+RUN;
+
+/* The following program is found on page 212 */
+PROC MDC DATA=travel2;
+  MODEL choice = ttme time cost / CHOICE=(mode) 
+    TYPE=MPROBIT; 
+  ID id;
+RUN;
+
+/* The following program is found on page 214 */
+PROC MDC DATA=travel2;
+  MODEL choice = ttme time cost / CHOICE=(mode) 
+    TYPE=NLOGIT; 
+  UTILITY U(1,)=ttme time cost; 
+  NEST LEVEL(1)=(1 2 3 @1, 4@2),
+       LEVEL(2)=(1 2@1);
+  ID id;
+RUN;
+
+/* The following program is found on page 220 */
+PROC LOGISTIC DATA=ptsd;
+  CLASS time / PARAM=GLM;
+  MODEL ptsd(EVENT='1') = control problems sevent cohes time;
+RUN; 
+
+/* The following program is found on page 222 */
+PROC SURVEYLOGISTIC DATA=ptsd;
+  CLASS time / PARAM=GLM;
+  MODEL ptsd(EVENT='1') = control problems sevent cohes time;
+  CLUSTER subjid;
+RUN;
+
+/* The following program is found on page 224 */
+PROC GENMOD DATA=ptsd DESC;
+  CLASS subjid time;
+  MODEL ptsd = control problems sevent cohes time / 
+    DIST=BINOMIAL TYPE3;
+  REPEATED SUBJECT=subjid;
+RUN;
+
+/* The following program is found on page 227 */
+PROC GENMOD DATA=ptsd DESC;
+  CLASS subjid time;
+  MODEL ptsd = control problems sevent cohes time / D=B;
+  REPEATED SUBJECT=subjid / WITHIN=time TYPE=UN CORRW;
+RUN;
+
+/* The following program is found on page 235 */
+PROC GLIMMIX DATA=ptsd METHOD=QUAD;
+  CLASS subjid time;
+  MODEL ptsd = control problems sevent cohes time / D=B 
+     SOLUTION;
+  RANDOM INTERCEPT / SUBJECT=subjid;
+  COVTEST 0;
+RUN;
+
+/* The following program is found on page 238 */
+PROC GLIMMIX DATA=ptsd METHOD=QUAD;
+  CLASS subjid time;
+  MODEL ptsd = control problems sevent cohes time / D=B S;
+  RANDOM INTERCEPT sevent/ SUBJECT=subjid;
+  COVTEST 0 .;
+  COVTEST . 0;
+RUN;
+
+/* The following program is found on page 242 */
+PROC LOGISTIC DATA=ptsd ;
+  CLASS time / PARAM=GLM;
+  MODEL ptsd(EVENT='1') = control problems sevent cohes time;
+  STRATA subjid;
+RUN;
+
+/* The following program is found on page 246 */
+PROC GENMOD DATA=postdoc DESC;
+  CLASS docid;
+  MODEL pdoc = age mar doc ag und arts cits / D=B;
+  REPEATED SUBJECT=docid / TYPE=EXCH;
+RUN;
+
+/* The following program is found on page 248 */
+PROC GLIMMIX DATA=postdoc METHOD=QUAD EMPIRICAL;
+  CLASS docid;
+  MODEL pdoc = age mar doc ag und arts cits / D=B S;
+  RANDOM INTERCEPT / SUBJECT=docid;
+  COVTEST 0;
+RUN;
+
+/* The following program is found on page 249 */
+PROC LOGISTIC DATA=postdoc;
+  MODEL pdoc(EVENT='1') = age mar ag und arts cits;
+  STRATA docid;
+RUN;
+
+/* The following program is found on page 254 */
+PROC GENMOD DATA=casecont DESC;
+  CLASS casenum;
+  MODEL pubhouse=staybaby black kids doubleup age days / 
+    D=B;
+  REPEATED SUBJECT=casenum / TYPE=EXCH;
+RUN; 
+
+/* The following program is found on page 256 */
+PROC LOGISTIC DATA=casecont;
+  MODEL pubhouse(EVENT='1')= staybaby black kids doubleup age;
+  STRATA casenum;
+RUN;
+
+/* The following program is found on page 258 */
+PROC LOGISTIC DATA=casecont;
+  MODEL staybaby(EVENT='1')=black kids doubleup age;
+  STRATA casenum;
+RUN;
+
+/* The following program is found on pages 260-261 */
+PROC SUMMARY DATA=ptsd NWAY;
+  CLASS subjid;
+  VAR control problems sevent;
+  OUTPUT OUT=means MEAN=mcontrol mproblem msevent;
+DATA combine;
+  MERGE ptsd means;
+  BY subjid;
+  dcontrol=control-mcontrol;
+  dproblem=problems-mproblem;
+  dsevent=sevent-msevent;
+RUN;
+
+/* The following program is found on page 261 */
+PROC GLIMMIX DATA=combine METHOD=QUAD EMPIRICAL;
+  CLASS subjid time;
+  MODEL ptsd = dcontrol dproblem dsevent mcontrol mproblem 
+       msevent cohes time / D=B S;
+  RANDOM INTERCEPT / SUBJECT=subjid;
+RUN;
+
+/* The following program is found on page 270 */
+PROC GENMOD DATA=postdoc;
+  MODEL arts = age mar doc ag und / DIST=POISSON;
+PROC GENMOD DATA=postdoc;
+  MODEL cits = age mar doc ag und / D=P;
+RUN;
+
+/* The following program is found on page 273 */
+PROC GENMOD DATA=postdoc;
+  MODEL arts = age mar doc ag und / D=P SCALE=P;
+PROC GENMOD DATA=postdoc;
+  MODEL cits = age mar doc ag und / D=P SCALE=P;
+RUN;
+
+/* The following program is found on page 275 */
+DATA postdoc2;
+  SET postdoc;
+  lcits=log(cits+.5);
+PROC GENMOD DATA=postdoc2;
+  MODEL lcits = age mar doc ag und;
+RUN;
+
+/* The following program is found on page 276 */
+PROC GENMOD DATA=postdoc;
+  MODEL arts = age mar doc ag und / D=NB;
+PROC GENMOD DATA=postdoc;
+  MODEL cits = age mar doc ag und / D=NB;
+RUN;
+
+/* The following programs are found on page 281 */
+DATA prog2;
+  SET prognosi;
+  lmin=LOG(minutes);
+RUN;
+
+PROC GENMOD DATA=prog2;
+  MODEL lengthpx=ptage ptsex ezcompt mdlikept surgeon claims / 
+     OFFSET=lmin D=P;
+RUN;
+
+/* The following program is found on page 284 */
+PROC GENMOD DATA=prog2;
+  MODEL lengthpx=ptage ptsex ezcompt mdlikept surgeon claims / 
+     OFFSET=lmin D=ZIP;
+  ZEROMODEL;
+RUN;
+
+/* The following program is found on page 287 */
+PROC GENMOD DATA=prog2;
+  MODEL lengthpx=ptage ptsex ezcompt mdlikept surgeon claims / 
+     OFFSET=lmin D=ZIP;
+  ZEROMODEL;
+RUN;
+
+/* The following program is found on page 294 */
+DATA penalty;
+  INPUT n death black;
+  DATALINES;
+28 1 1
+22 1 0
+45 0 1
+52 0 0
+;
+PROC GENMOD DATA=penalty;
+  MODEL n = death black death*black / DIST=POISSON;
+RUN;
+
+/* The following program is found on page 296 */
+PROC GENMOD DATA=penalty DESC;
+  FREQ n;
+  MODEL death=black / D=BINOMIAL LINK=LOGIT AGGREGATE;
+RUN;
+
+
+/* The following program is found on page 297 */
+PROC GENMOD DATA=penalty DESC;
+  FREQ n;
+  MODEL black=death / D=BINOMIAL LINK=LOGIT AGGREGATE;
+RUN;
+
+
+/* The following program is found on page 298 */
+DATA wisctab;
+  SET wisc;
+  college=1; 
+  freq=coll;
+  OUTPUT;
+  college=0; 
+  freq=total-coll;
+  OUTPUT;
+  DROP total coll;
+PROC PRINT;
+RUN;
+
+
+/* The following program is found on page 300 */
+PROC GENMOD DATA=wisctab;
+  CLASS iq ses;
+  MODEL freq=iq|ses|parent college iq*college ses*college   
+       parent*college / D=P TYPE3;
+RUN;
+
+
+/* The following programs are found on page 305 */
+DATA happy2;
+  SET happy;
+  happyq=happy;
+RUN;
+
+PROC GENMOD DATA=happy2;
+  CLASS year happy;
+  MODEL count=year|married happy year*happyq married*happyq /
+    D=P;
+RUN;
+
+
+/* The following program is found on page 309 */
+DATA happy3;
+  SET happy2;
+  yearq=year;
+  pretty=happy eq 2;
+PROC GENMOD DATA=happy3;
+  CLASS year happy;
+  MODEL count=year|married happy yearq*pretty married*happyq 
+    / D=P;
+RUN;
+
+
+/* The following program is found on pages 311-312 */
+DATA mobility;
+  INPUT n dad son;
+  DATALINES;
+50  1 1
+45  1 2
+8   1 3
+18  1 4
+8   1 5
+28  2 1
+174 2 2
+84  2 3
+154 2 4
+55  2 5
+11  3 1
+78  3 2
+110 3 3
+223 3 4
+96  3 5
+14  4 1
+150 4 2
+185 4 3
+714 4 4
+447 4 5
+0   5 1
+42  5 2
+72  5 3 
+320 5 4
+411 5 5
+;
+PROC GENMOD DATA=mobility;
+  CLASS dad son;
+  MODEL n = dad son /D=P;
+RUN;
+
+
+/* The following programs are found on page 313 */
+PROC GENMOD DATA=mobility;
+  WHERE dad NE son;
+  CLASS dad son;
+  MODEL n = dad son /D=P;
+RUN;
+
+DATA b;
+  SET mobility;
+  up=son GT dad;
+PROC GENMOD DATA=b;
+  WHERE dad NE son;
+  CLASS dad son;
+  MODEL n = dad son son*up dad*up / D=P;
+RUN;
+
+
+/* The following program is found on page 314 */
+DATA c;
+  SET mobility;
+  band=ABS(dad-son);
+PROC GENMOD DATA=c;
+  WHERE dad NE son;
+  CLASS dad son band;
+  MODEL n = dad son band /D=P;
+RUN;
+
+
+/* The following program is found on page 315 */
+DATA d;
+  SET mobility;
+  sonq=son;
+  dadq=dad;
+PROC GENMOD DATA=d;
+  WHERE dad NE son;
+  CLASS dad son;
+  MODEL n = dad son sonq*dadq /D=P;
+  OUTPUT OUT=a PRED=pred LOWER=lower UPPER=upper;
+PROC PRINT DATA=a;
+  VAR n pred lower upper;
+RUN;
+
+
+/* The following programs are found on page 320 */
+DATA zero;
+  INPUT x y z f;
+  DATALINES;
+1    1    1    20
+1    0    1     5
+1    1    0     5
+1    0    0     5
+0    1    1     4
+0    0    1    11
+0    1    0     0
+0    0    0     0
+;
+
+PROC GENMOD DATA=zero DESC;
+  FREQ f;
+  MODEL y = x z / D=B AGGREGATE;
+RUN;
+
+/* The following program is found on page 321 */
+PROC GENMOD DATA=zero;
+  MODEL f=x z y x*z y*z y*x / D=P AGGREGATE;
+  OUTPUT OUT=a PRED=pred;
+RUN;
+
+/* The following program is found on page 323 */
+PROC GENMOD DATA=zero;
+  WHERE f NE 0;
+  MODEL f=x z y x*z y*z y*x / D=P AGGREGATE;
+RUN;
+
+
+
+
+

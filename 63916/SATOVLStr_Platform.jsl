@@ -1,0 +1,49 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	SATOVLStr_Platform.jsl used in 8_CustomPlatformSubsetBy.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Create a string for calling a platform
+
+
+ovlStr = "\[ovl = Overlay Plot(
+	X( :Year ),
+	Y( :SAT Verbal, :SAT Math ),
+	Y Scale( Left, Right ),
+	Left Axis << {{Min( ^ymin^ ), Max( ^ymax^ ), Inc( 5 ), Minor Ticks( 0 ),Show Major Grid( 1 )}},
+	Right Axis << {{Min( ^ymin^ ), Max( ^ymax^ ), Inc( 5 ), Minor Ticks( 0 )}},
+	Connect Points( 1 ),
+	SendToReport(
+		Dispatch(
+			{"Overlay Plot"},
+			"Overlay Plot",
+			OutlineBox,
+			{Set Title( "SAT Scores by Year: ^_b[i]^" )}
+		),
+		Dispatch(
+			{},
+			"104",
+			ScaleBox,
+			{Min( ^ymin^ ), Max( ^ymax^ ), Inc( 5 ), Minor Ticks( 0 )}
+		),
+		Dispatch(
+			{},
+			"102",
+			ScaleBox,
+			{Min( ^ymin^ ), Max( ^ymax^ ), Inc( 5 ), Minor Ticks( 0 )}
+		),
+		Dispatch( {}, "", AxisBox, {Add Axis Label( "SAT Verbal" )} ),
+		Dispatch(
+			{},
+			"SAT Verbal",
+			TextEditBox,
+			{Set Font Size( 11 ), Set Font Style( "Bold" ), Font Color( -13977687 )}
+		),
+		Dispatch( {}, "", AxisBox( 5 ), {Add Axis Label( "SAT Math" )} ),
+		Dispatch(
+			{},
+			"SAT Math",
+			TextEditBox,
+			{Set Font Size( 11 ), Set Font Style( "Bold" ), Font Color( -4222943 )}
+		)
+	)
+)]\";
+

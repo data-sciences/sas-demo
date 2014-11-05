@@ -1,0 +1,159 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_ChangeReportsOneway.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates sending messages to the platform (Analysis Layer).
+
+
+//  Customizes the OutlineBox, AxisBox TextEditBoxes (axis titles).
+//  Highlights the continuous Y AxisBox which contains (owns) the textEditBox the axis label.
+//  NomAxisBox does not have the same relationship with its label. 
+//  Customizes the Means and Std Dev table box, hiding several columns and 
+//    formatting data columns.
+//  Customizes the FrameBox by resizing. FrameBox has its own section in Chapter 8.
+//  This script demonstates editing one week's boxplot using DispatchSeg and 
+//  customizes the connect line with DispatchSeg.
+//  Select/Deselect is used for practice  "navigating a display".
+// Run the entire script and watch the changes being made.  Then step through reviewing the
+// JSL statements.
+//-----------------------------------------------------------------------------------------
+
+stock_dt = Open( "$SAMPLE_DATA/TechStock.jmp" );
+//Change Modeling type to create Oneway
+Column( stock_dt, "YearWeek" ) << set modeling type( Nominal );
+//---Oneway
+//Assign onew to Analysis Layer
+onew = stock_dt << Oneway(
+	Y( :Close ),
+	X( :YearWeek ),
+	Quantiles( 0 ),
+	Means and Std Dev( 1 ),
+	Plot Actual by Quantile( 0 ),
+	Box Plots( 1 )
+);
+//If Means and Std Dev is enabled, ErrorBars, etc. are turned on by JMP.
+//Additional analysis messages sent below.
+//Wait is for effect
+Wait( 3 );
+onew << Connect Means( 1 ) << X Axis Proportional( 0 ) << Points Jittered( 1 ) << Grand Mean( 0 )
+ << Mean Error Bars( 0 ) << Std Dev Lines( 0 );
+
+//Create a reference to the Report Layer to customize the graph and table display boxes.
+onew_rpt = Report( onew );  //alternate syntax onew_rpt=onew<<report;
+//We recommend you look at the tree while reviewing commands.
+
+//------------Y (Left) Axis-------------------------------------------------
+//Locate the Y axis.
+onew_rpt[AxisBox( 1 )] << select;
+Wait( 3 );
+onew_rpt[AxisBox( 1 )] << deselect;
+//Locate the Y axis title
+onew_rpt[AxisBox( 1 )][Text Edit Box( 1 )] << select;
+Wait( 3 );
+onew_rpt[AxisBox( 1 )][Text Edit Box( 1 )] << deselect;
+
+//Customize the Y axis
+onew_rpt[AxisBox( 1 )] << {Min( 20 ), Max( 60 ), Inc( 5 ), MinorTicks( 1 ), Show Major Grid( 1 ),
+Show Minor Grid( 1 )};
+onew_rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Text( "Close ($)" );
+//Run the Show Properties() command and look at the Log 
+//or look up TextEditBox in the DisplayBox Scripting index. 
+//show properties(onew_rpt[AxisBox(1)][TextEditBox(1)]);
+onew_rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Size( 11 );
+onew_rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Style( "Bold" );
+
+//------------X Nominal Axis-------------------------------------------------
+//Find the Horizontal, X, Nominal Axis.
+onew_rpt[NomAxisBox( 1 )] << select;
+Wait( 3 );
+onew_rpt[NomAxisBox( 1 )] << deselect;
+
+//Locate the X, nominal axis title.
+//This may seem strange, but look at the tree structure
+//Oneway's Y axis is the parent of  TextEditBox
+//For the NomAxisBox it is not a parent 
+//so reference the TextEditBox directly.  Each platform is different.
+//onew_rpt[AxisBox( 1 )] << Show Tree Structure;     //Y continuous axis
+//onew_rpt[NomAxisBox( 1 )] << Show Tree Structure;  //X nominal axis
+//onew_rpt << Show Tree Structure;                   //Look for the X axis label
+
+onew_rpt[Text Edit Box( 2 )] << select;
+Wait( 3 );
+onew_rpt[Text Edit Box( 2 )] << deselect;
+
+//Customize the NomAxis
+onew_rpt[Text Edit Box( 2 )] << Set Font Size( 11 );
+onew_rpt[Text Edit Box( 2 )] << Set Font Style( "Bold" );
+onew_rpt[NomAxisBox( 1 )] << {Divider Lines( 1 )};
+
+//---------Report Title - Outline Box----------------------------------------
+onew_rpt[Outline Box( 1 )] << select;
+Wait( 3 );
+onew_rpt[Outline Box( 1 )] << deselect;
+
+onew_rpt[Outline Box( 1 )] << Set Title( "TechStock.Jmp Summary of Close Price By YearWeek" );
+
+//---------Means & Std Deviations Table ----------------------------------------
+//Locate the Means and Std Deviations Table
+onew_rpt["Means and Std Deviations"] << select;
+Wait( 3 );
+onew_rpt["Means and Std Deviations"] << deselect;
+//Alternately,  onew_rpt[OutlineBox(2)] << select;
+
+//The Find command is new to JMP 9.
+//If found, a handle to the Display box is created, if not an empty list is returned.
+xx = onew_rpt << Find( "Means and Std Deviations" );
+xx << select;
+Wait( 3 );
+xx << deselect;
+//Locate columns in the table box.
+onew_rpt["Means and Std Deviations"][Table Box( 1 )][Number Col Box( "Lower 95%" )] << select;
+Wait( 3 );
+onew_rpt["Means and Std Deviations"][Table Box( 1 )][Number Col Box( "Lower 95%" )] << deselect;
+
+//Customize the Means and Std Deviations Table, note TableBox(1) is not required
+//the NumberColBox names are unique and could be referenced directly.
+onew_rpt["Means and Std Deviations"][Table Box( 1 )][Number Col Box( "Lower 95%" )] << Hide( 1 );
+onew_rpt["Means and Std Deviations"][Table Box( 1 )][Number Col Box( "Upper 95%" )] << Hide( 1 );
+onew_rpt["Means and Std Deviations"][Table Box( 1 )][Number Col Box( "Std Err Mean" )] << Hide( 1 );
+onew_rpt["Means and Std Deviations"][Table Box( 1 )][Number Col Box( "Mean" )] <<
+Set Format( 8, 3 );
+onew_rpt["Means and Std Deviations"][Table Box( 1 )][Number Col Box( "Std Dev" )] <<
+Set Format( 8, 3 );
+
+
+//--------- Change Frame Box & Curve ----------------------------------------
+//Locate the FrameBox, note the FrameBox contains attributes of the graph
+//the boxplots, the points and the curve.
+
+//Locate the FrameBox
+onew_rpt[FrameBox( 1 )] << select;
+Wait( 3 );
+onew_rpt[FrameBox( 1 )] << deselect;
+//Use the DisplayBox Scripting index to learn more about the FrameBox.
+//If you have not tried customizing a framebox yet, run the 
+//commented-out code below to see what is available for this example.
+//onew_rpt[FrameBox(1)] << Customize;
+
+//Customize the FrameBox
+onew_rpt[FrameBox( 1 )] << {Frame Size( 383, 222 ), Marker Size( 4 )};
+//Some options are a little more difficult to capture.
+//Customize the Connect Means line
+onew_rpt[FrameBox( 1 )] << DispatchSeg(
+	CustomStreamSeg( 6 ),
+	{Line Color( {40, 103, 253} ), Line Width( 3 )}
+);
+
+//A later example shows how to customize the boxplots, this is an early peek.
+//Look at boxplot 200101
+onew_rpt[FrameBox( 1 )] << DispatchSeg(
+	BoxPlotSeg( 6 ),
+	{Box Style( "Outlier" ), Line Color( {40, 103, 253} ), Fences( 1 ), Line Width( 2 ),
+	Transparency( 0.6 )}
+);
+
+//Command to close an Outline reveal triangle.
+onew_rpt["Means and Std Deviations"] << Close( 1 );
+
+//We repeat this often. Use the UI to customize the FrameBox or other graph and
+//report features.  Then save the script to the Script Window, to learn the 
+//JSL equivalent statements. 

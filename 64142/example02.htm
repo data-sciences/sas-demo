@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta name="Generator" content="SAS Software Version 9.3, see www.sas.com">
+<meta http-equiv="Content-type" content="text/html; charset=windows-1252">
+<title>DM Review Magazine&#39;s winning dashboard (by SAS/Graph)</title>
+<style type="text/css">
+<!--
+.batch
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.bycontentfolder
+{
+  margin-left: 6pt;
+}
+.bylinecontainer
+{
+  width: 100%;
+}
+.contentfolder
+{
+  margin-left: 6pt;
+}
+.contentitem
+{
+  margin-left: 6pt;
+}
+.contents
+{
+}
+.folderaction
+{
+  margin-left: 6pt;
+}
+.graph
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.indexaction
+{
+  margin-left: 6pt;
+}
+.indexitem
+{
+  margin-left: 6pt;
+}
+.list
+{
+  list-style-type: disc;
+  text-align: left;
+  width: 100%;
+}
+.list10
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list2
+{
+  list-style-type: circle;
+  text-align: left;
+  width: 100%;
+}
+.list3
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list4
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list5
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list6
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list7
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list8
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.list9
+{
+  list-style-type: square;
+  text-align: left;
+  width: 100%;
+}
+.output
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.pages
+{
+}
+.pagesitem
+{
+  margin-left: 6pt;
+}
+.paragraph
+{
+  text-align: left;
+  width: 100%;
+}
+.systitleandfootercontainer
+{
+  width: 100%;
+}
+.table
+{
+  border: 1px solid #000000;
+  border-collapse: separate;
+  border-spacing: 1px;
+}
+.top_stacked_value
+{
+  padding-bottom: 1px;
+}
+.middle_stacked_value
+{
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+.bottom_stacked_value
+{
+  padding-top: 1px;
+}
+.titleandnotecontainer
+{
+  width: 100%;
+}
+.l {text-align: left }
+.c {text-align: center }
+.r {text-align: right }
+.d {text-align: right }
+.j {text-align: justify }
+.t {vertical-align: top }
+.m {vertical-align: middle }
+.b {vertical-align: bottom }
+TD, TH {vertical-align: top }
+.stacked_cell{padding: 0 }
+-->
+</style>
+<script language="javascript" type="text/javascript">
+<!-- 
+function startup(){
+
+}
+function shutdown(){
+
+}
+
+//-->
+</script>
+
+</head>
+<body onload="startup()" onunload="shutdown()" class="body">
+
+<script language="javascript" type="text/javascript">
+<!-- 
+var _info = navigator.userAgent
+var _ie = (_info.indexOf("MSIE") > 0
+          && _info.indexOf("Win") > 0
+          && _info.indexOf("Windows 3.1") < 0);
+var _ie64 = _info.indexOf("x64") > 0
+
+//-->
+</script>
+
+<div class="branch">
+<a name="IDX"></a>
+<div>
+<map name="g5cc9k8m_map">
+<area shape="RECT" title="Customer: Wines 'R UsAmount: $4,263Description: In the pipeline." href="scen3_info.htm" coords="695,683,704,691">
+<area shape="RECT" title="Customer: Wines 'R UsAmount: $3,865Description: Quarter-to-date." href="scen3_info.htm" coords="688,683,695,691">
+<area shape="RECT" title="Customer: Wines 'R UsAmount: $78,179Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,683,688,691">
+<area shape="RECT" title="Customer: The Big Wine StoreAmount: $5,083Description: In the pipeline." href="scen3_info.htm" coords="708,672,719,680">
+<area shape="RECT" title="Customer: The Big Wine StoreAmount: $3,685Description: Quarter-to-date." href="scen3_info.htm" coords="701,672,708,680">
+<area shape="RECT" title="Customer: The Big Wine StoreAmount: $84,683Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,672,701,680">
+<area shape="RECT" title="Customer: The Beverage CompanyAmount: $3,799Description: In the pipeline." href="scen3_info.htm" coords="657,727,664,735">
+<area shape="RECT" title="Customer: The Beverage CompanyAmount: $2,956Description: Quarter-to-date." href="scen3_info.htm" coords="651,727,657,735">
+<area shape="RECT" title="Customer: The Beverage CompanyAmount: $59,840Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,727,651,735">
+<area shape="RECT" title="Customer: Spirits of the AgeAmount: $3,903Description: In the pipeline." href="scen3_info.htm" coords="686,694,694,702">
+<area shape="RECT" title="Customer: Spirits of the AgeAmount: $3,680Description: Quarter-to-date." href="scen3_info.htm" coords="679,694,686,702">
+<area shape="RECT" title="Customer: Spirits of the AgeAmount: $73,924Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,694,679,702">
+<area shape="RECT" title="Customer: Sips and BitesAmount: $2,895Description: In the pipeline." href="scen3_info.htm" coords="658,737,664,746">
+<area shape="RECT" title="Customer: Sips and BitesAmount: $3,085Description: Quarter-to-date." href="scen3_info.htm" coords="652,737,658,746">
+<area shape="RECT" title="Customer: Sips and BitesAmount: $60,371Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,737,652,746">
+<area shape="RECT" title="Customer: Happy HourAmount: $1,388Description: In the pipeline." href="scen3_info.htm" coords="549,770,551,778">
+<area shape="RECT" title="Customer: Happy HourAmount: $9,396Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,770,549,778">
+<area shape="RECT" title="Customer: Fruit of the VineAmount: $3,972Description: In the pipeline." href="scen3_info.htm" coords="678,716,686,724">
+<area shape="RECT" title="Customer: Fruit of the VineAmount: $3,068Description: Quarter-to-date." href="scen3_info.htm" coords="672,716,678,724">
+<area shape="RECT" title="Customer: Fruit of the VineAmount: $70,264Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,716,672,724">
+<area shape="RECT" title="Customer: CheersAmount: $1,738Description: In the pipeline." href="scen3_info.htm" coords="647,748,650,757">
+<area shape="RECT" title="Customer: CheersAmount: $1,457Description: Quarter-to-date." href="scen3_info.htm" coords="644,748,647,757">
+<area shape="RECT" title="Customer: CheersAmount: $56,551Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,748,644,757">
+<area shape="RECT" title="Customer: Barrel and KegAmount: $2,178Description: In the pipeline." href="scen3_info.htm" coords="612,759,616,768">
+<area shape="RECT" title="Customer: Barrel and KegAmount: $932Description: Quarter-to-date." href="scen3_info.htm" coords="610,759,612,768">
+<area shape="RECT" title="Customer: Barrel and KegAmount: $39,604Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,759,610,768">
+<area shape="RECT" title="Customer: American Vintner's BestAmount: $2,389Description: In the pipeline." href="scen3_info.htm" coords="682,705,687,713">
+<area shape="RECT" title="Customer: American Vintner's BestAmount: $3,535Description: Quarter-to-date." href="scen3_info.htm" coords="675,705,682,713">
+<area shape="RECT" title="Customer: American Vintner's BestAmount: $71,861Description: Year-to-date minus Quarter-to-date." href="scen3_info.htm" coords="530,705,675,713">
+<area shape="RECT" title="Region: South AmericaAmount in Pipeline: $501Probability of Closing Sale: 25%" href="scen3_info.htm" coords="150,761,156,778">
+<area shape="RECT" title="Region: South AmericaAmount in Pipeline: $356Probability of Closing Sale: 50%" href="scen3_info.htm" coords="146,761,150,778">
+<area shape="RECT" title="Region: South AmericaAmount in Pipeline: $295Probability of Closing Sale: 75%" href="scen3_info.htm" coords="143,761,146,778">
+<area shape="RECT" title="Region: South AmericaAmount in Pipeline: $199Probability of Closing Sale: 90%" href="scen3_info.htm" coords="141,761,143,778">
+<area shape="RECT" title="Region: North AmericaAmount in Pipeline: $3,505Probability of Closing Sale: 25%" href="scen3_info.htm" coords="263,672,301,689">
+<area shape="RECT" title="Region: North AmericaAmount in Pipeline: $4,592Probability of Closing Sale: 50%" href="scen3_info.htm" coords="214,672,263,689">
+<area shape="RECT" title="Region: North AmericaAmount in Pipeline: $3,384Probability of Closing Sale: 75%" href="scen3_info.htm" coords="177,672,214,689">
+<area shape="RECT" title="Region: North AmericaAmount in Pipeline: $3,384Probability of Closing Sale: 90%" href="scen3_info.htm" coords="141,672,177,689">
+<area shape="RECT" title="Region: Middle EastAmount in Pipeline: $527Probability of Closing Sale: 25%" href="scen3_info.htm" coords="153,739,159,756">
+<area shape="RECT" title="Region: Middle EastAmount in Pipeline: $539Probability of Closing Sale: 50%" href="scen3_info.htm" coords="148,739,153,756">
+<area shape="RECT" title="Region: Middle EastAmount in Pipeline: $256Probability of Closing Sale: 75%" href="scen3_info.htm" coords="145,739,148,756">
+<area shape="RECT" title="Region: Middle EastAmount in Pipeline: $367Probability of Closing Sale: 90%" href="scen3_info.htm" coords="141,739,145,756">
+<area shape="RECT" title="Region: EuropeAmount in Pipeline: $1,273Probability of Closing Sale: 25%" href="scen3_info.htm" coords="204,717,217,734">
+<area shape="RECT" title="Region: EuropeAmount in Pipeline: $2,955Probability of Closing Sale: 50%" href="scen3_info.htm" coords="172,717,204,734">
+<area shape="RECT" title="Region: EuropeAmount in Pipeline: $1,702Probability of Closing Sale: 75%" href="scen3_info.htm" coords="153,717,172,734">
+<area shape="RECT" title="Region: EuropeAmount in Pipeline: $1,165Probability of Closing Sale: 90%" href="scen3_info.htm" coords="141,717,153,734">
+<area shape="RECT" title="Region: AsiaAmount in Pipeline: $2,760Probability of Closing Sale: 25%" href="scen3_info.htm" coords="206,695,236,711">
+<area shape="RECT" title="Region: AsiaAmount in Pipeline: $3,648Probability of Closing Sale: 50%" href="scen3_info.htm" coords="167,695,206,711">
+<area shape="RECT" title="Region: AsiaAmount in Pipeline: $1,439Probability of Closing Sale: 75%" href="scen3_info.htm" coords="151,695,167,711">
+<area shape="RECT" title="Region: AsiaAmount in Pipeline: $937Probability of Closing Sale: 90%" href="scen3_info.htm" coords="141,695,151,711">
+<area shape="RECT" title="Quarter: Q4Target: $53,750Actual: $46,685Actual as Percent of Target: 87%" href="scen3_info.htm" coords="323,42,339,144">
+<area shape="RECT" title="Quarter: Q3Target: $46,000Actual: $42,431Actual as Percent of Target: 92%" href="scen3_info.htm" coords="292,52,307,144">
+<area shape="RECT" title="Quarter: Q2Target: $41,750Actual: $36,749Actual as Percent of Target: 88%" href="scen3_info.htm" coords="260,64,276,144">
+<area shape="RECT" title="Quarter: Q1Target: $37,500Actual: $31,999Actual as Percent of Target: 85%" href="scen3_info.htm" coords="229,74,245,144">
+<area shape="RECT" title="Quarter: Q4Target: $215,000Actual: $206,264Actual as Percent of Target: 96%" href="scen3_info.htm" coords="145,64,161,144">
+<area shape="RECT" title="Quarter: Q3Target: $184,000Actual: $199,738Actual as Percent of Target: 109%" href="scen3_info.htm" coords="113,67,129,144">
+<area shape="RECT" title="Quarter: Q2Target: $167,000Actual: $165,158Actual as Percent of Target: 99%" href="scen3_info.htm" coords="82,80,98,144">
+<area shape="RECT" title="Quarter: Q1Target: $150,000Actual: $154,057Actual as Percent of Target: 103%" href="scen3_info.htm" coords="51,84,66,144">
+<area shape="RECT" title="Quarter: Q4Target: $5,375Actual: $5,035Actual as Percent of Target: 94%" href="scen3_info.htm" coords="864,619,880,624">
+<area shape="RECT" title="Quarter: Q3Target: $3,680Actual: $4,206Actual as Percent of Target: 114%" href="scen3_info.htm" coords="833,620,848,624">
+<area shape="RECT" title="Quarter: Q2Target: $2,505Actual: $3,435Actual as Percent of Target: 137%" href="scen3_info.htm" coords="801,621,817,624">
+<area shape="RECT" title="Quarter: Q1Target: $1,500Actual: $3,041Actual as Percent of Target: 203%" href="scen3_info.htm" coords="770,621,785,624">
+<area shape="RECT" title="Quarter: Q4Target: $19,350Actual: $15,592Actual as Percent of Target: 81%" href="scen3_info.htm" coords="684,610,700,624">
+<area shape="RECT" title="Quarter: Q3Target: $16,560Actual: $15,767Actual as Percent of Target: 95%" href="scen3_info.htm" coords="653,610,669,624">
+<area shape="RECT" title="Quarter: Q2Target: $15,030Actual: $13,081Actual as Percent of Target: 87%" href="scen3_info.htm" coords="621,612,637,624">
+<area shape="RECT" title="Quarter: Q1Target: $13,500Actual: $12,365Actual as Percent of Target: 92%" href="scen3_info.htm" coords="590,613,606,624">
+<area shape="RECT" title="Quarter: Q4Target: $43,000Actual: $41,253Actual as Percent of Target: 96%" href="scen3_info.htm" coords="505,588,520,624">
+<area shape="RECT" title="Quarter: Q3Target: $36,800Actual: $39,948Actual as Percent of Target: 109%" href="scen3_info.htm" coords="473,589,489,624">
+<area shape="RECT" title="Quarter: Q2Target: $33,400Actual: $33,032Actual as Percent of Target: 99%" href="scen3_info.htm" coords="442,595,457,624">
+<area shape="RECT" title="Quarter: Q1Target: $30,000Actual: $30,811Actual as Percent of Target: 103%" href="scen3_info.htm" coords="410,597,426,624">
+<area shape="RECT" title="Quarter: Q4Target: $39,775Actual: $52,944Actual as Percent of Target: 133%" href="scen3_info.htm" coords="325,577,340,624">
+<area shape="RECT" title="Quarter: Q3Target: $33,120Actual: $48,641Actual as Percent of Target: 147%" href="scen3_info.htm" coords="293,581,309,624">
+<area shape="RECT" title="Quarter: Q2Target: $29,225Actual: $37,472Actual as Percent of Target: 128%" href="scen3_info.htm" coords="262,591,278,624">
+<area shape="RECT" title="Quarter: Q1Target: $25,500Actual: $28,877Actual as Percent of Target: 113%" href="scen3_info.htm" coords="230,598,246,624">
+<area shape="RECT" title="Quarter: Q4Target: $107,500Actual: $91,441Actual as Percent of Target: 85%" href="scen3_info.htm" coords="145,544,161,624">
+<area shape="RECT" title="Quarter: Q3Target: $93,840Actual: $91,176Actual as Percent of Target: 97%" href="scen3_info.htm" coords="113,544,129,624">
+<area shape="RECT" title="Quarter: Q2Target: $86,840Actual: $78,138Actual as Percent of Target: 90%" href="scen3_info.htm" coords="82,555,98,624">
+<area shape="RECT" title="Quarter: Q1Target: $79,500Actual: $78,963Actual as Percent of Target: 99%" href="scen3_info.htm" coords="51,554,66,624">
+<area shape="RECT" title="Quarter: Q4Target: $19,350Actual: $18,664Actual as Percent of Target: 96%" href="scen3_info.htm" coords="864,448,880,464">
+<area shape="RECT" title="Quarter: Q3Target: $16,560Actual: $17,876Actual as Percent of Target: 108%" href="scen3_info.htm" coords="833,448,848,464">
+<area shape="RECT" title="Quarter: Q2Target: $15,030Actual: $10,164Actual as Percent of Target: 68%" href="scen3_info.htm" coords="801,455,817,464">
+<area shape="RECT" title="Quarter: Q1Target: $13,500Actual: $13,876Actual as Percent of Target: 103%" href="scen3_info.htm" coords="770,452,785,464">
+<area shape="RECT" title="Quarter: Q4Target: $21,500Actual: $12,398Actual as Percent of Target: 58%" href="scen3_info.htm" coords="684,453,700,464">
+<area shape="RECT" title="Quarter: Q3Target: $18,400Actual: $13,790Actual as Percent of Target: 75%" href="scen3_info.htm" coords="653,452,669,464">
+<area shape="RECT" title="Quarter: Q2Target: $16,700Actual: $35,763Actual as Percent of Target: 214%" href="scen3_info.htm" coords="621,433,637,464">
+<area shape="RECT" title="Quarter: Q1Target: $15,000Actual: $17,677Actual as Percent of Target: 118%" href="scen3_info.htm" coords="590,448,606,464">
+<area shape="RECT" title="Quarter: Q4Target: $36,550Actual: $28,865Actual as Percent of Target: 79%" href="scen3_info.htm" coords="505,439,520,464">
+<area shape="RECT" title="Quarter: Q3Target: $31,280Actual: $28,955Actual as Percent of Target: 93%" href="scen3_info.htm" coords="473,438,489,464">
+<area shape="RECT" title="Quarter: Q2Target: $28,390Actual: $24,977Actual as Percent of Target: 88%" href="scen3_info.htm" coords="442,442,457,464">
+<area shape="RECT" title="Quarter: Q1Target: $25,500Actual: $25,440Actual as Percent of Target: 100%" href="scen3_info.htm" coords="410,442,426,464">
+<area shape="RECT" title="Quarter: Q4Target: $38,700Actual: $38,728Actual as Percent of Target: 100%" href="scen3_info.htm" coords="325,430,340,464">
+<area shape="RECT" title="Quarter: Q3Target: $33,120Actual: $35,053Actual as Percent of Target: 106%" href="scen3_info.htm" coords="293,433,309,464">
+<area shape="RECT" title="Quarter: Q2Target: $30,060Actual: $30,228Actual as Percent of Target: 101%" href="scen3_info.htm" coords="262,437,278,464">
+<area shape="RECT" title="Quarter: Q1Target: $27,000Actual: $28,430Actual as Percent of Target: 105%" href="scen3_info.htm" coords="230,439,246,464">
+<area shape="RECT" title="Quarter: Q4Target: $98,900Actual: $107,610Actual as Percent of Target: 109%" href="scen3_info.htm" coords="145,370,161,464">
+<area shape="RECT" title="Quarter: Q3Target: $84,640Actual: $104,063Actual as Percent of Target: 123%" href="scen3_info.htm" coords="113,373,129,464">
+<area shape="RECT" title="Quarter: Q2Target: $76,820Actual: $64,025Actual as Percent of Target: 83%" href="scen3_info.htm" coords="82,408,98,464">
+<area shape="RECT" title="Quarter: Q1Target: $69,000Actual: $68,634Actual as Percent of Target: 99%" href="scen3_info.htm" coords="51,404,66,464">
+<area shape="RECT" title="Quarter: Q4Target: 3.3Actual: 2.7Actual as Percent of Target: 81%" href="scen3_info.htm" coords="853,246,869,304">
+<area shape="RECT" title="Quarter: Q3Target: 3.3Actual: 2.8Actual as Percent of Target: 86%" href="scen3_info.htm" coords="822,242,837,304">
+<area shape="RECT" title="Quarter: Q2Target: 3.3Actual: 3.0Actual as Percent of Target: 90%" href="scen3_info.htm" coords="790,239,806,304">
+<area shape="RECT" title="Quarter: Q1Target: 3.3Actual: 3.2Actual as Percent of Target: 98%" href="scen3_info.htm" coords="759,234,775,304">
+<area shape="RECT" title="Quarter: Q4Target: 95%Actual: 68%Actual as Percent of Target: 72%" href="scen3_info.htm" coords="685,230,701,304">
+<area shape="RECT" title="Quarter: Q3Target: 94%Actual: 65%Actual as Percent of Target: 69%" href="scen3_info.htm" coords="654,233,670,304">
+<area shape="RECT" title="Quarter: Q2Target: 93%Actual: 73%Actual as Percent of Target: 78%" href="scen3_info.htm" coords="622,224,638,304">
+<area shape="RECT" title="Quarter: Q1Target: 92%Actual: 83%Actual as Percent of Target: 90%" href="scen3_info.htm" coords="591,213,607,304">
+<area shape="RECT" title="Quarter: Q4Target: 450Actual: 468Actual as Percent of Target: 104%" href="scen3_info.htm" coords="500,202,515,304">
+<area shape="RECT" title="Quarter: Q3Target: 400Actual: 447Actual as Percent of Target: 112%" href="scen3_info.htm" coords="468,206,484,304">
+<area shape="RECT" title="Quarter: Q2Target: 350Actual: 430Actual as Percent of Target: 123%" href="scen3_info.htm" coords="437,210,452,304">
+<area shape="RECT" title="Quarter: Q1Target: 300Actual: 346Actual as Percent of Target: 115%" href="scen3_info.htm" coords="405,228,421,304">
+<area shape="RECT" title="Quarter: Q4Target: 430Actual: 449Actual as Percent of Target: 104%" href="scen3_info.htm" coords="320,206,335,304">
+<area shape="RECT" title="Quarter: Q3Target: 420Actual: 435Actual as Percent of Target: 104%" href="scen3_info.htm" coords="288,209,304,304">
+<area shape="RECT" title="Quarter: Q2Target: 410Actual: 421Actual as Percent of Target: 103%" href="scen3_info.htm" coords="257,212,273,304">
+<area shape="RECT" title="Quarter: Q1Target: 400Actual: 405Actual as Percent of Target: 101%" href="scen3_info.htm" coords="225,215,241,304">
+<area shape="RECT" title="Quarter: Q4Target: 27%Actual: 17%Actual as Percent of Target: 63%" href="scen3_info.htm" coords="144,236,160,304">
+<area shape="RECT" title="Quarter: Q3Target: 26%Actual: 19%Actual as Percent of Target: 72%" href="scen3_info.htm" coords="113,230,129,304">
+<area shape="RECT" title="Quarter: Q2Target: 25%Actual: 20%Actual as Percent of Target: 80%" href="scen3_info.htm" coords="82,224,97,304">
+<area shape="RECT" title="Quarter: Q1Target: 24%Actual: 23%Actual as Percent of Target: 94%" href="scen3_info.htm" coords="50,214,66,304">
+</map>
+<div  class="c">
+<img src="example02.png" style=" background-color: #EEEEEE; height: 800px; width: 900px;" border="0" usemap="#g5cc9k8m_map" class="c graph">
+</div>
+</div>
+<br>
+</div>
+</body>
+</html>

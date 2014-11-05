@@ -1,0 +1,47 @@
+%macro utf8_estimate(dsn,vars=_character_,maxvarlen=200,maxvars=20,out=);
+data _utf8_est_ ;
+set &dsn end=eof ;
+array _c_ $ &vars ;
+retain _maxvlen_1-_maxvlen_&maxvars ;
+array _mv_ _maxvlen_1-_maxvlen_&maxvars ;
+length temp $ &maxvarlen ;
+length _vname_ $ 40 ;
+do i = 1 to dim(_c_);
+temp = put(_c_[i], $utf8x&maxvarlen..) ;
+utf8len = length( temp ) ;
+_mv_[i] = max(_mv_[i], utf8len ) ;
+end ;
+if eof then do ;
+%if %length(&out) > 0 %then %do ;
+call execute("data &out(encoding=utf8) ;");
+%end ;
+do i = 1 to dim(_c_) ;
+_vname_ = vname(_c_[i]) ;
+_vlen_ = vlength(_c_[i]) ;
+_vlenopt_ = _mv_[i] ;
+_vlenmax_ = max(_mv_[i], _vlen_) ;
+if _vlenopt_ > _vlen_ then _vconv_ = 'Y' ;
+else _vconv_ = 'N' ;
+output ;
+%if %length(&out) > 0 %then %do ;
+if _vconv_ = 'Y' then do ;
+call execute ('length ' || _vname_ || '$' || put(_vlenopt_,best12.) || ';' ) ;
+end;
+%end ;
+end;
+%if %length(&out) > 0 %then %do ;
+call execute("set &dsn ; ");
+call execute("run; ");
+%end ;
+end ;
+label _vname_ = 'Variable Name'
+_vlen_ = 'Current Variable Length'
+_vlenopt_ = 'Estimated Variable Length'
+_vconv_ = 'Conversion Required?' ;
+keep _vname_ _vlen_ _vlenopt_ _vlenmax_ _vconv_ ;
+run;
+%if %length(&out) = 0 %then %do ;
+proc print data=_utf8_est_ label ;
+run;
+%end ;
+%mend ;

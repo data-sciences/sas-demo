@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="ISO8859-1"?> 
+<CATALOG>
+<CD>
+  <TITLE>Permanent Vacation</TITLE> 
+  <ARTIST>Aerosmith</ARTIST>
+  <GENRE>Rock</GENRE> 
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>GEFFEN</COMPANY> 
+  <PRICE>10.99</PRICE> 
+  <YEAR>1987</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Empire Burlesque</TITLE> 
+  <ARTIST>Bob Dylan</ARTIST>
+  <GENRE>Folk</GENRE>  
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Columbia</COMPANY> 
+  <PRICE>10.90</PRICE> 
+  <YEAR>1985</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Sunshine on Leith</TITLE> 
+  <ARTIST>The Proclaimers</ARTIST>
+  <GENRE>Folk</GENRE>  
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Chrysalis</COMPANY> 
+  <PRICE>11.99</PRICE> 
+  <YEAR>1988</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Hide your Heart</TITLE> 
+  <ARTIST>Bonnie Tylor</ARTIST> 
+  <GENRE>Rock</GENRE>  
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>CBS Records</COMPANY> 
+  <PRICE>9.90</PRICE> 
+  <YEAR>1988</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Greatest Hits</TITLE> 
+  <ARTIST>Dolly Parton</ARTIST>
+  <GENRE>Country</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>RCA</COMPANY> 
+  <PRICE>9.90</PRICE> 
+  <YEAR>1982</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Comes a Time</TITLE> 
+  <ARTIST>Neil Young</ARTIST>
+  <GENRE>Rock</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Reprise</COMPANY> 
+  <PRICE>10.99</PRICE> 
+  <YEAR>1978</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Please Hammer Don't Hurt 'Em</TITLE> 
+  <ARTIST>M. C. Hammer</ARTIST>
+  <GENRE>Rap</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Capitol</COMPANY> 
+  <PRICE>11.90</PRICE> 
+  <YEAR>1990</YEAR> 
+  </CD>
+<CD>
+  <TITLE>One Night Only</TITLE> 
+  <ARTIST>Bee Gees</ARTIST>
+  <GENRE>Disco</GENRE>   
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>Polydor</COMPANY> 
+  <PRICE>10.90</PRICE> 
+  <YEAR>1998</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Supernatural</TITLE> 
+  <ARTIST>Santana</ARTIST> 
+  <GENRE>Pop</GENRE>  
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Arist</COMPANY> 
+  <PRICE>12.88</PRICE> 
+  <YEAR>1999</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Maggie May</TITLE> 
+  <ARTIST>Rod Stewart</ARTIST>
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>Pickwick</COMPANY> 
+  <PRICE>8.50</PRICE> 
+  <YEAR>1990</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Break Every Rule</TITLE> 
+  <ARTIST>Tina Turner</ARTIST>
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Capitol</COMPANY> 
+  <PRICE>10.80</PRICE> 
+  <YEAR>1986</YEAR> 
+  </CD>
+<CD>
+  <TITLE>When a Man Loves a Woman</TITLE> 
+  <ARTIST>Percy Sledge</ARTIST>
+  <GENRE>R&amp;B</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Atlantic</COMPANY> 
+  <PRICE>8.70</PRICE> 
+  <YEAR>1987</YEAR> 
+  </CD>
+<CD>
+  <TITLE>1999 Grammy Nominees</TITLE> 
+  <ARTIST>Many</ARTIST>
+  <GENRE>Collection</GENRE>    
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Grammy</COMPANY> 
+  <PRICE>10.20</PRICE> 
+  <YEAR>1999</YEAR> 
+  </CD>
+<CD>
+  <TITLE>For the Good Times</TITLE> 
+  <ARTIST>Kenny Rogers</ARTIST>
+  <GENRE>Country</GENRE>    
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>Mucik Master</COMPANY> 
+  <PRICE>8.70</PRICE> 
+  <YEAR>1995</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Tupelo Honey</TITLE> 
+  <ARTIST>Van Morrison</ARTIST> 
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>Polydor</COMPANY> 
+  <PRICE>8.20</PRICE> 
+  <YEAR>1971</YEAR> 
+  </CD>
+<CD>
+  <TITLE>The very best of</TITLE> 
+  <ARTIST>Cat Stevens</ARTIST> 
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>Island</COMPANY> 
+  <PRICE>8.90</PRICE> 
+  <YEAR>1990</YEAR> 
+  </CD>
+<CD>
+  <TITLE>With a Little help From My Friends</TITLE> 
+  <ARTIST>Joe Cocker</ARTIST>
+  <GENRE>Rock</GENRE>    
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>A and M</COMPANY> 
+  <PRICE>8.99</PRICE> 
+  <YEAR>1969</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Private Dancer</TITLE> 
+  <ARTIST>Tina Turner</ARTIST>
+  <GENRE>Pop</GENRE>    
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>Capitol</COMPANY> 
+  <PRICE>8.90</PRICE> 
+  <YEAR>1983</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Pavarotti Gala Concert</TITLE> 
+  <ARTIST>Luciano Pavarotti</ARTIST> 
+  <GENRE>Classical</GENRE>   
+  <COUNTRY>UK</COUNTRY> 
+  <COMPANY>DECCA</COMPANY> 
+  <PRICE>9.90</PRICE> 
+  <YEAR>1991</YEAR> 
+  </CD>
+<CD>
+  <TITLE>The Dock of the Bay</TITLE> 
+  <ARTIST>Otis Redding</ARTIST>
+  <GENRE>R&amp;B</GENRE>    
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Atlantic</COMPANY> 
+  <PRICE>7.90</PRICE> 
+  <YEAR>1987</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Picture Book</TITLE> 
+  <ARTIST>Simply Red</ARTIST> 
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>EU</COUNTRY> 
+  <COMPANY>Elektra</COMPANY> 
+  <PRICE>7.20</PRICE> 
+  <YEAR>1985</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Come Away with Me</TITLE> 
+  <ARTIST>Norah Jones</ARTIST> 
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>Capitol</COMPANY> 
+  <PRICE>11.99</PRICE> 
+  <YEAR>2001</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Songs You Know by Heart</TITLE> 
+  <ARTIST>Jimmy Buffet</ARTIST> 
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>MCA</COMPANY> 
+  <PRICE>9.90</PRICE> 
+  <YEAR>1985</YEAR> 
+  </CD>
+<CD>
+  <TITLE>Unchain my heart</TITLE> 
+  <ARTIST>Joe Cocker</ARTIST> 
+  <GENRE>Pop</GENRE>   
+  <COUNTRY>USA</COUNTRY> 
+  <COMPANY>EMI</COMPANY> 
+  <PRICE>8.20</PRICE> 
+  <YEAR>1987</YEAR> 
+  </CD>
+  </CATALOG>

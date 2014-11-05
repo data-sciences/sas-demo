@@ -1,0 +1,116 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_ParsingStrings.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates several functions for working with strings:
+//          Contains(), Word(), Words(), Item(), Munger(), Insert(), Concat(), 
+//          Concat Items().
+
+
+//---- Contains()
+tmp_lst = {"abc", "ABC", 1, 3, "a", "b", [1], "abc", abc};
+
+a1 = Contains( tmp_lst, "abc" );
+Show( a1 );  //a1 = 1;
+
+//- Case of the string matters
+a1b = Contains( tmp_lst, "Abc");
+Show( a1b );  //a1b = 0;
+
+//- Search from end to beginning of list
+a2 = Contains( tmp_lst, "abc", -1 );
+Show( a2 );  //a2 = 8;
+
+/*When a variable is in a list, Contains() will throw an error if the
+variable is not defined.  If it is defined it will give a 0 indicating it 
+has not been found. */
+
+//- Run the first line of code
+a3 = Contains( tmp_lst, abc );  //throws an error if abc is not defined
+//Now run the rest
+abc = "99";
+a3 = Contains( tmp_lst, abc );  //returns a zero
+Show( a3 );  //a3 = 0;
+
+a4 = Contains( Eval List( tmp_lst ), abc );
+Show( a4 );  //a4 = 9;
+
+
+//- Finds numbers in a list, does not consider [1] a number but a matrix
+a5 = Contains( tmp_lst, 1, -1 );
+Show( a5 );  //a5 = 3;
+
+//- Finds a matrix in a list
+a6 = Contains( tmp_lst, [1], -1 );
+Show( a6 );  //a6 = 7;
+
+
+//---- Concat Items()
+str1 = "one";
+str2 = "two";
+str3 = "three";
+
+//- no delimiter specified a space is used
+comb = Concat Items( {str1, str2, str3} );
+Show( comb );  //comb = "one two three";
+
+//- example with a delimiter constant
+comb = Concat Items( {str1, str2, str3}, " : " );
+Show( comb );  //comb = "one : two : three";
+
+//- example with a delimiter variable
+del = ",";
+comb = Concat Items( {str1, str2, str3}, del );
+Show( comb );  //comb = "one,two,three";
+
+//- example with regular Concat() and Concat Items()
+del = ", ";
+comb = str1 || Concat Items( {str2, str3}, del );
+Show( comb );  //comb = "onetwo, three";
+
+//- example with both list and delimier variables
+mylist = {str1, str2, str3};
+comb = Concat Items( mylist, del );
+Show( comb );  //comb = "one, two, three";
+
+
+
+//---- Word(), Words(), Item()
+
+/* Quote from Charles Dickens, Our Mutual Friend (1864-1865) Bk. III, Ch. 2 */
+Dickens_str = "Have a heart that never hardens, and a temper that never tires, and a touch that never hurts.";
+
+//---- Word()
+Word(3, Dickens_str);  //returns "heart", the 3rd word
+Word(3, Dickens_str, "");  //returns "v", the 3rd character
+Word(3, Dickens_str, "e");  //returns "art that n", the 3rd set of letters that follow the letter "e"
+Word(1, Dickens_str, "h");  //returns "Have a ", it is case sensitive
+Word(1, Dickens_str, "H");  //returns "ave a heart that never hardens, and a temper that never tires, and a touch that never hurts.", it is case sensitive
+
+//---- Words()
+Words(Dickens_str);  //uses the space character as the delimiter
+Words(Dickens_str, "");  //each character is a separate word
+Words("(888)-123-4567", "()-");  //returns {"888", "123", "4567"}
+Words("www.jmp.com", ".");  //returns {"www", "jmp", "com"}
+
+//---- Item()
+// Word looks for the nth word as delimited, by any number of the delimiters
+// Item looks for the nth word and looks at exactly one character for the delimiter
+wStr = Word( 2, "Dickens, Charles", ", " );  //returns "Charles"
+iStr = Item( 2, "Dickens, Charles", ", " );  //returns ""
+Show( wStr, iStr );
+
+
+
+//---- Munger()
+Munger( "Portland, ME", 1, "ME", "OR");      //returns "Portland, OR"
+Munger( "Portland, OR", 1, "OR");            //returns 11
+Munger( "Portland, OR", 1, ", OR", "");      //returns "Portland"
+Munger( "Portland, OR", 1, "Port", "Ash");   //returns "Ashland, OR"
+Munger( "Portland", 1, "d", "d, OR");
+
+//There are multiple ways of doing the same thing...some are easier than others
+str1 = "Portland";
+Munger( str1, 1, Right(str1, 1), Right(str1, 1)||", OR");
+str2 = Insert(str1, ", OR");
+
+

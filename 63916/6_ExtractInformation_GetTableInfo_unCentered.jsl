@@ -1,0 +1,112 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_ExtractInformation_GetTableInfo_unCentered.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for getting TableBox information using the uncentered fit.
+
+
+//Uses Rate of Rise Data Set with stacked (Model) format
+//Tasks
+//   Fit quadratic models and create a table of coefficients and fit metrics
+//   The results table should include coefficients for b0 + b1*Time + b2*Time^2 
+//   for each By (Tool, Lot) and Group (Wfr) combination. 
+//   Each plot represents a single By (Tool, Lot) with separate curves for 
+//   each wafer.
+
+ror_stk_dt = Open( "$JSL_Companion\ROR Model Format.jmp" );
+
+ror_biv = ror_stk_dt << Bivariate(
+	Y( :Temperature ),
+	X( :Time ),
+	By( :Tool, :Lot ),
+	Group By( :Wfr ),
+	Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )
+);
+
+tmp = Report( ror_biv[1] )[Outline Box( 1 )]["Summary of Fit"][Table Box( 1 )] <<
+Make Combined Data Table;
+       
+//  split tmp so that each fitted model is a row/observation and assign a reference
+fit_sum = tmp << Split(
+	Split By( :Column 1 ),
+	Split( :Column 2 ),
+	Group( :Tool, :Lot, :Wfr ),
+	Remaining Columns( Drop All )
+);
+Wait( 0 );
+Close( tmp, NoSave );
+
+//do the same for the model coefficients a.k.a. Parameter Estimates
+
+tmp = Report( ror_biv[1] )[Outline Box( 1 )]["Parameter Estimates"][Table Box( 1 )] <<
+Make Combined Data Table;
+       
+// data table tmp will be split into a simpler format
+// where each fitted model is a row/observation and assign a reference
+fit_val = tmp << Split(
+	Split By( :Term ),
+	Split( :Estimate ),
+	Group( :Tool, :Lot, :Wfr ),
+	Remaining Columns( Drop All )
+);
+
+Wait( 0 );
+Close( tmp, NoSave );
+
+//Finally combine fit_sum and fit_val into a single table
+//since we are pulling this information from the same report a row join 
+//will work if we were careful in maintaining the Group Order
+//If not an enormous table, a match merge join is always safest for accuracy
+
+Current Data Table( fit_sum );
+ror_fit_dt = fit_sum << Join(
+	With( fit_val ),
+	Merge Same Name Columns,
+	By Row Number,
+	Preserve main table order( 1 ),
+	Output Table Name( "Temperature ROR Profiles Wafer" )
+);
+//clean-up a few items
+Close( fit_sum, NoSave );
+Close( fit_val, NoSave );
+
+//change the table to the desired format
+ror_fit_dt << delete column( "RSquare Adj" );
+//ror_fit_dt << delete column("R-Square");
+//ror_fit_dt << delete column("Sum of Squares Error");
+Column( ror_fit_dt, "Intercept" ) << set name( "b0" ) << Format( "Fixed Dec", 6, 2 );
+Column( ror_fit_dt, "Time" ) << set name( "b1" ) << Format( "Fixed Dec", 6, 2 );
+Column( ror_fit_dt, "Time^2" ) << set name( "b2" ) << Format( "Fixed Dec", 6, 3 );
+Column( ror_fit_dt, "Mean of Response" ) << set name( "Mean" ) << Format( "Fixed Dec", 7, 2 );
+Column( ror_fit_dt, "Observations (or Sum Wgts)" ) << set name( "N" );
+Column( ror_fit_dt, "Root Mean Square Error" ) << set name( "RMSE" ) <<
+Format( "Fixed Dec", 5, 3 );
+Column( ror_fit_dt, "RSquare" ) << Format( "Fixed Dec", 5, 3 );
+Column( ror_fit_dt, "RSquare" ) << set selected;
+ror_fit_dt << Move Selected Columns( To Last );
+ror_fit_dt << Clear Column Selection;
+Column( ror_fit_dt, "RMSE" ) << set selected;
+ror_fit_dt << Move Selected Columns( To Last );
+ror_fit_dt << Clear Column Selection;
+Column( ror_fit_dt, "Mean" ) << set selected;
+ror_fit_dt << Move Selected Columns( After( "N" ) );
+ror_fit_dt << Clear Column Selection;
+
+//Add the DateTime Column - eliminates adding columns then moving
+ror_fit_dt << add multiple columns( "DateTime", 1, before first, numeric, continuous );
+dtCol = Column( ror_fit_dt, "DateTime" );
+dtCol << Format( "m/d/y h:m" );
+//The last table report task is to get the datetime. This could have been added
+//to the By variable and pulled out from each bivariate's outline box title
+//However, this would have changed the structure since time for wafers 2-3 are 
+//some offset from wafer 1, so use a join or summary here.  Below is summarize
+Current Data Table( ror_stk_dt );
+Summarize( tgrps = By( :Tool, :Lot, :Wfr ), ttime = Min( :DateTime ) ); //keep same order as Bivariate
+//check of the number of times match the number of rows in the report
+If( N Row( ttime ) != N Row( ror_fit_dt ),
+	Throw( "unexpected mismatch while joining datetime" )
+);
+dtCol << set values( ttime );
+
+
+//See companion TableInfo_Traverse_unCentered.jsl script to see how remove the curve 
+//reports from the display window

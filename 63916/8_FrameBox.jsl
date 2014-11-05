@@ -1,0 +1,88 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_FrameBox.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates adding a script to a FrameBox and other FrameBox messages.
+
+
+// A 3-level variability plot is created.
+fc_dt = Open("$Sample_data\Animals.jmp");
+
+//--make season value order to be fall, winter, spring, summer
+:season << Set Property( "Value Ordering", 
+     {"fall", "winter", "spring", "summer"} );
+ 
+vc = fc_dt << Variability Chart(
+	Y( :miles ),
+	X( :species, :subject, :season ),
+	Process Variation( 0 ),	Connect Cell Means( 1 ),
+	Show Group Means( 1 ), Std Dev Chart( 0 )
+);
+
+vc_fb = report(vc)[FrameBox(1)];
+Show Properties( vc_fb );  //see Log  
+vc_fb << FrameSize(499,180);
+vc_fb << MarkerSize( 5 );
+vc_fb << Marker Selection Mode( "Unselected Faded" );
+
+//Show Properties - the first 53-54 lines are FrameBox specific messages   
+
+fc_dt << Select Where(:species=="COYOTE");  //fc_dt<<Markers(21);
+vc_fb << RowMarkers( 21 );
+vc_fb << RowColors ( HLS Color( 360 / 360, 0.5, 1 ) );
+fc_dt << select where(:species=="FOX");  //fc_dt<<Markers(22);
+vc_fb << RowMarkers( 20 );
+vc_fb << RowColors ( HLS Color( 240 / 360, 0.5, 1 ) );
+fc_dt << Clear Select;
+
+//--Add Row legend to maintain table customizations
+vc_fb << Row Legend( species,
+	Color( 0 ), Color Theme( "" ), Marker( 0 ), Marker Theme( "" ),
+	Continuous Scale( 0 ), Reverse Scale( 0 ),  Excluded Rows( 0 )
+);
+
+//Right click on FrameBox or run the command below
+//vc_fb << Customize;
+
+//Make connected lines dark gray
+vc_fb << DispatchSeg (CustomStreamSeg(8), {Line Color( {187, 187, 187} )} );
+//Turn off Group Means by command
+vc << Show Group Means(0);  
+
+//---get Group means from invisible variability report
+//---use commands learned in Chap. 6
+//We know there are 2 species so we could just get the first two.  A For-loop
+//with a Local wrapper is shown here as a reminder of more robust code and 
+//recommended practices. 
+
+vcr_tb = report(vc)[Outline Box("Variability Summary?")][TableBox(1)];
+ng=2; grp={};
+Local({i}, For(i=1, i<=ng, i++, 
+    insertInto(grp, vcr_tb[StringColBox(1)][i+1] );  //skip grand mean
+    insertInto(grp, vcr_tb[NumberColBox(1)][i+1] );
+));
+//It may be easier use summarize;
+summarize(grpName= By(:species), grp_xb=mean(:miles));    
+//find how many subgroups (12 in each)
+summarize(tt= By(:species, :subject, :season), grp_cc=Count(:miles));    
+grp_cnt=J(nitems(grpName),1,empty());
+Local({i}, For(i=1, i<=nitems(grpName), i++, 
+    grp_cnt[i] = nrow(loc(tt[1], grpName[i]));
+));
+Show(grpName, grp_xb, grp_cnt);
+//Line up this script with the variability chart (vc) window. Waits are added
+vc_fb << Add Graphics Script(
+	pensize(2);	
+	pencolor(HLS Color( 360 / 360, 0.5, 1 ) );
+	yFunction(If((x <= grp_cnt[1]), grp_xb[1]), x);
+	pencolor(HLS Color( 240 / 360, 0.5, 1 ) );
+	yFunction(If((x > grp_cnt[1]), grp_xb[2]), x);
+);
+//---------watch the lines disappear-----------------------------------------
+wait(3);
+clear globals(grp_cnt, grp_cnt); 
+//click on the framebox or resize
+vc_fb << FrameSize(500,180);
+
+//Clicking on the FrameBox or resizing forces the graph to be redrawn.
+//The lines disappear because the globals no longer exist.
+

@@ -1,0 +1,54 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_XML_Parse.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Converts a simple XML file into a JMP table
+
+
+//  This script converts a simple XML example of music CD information into a JMP table.
+//  The prices are contrived.
+//  Note a more realistic example would use tags and attributes to define the tags/columns
+//  to be read and processed. 
+path = "$JSL_Companion\";
+fid = "CDcatalog.xml";
+cd_file_contents = Load Text File( path || fid );
+Parse XML( cd_file_contents,
+	OnElement(
+		"CATALOG",
+		Start Tag(
+			dt = New Table( "CD CATALOG",
+				New Column( "TITLE", character ),
+				New Column( "ARTIST", character ),
+				New Column( "GENRE", character ),
+				New Column( "COUNTRY", character ),
+				New Column( "COMPANY", character ),
+				New Column( "PRICE", numeric ),
+				New Column( "YEAR", numeric )
+			);  //end New Table
+			row = 1;
+		)
+	),    //end Start Tag, CATALOG OnElement
+	OnElement( "CD", 
+	  Start Tag( If( row > 0, dt << Add Rows( 1 ) ) ), 
+	  End Tag( row++ )),
+	OnElement( "TITLE", End Tag( Column( dt, "TITLE" )[Row()] = XML Text() ) ), 
+//the artists name and genra may have special characters, so use XML Decode() to convert 
+	OnElement( "ARTIST", End Tag( Column( dt, "ARTIST" )[Row()] = 
+	  XML Decode( XML Text() ) ) ),
+	OnElement( "GENRE", End Tag( Column( dt, "GENRE" )[Row()] = 
+	  XML Decode( XML Text() ) ) ),
+	OnElement( "COUNTRY", End Tag( Column( dt, "COUNTRY" )[Row()] = 
+	  XML Text() ) ),
+	OnElement( "COMPANY", End Tag( Column( dt, "COMPANY" )[Row()] = 
+	  XML Text() ) ),
+	OnElement( "PRICE", End Tag( Column( dt, "PRICE" )[Row()] = 
+	  Num( XML Text() ) ) ),
+	OnElement( "YEAR", End Tag( Column( dt, "YEAR" )[Row()] = 
+	  Num( XML Text() ) ) )
+);  //end Parse XML
+
+//-- Create a display of the XML format
+New Window( "CD XML", Text Box( cd_file_contents ) );
+
+sChars = "\[ >  <  =  "  &  /  \  |  +  -  ^  #  @  !  (  )  *  %  $]\";
+Show( sChars, XML Encode( sChars ) );
+//see Log for conversions  &gt; &lt;  &quot;  &amp;

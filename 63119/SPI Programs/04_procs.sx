@@ -1,0 +1,224 @@
+
+   /********************************************************************/
+   /********** Calling a SAS Procedure from IMLPlus **********/
+
+   /* call UNIVARIATE procedure from an IMLPlus program */
+   x = 1:10;              /* some matrices are defined before the call */
+   submit;                /* IMLPlus statement: call a SAS procedure   */
+   proc univariate data=Sasuser.Movies;
+      var Budget;
+      ods select Moments;
+   run;
+   endsubmit;             /* return from the SAS procedure             */ 
+   y = sum(x);            /* the matrices are still defined!           */
+
+
+
+   /********************************************************************/
+   /********** Transferring Data between Matrices and Procedures **********/
+
+   /* write data to SAS procedure; read results into matrix */
+   /* generate bivariate sample */
+   call randseed(12345);           /* set seed for RANDGEN             */
+   x = j(100, 1);                  /* allocate 100 x 1 vector          */
+   e = j(100, 1);                  /* allocate 100 x 1 vector          */
+   call randgen(x, "Uniform");     /* fill x; values from uniform dist */
+   call randgen(e, "Normal");      /* fill e; values from normal dist  */
+
+   beta = {2, 3};                  /* coefficients for model           */
+   d = j(100,1,1) || x;            /* append intercept column to data  */
+   y = d*beta + e;                 /* response plus normal error term  */
+
+   create MyData var {"x" "y"};    /* write sample to MyData data set  */
+   append;
+   close MyData;
+
+   /* use GLM procedure to estimate parameters for regression model    */
+   submit;                         /* IMLPlus statement                */
+   proc glm data=MyData;
+     model y = x;
+     ods output ParameterEstimates=PE; /* write table to data set      */
+   run;
+   endsubmit;                      /* IMLPlus statement                */
+
+   /* read results of procedure and compare with model */
+   use PE;
+   read all var {"Parameter" "Estimate"};
+   close PE;
+   print Parameter beta Estimate;
+
+
+   /* pass the contents of character matrices to a procedure */
+   VarName = "Budget";
+   DSName  = "Sasuser.Movies";
+   submit VarName DSName;               /* IMLPlus statement */
+   proc univariate data=&DSName;
+      var &VarName;
+      ods select Moments;
+   run;
+   endsubmit;                   
+
+
+
+   /********************************************************************/
+   /********** Passing Parameters to SAS Procedures **********/
+
+   /* pass the contents of a numeric matrix to a procedure */
+   percentiles = {10 20 30,
+                  40 50 60,
+                  70 80 90};
+
+   submit percentiles;                /* IMLPlus statement */
+   proc univariate data=Sasuser.Movies noprint;
+      var Budget;
+      output out=out pctlpre=p pctlpts=&percentiles;
+   run;
+   proc print data=out noobs; run;
+   endsubmit;                   
+
+
+   /********************************************************************/
+   /********** Case Study: Computing a Kernel Density Estimate **********/
+
+
+   /* define module to compute a kernel density estimate */
+   /* input arguments:   DSName     name of SAS data set
+    *                    VarName    name of variable
+    *                    Bandwidth  numerical bandwidth, "MISE", or "SJPI"
+    * output arguments:  x          evenly spaced x values
+    *                    f          corresponding density value
+    */
+   start ComputeKDE(x, f, DSName, VarName, Bandwidth);    /* 1 */
+      submit DSName VarName Bandwidth;                    /* 2 */
+      proc univariate data=&DSName;                       /* 3 */
+         var &VarName;
+         histogram / noplot kernel(C=&Bandwidth) outkernel=KerOut;
+      run;
+      endsubmit;
+      
+      use KerOut;   
+      read all var {_value_} into x;                      /* 4 */
+      read all var {_density_} into f;
+      close KerOut;
+   finish;
+   
+   DSName = "Sasuser.Vehicles";
+   VarName = "Engine_Liters";
+   Bandwidth = "MISE";
+   run ComputeKDE(x, f, DSName, VarName, Bandwidth);      /* 5 */
+
+
+   /********************************************************************/
+   /********** Creating Names for Output Variables **********/
+
+   /* form the names of output variables */
+   yVarName = "Mpg_Hwy";
+   Options = {"P", "LCLM", "UCLM"};                       /* 1 */
+   blank32 = subpad("",1,32);                             /* 2 */
+   outputVarNames = j(nrow(Options),1, blank32);          /* 3 */
+   do i = 1 to nrow(outputVarNames);                      /* 4 */
+      outputVarNames[i] = strip(Options[i]) + "_" + yVarName;
+   end;   
+   outputStats = Options + "=" + outputVarNames;          /* 5 */
+   print outputStats;
+
+   submit outputStats;                             
+   proc glm data=Sasuser.Vehicles;
+      model Mpg_Hwy = Engine_Liters | Engine_Liters;      /* 6 */
+      output out=GLMOut &outputStats;                     /* 7 */
+   quit;
+   endsubmit;
+   
+   use GLMOut;
+   read all var outputVarNames into m;                    /* 8 */
+   close GLMOut;
+   
+   print (m[1:5,])[colname=outputVarNames];
+
+
+   /********************************************************************/
+   /********** Creating Macro Variables from Matrices **********/
+
+   /* create a macro variable from a scalar character matrix */
+   c = "My String";
+   call symput("MyMacroVar", c);
+
+   submit;                      /* IMLPlus statement */
+   %put &MyMacroVar;
+   endsubmit;
+
+   @%put &MyMacroVar;           /* IMLPlus statement */
+
+   /* convert a character matrix to a single string */
+   c = {"a", "character", "matrix"};
+   s = "";
+   do i = 1 to nrow(c);
+      s = strip(concat(s, " ", c[i])); 
+   end;
+   print s;
+
+
+   /* concatenate strings by using parameter substitution */
+   c = {"a", "character", "matrix"};
+   submit c;                    /* IMLPlus statement */
+   %put &c;
+   endsubmit;
+
+
+   /********************************************************************/
+   /********** Handling Errors When Calling a Procedure **********/
+
+   /* use OK= option to check for errors in procedures */
+   percentiles = -1;            /* intentionally cause an error! */
+   submit percentiles / ok=mOK; /* IMLPlus statement             */
+   proc univariate data=Sasuser.Movies noprint;
+      var Budget;
+      output out=out pctlpre=p pctlpts=&percentiles;
+   run;
+   endsubmit;
+
+   if ^mOK then do;
+       errCode = symgetn("syserr");
+       msg = symget("syserrortext");
+       print errCode msg;
+   end;
+   else do;
+       /* process results */
+   end;
+
+
+
+   /* handle warnings in a SUBMIT block */
+   errCode = symgetn("syserr");
+   if errCode=4 then do;
+      msg = symget("syswarningtext");
+      /* handle warning */
+   end;
+   else do;
+      /* process results */
+   end;
+
+
+
+   /********************************************************************/
+   /********** Calling SAS Functions That Require Lists of Values **********/
+
+
+   /* find the harmonic mean of 10 numbers */
+   /* First way: list numbers in call to Base SAS HARMEAN function */
+   submit;
+   data a;
+      h = harmean(1,2,5,3,5,4,3,2,1,2);
+   run;
+   proc print; 
+   run;
+   endsubmit;
+
+
+
+   /* Second way: Use SAS/IML version of the HARMEAN function */   
+   x = {1,2,5,3,5,4,3,2,1,2};
+   h = harmean(x);
+   print h;
+
+

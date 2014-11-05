@@ -1,0 +1,93 @@
+     SP model for peritonitis (gamma-Poisson RE model) and hospitalization (Poisson with random rate as covariate)
+                                                                                        15:54 Saturday, February 2, 2013
+
+                                                 The NLMIXED Procedure
+
+                                                     Specifications
+
+                            Data Set                                    WORK.EXAMPLE7_1_1_SP
+                            Dependent Variable                          response
+                            Distribution for Dependent Variable         Poisson
+                            Random Effects                              zi
+                            Distribution for Random Effects             Normal
+                            Subject Variable                            ptid
+                            Optimization Technique                      Newton-Raphson
+                            Integration Method                          Gaussian Quadrature
+
+
+                                                       Dimensions
+
+                                        Observations Used                   1754
+                                        Observations Not Used                176
+                                        Total Observations                  1930
+                                        Subjects                             877
+                                        Max Obs Per Subject                    2
+                                        Parameters                            16
+                                        Quadrature Points                     20
+
+
+                                                    Iteration History
+
+                            Iter     Calls    NegLogLike        Diff     MaxGrad       Slope
+
+                               1        36    2569.61621    102.2462    4073.556    -330.227
+                               2*       56     2555.2323     14.3839    2736.241    -64.2479
+                               3*       75    2547.59592    7.636387    1148.161    -22.8623
+                               4*       93      2546.872    0.723919    17.55973    -1.42336
+                               5*      111    2546.85491    0.017087    0.177647    -0.02321
+                               6*      129    2546.84954    0.005375    0.049137    -0.00891
+                               7*      147     2546.8493    0.000236    0.004429    -0.00042
+                               8*      165     2546.8493     3.16E-6    0.000272    -5.96E-6
+
+
+                                      NOTE: GCONV convergence criterion satisfied.
+
+
+                                                     Fit Statistics
+
+                                        -2 Log Likelihood                 5093.7
+                                        AIC (smaller is better)           5125.7
+                                        AICC (smaller is better)          5126.0
+                                        BIC (smaller is better)           5202.1
+
+
+                                                  Parameter Estimates
+
+                                 Standard
+ Parameter           Estimate       Error      DF    t Value    Pr > |t|     Alpha       Lower       Upper    Gradient
+
+ eta_Intercept        -2.0882      0.3643     876      -5.73      <.0001      0.05     -2.8032     -1.3731    -0.00027
+ eta_Trt              0.03573      0.1043     876       0.34      0.7321      0.05     -0.1690      0.2405    0.000012
+     SP model for peritonitis (gamma-Poisson RE model) and hospitalization (Poisson with random rate as covariate)
+                                                                                        15:54 Saturday, February 2, 2013
+
+                                                 The NLMIXED Procedure
+
+                                                  Parameter Estimates
+
+                                 Standard
+ Parameter           Estimate       Error      DF    t Value    Pr > |t|     Alpha       Lower       Upper    Gradient
+
+ eta_Sex              0.03574      0.1078     876       0.33      0.7404      0.05     -0.1759      0.2474    0.000024
+ eta_Age             -0.00261    0.004442     876      -0.59      0.5568      0.05    -0.01133    0.006107    0.000047
+ eta_Diabetic          0.1911      0.1239     876       1.54      0.1232      0.05    -0.05200      0.4342    0.000013
+ eta_Albumin          -0.3375     0.08812     876      -3.83      0.0001      0.05     -0.5104     -0.1645    0.000055
+ eta_PriorMonths     0.000034    0.002226     876       0.02      0.9877      0.05    -0.00433    0.004403     3.44E-6
+ alpha                 0.8727      0.1070     876       8.16      <.0001      0.05      0.6627      1.0827    9.991E-6
+ beta_Intercept       -1.0707      0.3159     876      -3.39      0.0007      0.05     -1.6906     -0.4507    -0.00021
+ beta_Trt             0.09595     0.09051     876       1.06      0.2894      0.05    -0.08170      0.2736    8.809E-6
+ beta_Sex              0.1377     0.09314     876       1.48      0.1395      0.05    -0.04505      0.3205    0.000017
+ beta_Age            -0.00749    0.003862     876      -1.94      0.0530      0.05    -0.01507    0.000096    -0.00004
+ beta_Diabetic         0.5151      0.1073     876       4.80      <.0001      0.05      0.3045      0.7257    9.843E-6
+ beta_Albumin         -0.4087     0.07635     876      -5.35      <.0001      0.05     -0.5585     -0.2588    0.000037
+ beta_PriorMonths    0.002303    0.001936     876       1.19      0.2346      0.05    -0.00150    0.006103    -0.00005
+ beta_bi               1.0835     0.07993     876      13.56      <.0001      0.05      0.9266      1.2403    -1.12E-6
+     SP model for peritonitis (gamma-Poisson RE model) and hospitalization (Poisson with random rate as covariate)
+                                                                                        15:54 Saturday, February 2, 2013
+
+                                               Conditional
+                                                 Poisson       Conditional
+                                             overdispersion      Poisson
+                                                  (phi)           scale
+
+                                                 3.50105         1.87111

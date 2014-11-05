@@ -1,0 +1,5 @@
+/* IMPORTANT: This file is a copy of the original module definition. */
+start MyMod(x);        /* begin module    */
+   return( 2#x );      /* return a value  */
+finish;
+store module=MyMod;

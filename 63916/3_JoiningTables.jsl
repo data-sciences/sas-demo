@@ -1,0 +1,77 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_JoiningTables.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates different table joins available in JMP
+
+
+//Open tables
+Open("$JSL_Companion\Big Class Joins Table1.jmp");
+Open("$JSL_Companion\Grade Level Joins Table2.jmp");
+
+//Inner Joins
+Data Table( "Big Class Joins Table1" ) << Join(
+	With( Data Table( "Grade Level Joins Table2" ) ),
+	By Matching Columns( :name = :name ),
+	Drop multiples( 0, 0 ),
+	Name( "Include non-matches" )(0, 0),
+	Output Table Name("Inner Join")
+);
+
+//Natural Join
+Data Table( "Big Class Joins Table1" ) << Join(
+	With( Data Table( "Grade Level Joins Table2" ) ),
+	Select( :name, :age ),
+	SelectWith( :grade level ),
+	By Matching Columns( :name = :name ),
+	Drop multiples( 0, 0 ),
+	Name( "Include non-matches" )(0, 0)
+);
+
+
+//Cartesian Join
+Data Table( "Big Class Joins Table1" ) << Join(
+	With( Data Table( "Grade Level Joins Table2" ) ),
+	Cartesian Join, 
+	Output Table Name("Cartesian Join")
+);
+
+
+//Left Outer Join
+Data Table( "Big Class Joins Table1" ) << Join(
+	With( Data Table( "Grade Level Joins Table2" ) ),
+	By Matching Columns( :name = :name ),
+	Drop multiples( 0, 0 ),
+	Name( "Include non-matches" )(1, 0),
+	Output Table Name("Left Outer Join")
+);
+
+
+//Right Outer Join
+Data Table( "Big Class Joins Table1" ) << Join(
+	With( Data Table( "Grade Level Joins Table2" ) ),
+	By Matching Columns( :name = :name ),
+	Drop multiples( 0, 0 ),
+	Name( "Include non-matches" )(0, 1),
+	Output Table Name("Right Outer Join")
+);
+
+//Full Outer Join
+Data Table( "Big Class Joins Table1" ) << Join(
+	With( Data Table( "Grade Level Joins Table2" ) ),
+	By Matching Columns( :name = :name ),
+	Drop multiples( 0, 0 ),
+	Name( "Include non-matches" )(1, 1),
+	Output Table Name("Full Outer Join")
+);
+
+//No Duplicates
+Open("$JSL_Companion\NoDup.jmp");
+sort_dt = Data Table( "NoDup" ) << Sort( By( :Start_Date ), Order( Descending ) );
+sort_dt << Join(
+	With( sort_dt ),
+	By Matching Columns( :Lot = :Lot ),
+	Drop multiples( 1, 1 ),
+	Name( "Include non-matches" )(0, 0)
+);
+
+

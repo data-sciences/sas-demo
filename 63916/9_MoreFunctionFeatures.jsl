@@ -1,0 +1,67 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_MoreFunctionFeatures.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates how to return multiple values and pass by reference vs. value.
+
+
+//---- MoreFunctionFeatures
+myfun = Function( {A}, {Default Local}, 
+  A[2] = 10;
+  B = 2 * A ;
+  Show( A );
+  B );  //end myfun
+x = [2, 3, 4, 5];
+
+//---- Pass by Value
+Show( myfun( x ), x );  
+// the value of x is unchanged
+
+//---- Pass by Reference
+Show( myfun( Expr(x) ), x );  
+// the value of x is changed
+
+//---- Return Multiple Values
+fun2 = Function( {a, b, c}, {Default Local},
+	a += b;
+	b = 2* b;
+	For(i=1, i<=nrow(c), i++,
+		c[i] = c[i] * Random Integer(5, 10);
+	);
+	Eval List({ a, b, c })
+);
+
+x = Transpose(1::10);
+y = J(10,1, 5);
+z = y;
+outList = fun2(x,y,z);
+Show( outList, x, y, z);
+
+//----Replace values
+{x, y, z} = fun2(x,y,z);
+Show( x, y, z );
+
+//---- Return Multiple Values Modified
+fun2 = Function( {a, b, c}, {Default Local},
+	a += b;
+	b =  b :* J(10,1,2);
+	For(i=1, i<=nrow(c), i++,
+		c[i] = c[i] * Random Integer(5, 10);
+	);
+	If (Type(NameExpr(a)) != "Name",
+	  Eval List({ a, b, c }), empty());
+);
+
+x = Transpose(1::10);
+y = J(10,1, 5);
+z = y;
+
+//---- Pass by Value
+Show( fun2(x, y, z) , x, y, z);  //See Log x, y, z are unchanged
+wait(0);
+
+//---- Pass by Reference
+Show( fun2( Expr(x), Expr(y), Expr(z) ) , x, y, z);  //See Log y is wrong
+
+//When the variable is used (pass by value), Type(NameExpr(a)) 
+//does not evaluate to a "Name" and the evaluated list is returned.
+//Otherwise (pass by reference using Expr), an Empty is returned.

@@ -1,0 +1,1351 @@
+/*>==============================================
+       all_code_2009_1_5 
+       Last Modified Mon Jan  5 17:48:28 2009
+------------------------------------------------
+------------ check_autocall.sas
+------------ DBMSlist.sas
+------------ delvars.sas
+------------ dups.sas
+------------ foot_note.sas
+------------ makedir.sas
+------------ MakeList.sas
+------------ my_symbols.sas
+------------ obscnt.sas
+------------ RunQuery.sas
+------------ sasver_os.sas
+------------ sas_papers.sas
+------------ thedate.sas
+------------ varexist.sas
+------------ vars_in.sas
+------------ xlxp2sas.sas
+==============================================>*/
+
+/*>==============================================
+       check_autocall.sas 
+       Last Modified Sat Feb  9 19:42:58 2008
+==============================================>*/
+/*========================================
+Macro:	%check_autocall;
+Action: Writes a message to the Log window
+=========================================*/
+%MACRO check_autocall;
+   %PUT Your Autocall Library is Working!;
+%MEND check_autocall; 
+/*>==============================================
+        END    check_autocall.sas
+==============================================>*/
+
+/*>==============================================
+       DBMSlist.sas 
+       Last Modified Mon Feb 18 12:35:58 2008
+==============================================>*/
+/*=============================================================================================
+Macro: %DBMSlist
+Source: Garth W. Helf, 2001 "Can't Relate? A Primer on Using SAS With Your Relational Database"
+		Proceedings of the Twenty-Seventh Annual SAS Users Group International Conference
+		Paper 155-27
+==============================================================================================*/
+/*=====================
+SOURCE CODE FOR MACROS
+The source code for the three macros %DBMSlist, %MakeList,
+and %RunQuery are included below. Copy and paste each one
+to a file by the same name in your autocall macro library to make
+them visible to your SAS programs. The macro you use is
+%DBMSlist, the other two are called by this macro. You can copy
+this code from the CD copy of the Proceedings you receive at the
+conference, or from the SUGI web site after the conference:
+http://www.sas.com/usergroups/sugi/proceedings/index.html.
+
+
+SOURCE CODE FOR MACRO %DBMSLIST
+
+=======================*/
+
+%Macro DBMSlist(dsn, column, vtype, newdsn,
+dbname, query, bitesize=200, test=no,
+dlm=%str(#) );
+proc sql noprint;
+select count(*) into :gwhxxxx1
+from &dsn;
+quit;
+%if &gwhxxxx1=0 %then %do;
+%put ====== WARNING: Input data set &dsn is
+empty, macro ends =======;
+%goto exit;
+%end;
+%let totpass=%sysevalf(&gwhxxxx1/&bitesize,
+ceil);
+%if &test=no %then %do j=1 %to &gwhxxxx1 %by
+&bitesize;
+%let p=%sysevalf(&j/&bitesize, ceil);
+%put ================= Starting pass &p of
+&totpass ==================;
+data gwhxxxx2;
+set &dsn (firstobs=&j
+obs=%eval(&j+&bitesize-1));
+run;
+%MakeList(mylist, gwhxxxx2, &column, &vtype);
+%RunQuery(&dbname, gwhxxxx3, &query);
+%if &j=1 %then %do;
+data &newdsn;
+set gwhxxxx3;
+run;
+%end;
+%else %do;
+Proc append base=&newdsn data=gwhxxxx3;
+run;
+%end;
+%end;
+%else %do; %* Test=yes: do one query for timing;
+data gwhxxxx2;
+set &dsn (firstobs=1 obs=&bitesize);
+Run;
+%MakeList(mylist, gwhxxxx2, &column, &vtype);
+%RunQuery(&dbname, gwhxxxx3, &query);
+%end;
+%exit: %mend DBMSlist;
+
+/*>==============================================
+        END    DBMSlist.sas
+==============================================>*/
+
+/*>==============================================
+       delvars.sas 
+       Last Modified Mon Oct 20 13:57:42 2008
+==============================================>*/
+/*==========================================================
+Macro: %delvars:
+Source: Carpenters Complete Guide to the SAS Macro Language,  
+        Second Edition, p. 357 
+		(adapted to exclude and &JES and variables beginning with &SYS... from deletion)
+Action: Deletes all user-defined global macro variables
+        - Except: &JES and variables beginning with &SYS
+Example:
+		%delvars
+        %LET a=1; %LET b=2;
+        %PUT _GLOBAL_;
+        %delvars
+        %PUT _GLOBAL_;
+======================================================*/
+
+%MACRO delvars;
+	DATA Vars; SET SASHELP.VMACRO; RUN;
+ 	DATA _NULL_; SET VARS;
+    	IF Scope='GLOBAL' THEN DO;
+  			IF Name NE "JES"  AND SUBSTR(Name,1,3) NE "SYS"
+          	THEN DO;
+				CALL EXECUTE('%SYMDEL '||TRIM(LEFT(Name))||';');
+        	END;
+   		END;
+	RUN;
+%MEND delvars; 
+
+
+/*>==============================================
+        END    delvars.sas
+==============================================>*/
+
+/*>==============================================
+       dups.sas 
+       Last Modified Mon Dec  1 16:03:37 2008
+==============================================>*/
+/*==========================================================================
+Macro:  %Dups(DSIN, FIELD);
+Source: "Combining and Modifying SAS® Datasets: 
+        Examples, Version 6, First Edition,", p. 111
+Parameters:
+        DSIN = Name of dataset
+        FIELD = Field in DSIN to check for duplicates
+Datasets Created:
+        DSIN_DP = Records in DSIN which have duplicate values of FIELD
+        DSIN_NP = Records in DSIN which do not have duplicate values of FIELD
+        DSIN_U  = Subset of DSIN within which all values of FIELD are unique
+Example:
+
+
+DATA Units; SET JES.Units; RUN;
+%Dups(Units, SN)
+
+============================================================================*/
+
+%MACRO dups(dsn, variable);
+	%GLOBAL Num_Dups Num_Unique;
+	PROC SORT DATA=&dsn; BY &variable; RUN;
+	DATA &dsn._DP &dsn._ND &dsn._U; 
+		SET &dsn; BY &variable;
+   		IF FIRST.&variable AND LAST.&variable
+        	THEN OUTPUT &DSN._ND;
+       	ELSE OUTPUT &DSN._DP;
+       	IF LAST.&variable THEN OUTPUT &DSN._U;
+	RUN;
+ %MEND Dups;
+
+
+
+
+
+/*>==============================================
+        END    dups.sas
+==============================================>*/
+
+/*>==============================================
+       foot_note.sas 
+       Last Modified Fri Feb  8 19:44:22 2008
+==============================================>*/
+/*===========================================================
+Macro: %Foot_Note(H=1, Note=Note);
+Action: Creates a footnote including 
+		- your name, the date, and an optional note
+Parameters:
+	Height = Height of font to be used to print the Footnote
+	Note   = Any text you want to add to the footnote
+Example:
+ 	DATA A; DO i=1 TO 10; x=i*i; OUTPUT; END; RUN;
+ 	GOPTIONS RESET=ALL GUNIT=PCT HTEXT=3 FTEXT='Arial';
+	%Foot_Note(H=3, Note=Foot_Note Example);
+	PROC GPLOT DATA=A; PLOT x*i; RUN; QUIT;
+	%Foot_Note;
+	PROC GPLOT DATA=A; PLOT x*i; RUN; QUIT;
+============================================================*/
+
+%MACRO Foot_Note(H=3, Note=);
+   %theDate
+   FOOTNOTE HEIGHT=&H JUSTIFY=LEFT "&Note   " 
+	  JUSTIFY=RIGHT "(Your Name Here) &theDate";
+%MEND Foot_Note;
+
+/*>==============================================
+        END    foot_note.sas
+==============================================>*/
+
+/*>==============================================
+       makedir.sas 
+       Last Modified Mon Jan  5 17:22:37 2009
+==============================================>*/
+/*================================================================
+Macro: %makedir(newdir);
+Source: Carpenter's Complete Guide, Second Edition, p. 251
+
+Parameter: &newdir = path to directory you want to create
+
+Action: This macro checks for the existence of the directory &newdir, 
+		and creates  it if it doesn't exist. 
+
+Example:
+
+LIBNAME products "&JES.output\products";
+%makedir(&JES.output\products)
+LIBNAME products "&JES.output\products";
+%sasver_os
+%makedir(&JES.output&Slash.products)
+%makedir(&JES.output&Slash.prod&Slash.gizmo)
+
+===================================================================*/
+
+%MACRO makedir(newdir);
+	%LET rc=%SYSFUNC(FILEEXIST(&newdir));
+	%IF &rc=0 %THEN %DO;
+		%SYSEXEC mkdir &newdir;
+	%END;
+	%LET rc=%SYSFUNC(FILEEXIST(&newdir));
+	%IF &rc=1 %THEN %PUT &newdir exists;
+%MEND makedir;
+
+
+	
+/*>==============================================
+        END    makedir.sas
+==============================================>*/
+
+/*>==============================================
+       MakeList.sas 
+       Last Modified Mon Feb 18 13:07:02 2008
+==============================================>*/
+/*=============================================================================================
+Macro: %DBMSlist
+Source: Garth W. Helf, 2001 "Can't Relate? A Primer on Using SAS With Your Relational Database"
+		Proceedings of the Twenty-Seventh Annual SAS Users Group International Conference
+		Paper 155-27
+==============================================================================================*/
+
+/*=====================
+SOURCE CODE FOR MACROS
+The source code for the three macros %DBMSlist, %MakeList,
+and %RunQuery are included below. Copy and paste each one
+to a file by the same name in your autocall macro library to make
+them visible to your SAS programs. The macro you use is
+%DBMSlist, the other two are called by this macro. You can copy
+this code from the CD copy of the Proceedings you receive at the
+conference, or from the SUGI web site after the conference:
+http://www.sas.com/usergroups/sugi/proceedings/index.html.
+
+=======================*/
+
+
+/*=====
+SOURCE CODE FOR MACRO %MAKELIST
+You might need to adjust the formatting for the date, time, and
+datetime SAS variable types for DBMS systems other than DB2.
+=====*/
+
+
+
+%macro MakeList(globname, dsn, varinfo, vartype);
+%local i j;
+%global &globname;
+%let &globname=; /* return null if macro fails*/
+%let numvars=1; %* find number of variables specified;
+%do %while (%scan(&vartype,%eval(&numvars+1))
+ne);
+%let numvars=%eval(&numvars+1);
+%end;
+/**********************************************
+Single variable entered
+**********************************************/
+%if &numvars=1 %then %do;
+/**************** Character ********/
+%if %upcase(&vartype)=C %then %do;
+proc sql noprint;
+Select
+Distinct translate(quote(&varinfo),"'",'"')
+into :&globname separated by ','
+from &dsn;
+quit;
+%end;
+/**************** Numeric ********/
+%else %if %upcase(&vartype)=N %then %do;
+proc sql noprint;
+select distinct &varinfo
+into :&globname separated by ','
+from &dsn;
+quit;
+%end;
+/**************** Date ********/
+%else %if %upcase(&vartype)=D %then %do;
+proc sql noprint;
+select distinct "'"||
+put(&varinfo, yymmdd10.)||"'"
+into :&globname separated by ','
+from &dsn;
+quit;
+%end;
+/**************** Time ********/
+%else %if %upcase(&vartype)=T %then %do;
+proc sql noprint;
+select distinct "'"||
+translate(put(&varinfo, time.),
+'.',':','0',' ')||"'"
+into :&globname separated by ','
+from &dsn;
+quit;
+%end;
+/**************** Datetime ********/
+%else %if %upcase(&vartype)=DT %then %do;
+proc sql noprint;
+select distinct "'"||put(datepart(&varinfo),
+yymmdd10.)||"-"||
+translate(put(timepart(&varinfo),
+time15.6),'.',':','0',' ')||"'"
+into :&globname separated by ','
+from &dsn;
+quit;
+%end;
+%else %put ******* Invalid variable type:
+&vartype *************;
+%end; /* %if &numvars=1 */
+/**********************************************
+Multiple variables entered
+**********************************************/
+%else %do;
+/***** Parse SQL template ********************/
+%let j=1;
+%do %while (%index(%quote(&varinfo), &dlm)>0);
+%let markloc=%index(%quote(&varinfo), &dlm);
+%let text&j=%substr(%quote(&varinfo), 1,
+%eval(&markloc-1));
+%let varinfo=%substr(%quote(&varinfo),
+%eval(&markloc+1),
+%eval(%length(&varinfo)-&markloc) );
+%let markloc=%index(%quote(&varinfo), &dlm);
+%let var&j=%substr(%quote(&varinfo), 1,
+%eval(&markloc-1));
+%if %length(&varinfo)>&markloc %then
+%let varinfo=%substr(%quote(&varinfo),
+%eval(&markloc+1),
+%eval(%length(&varinfo)-&markloc) );
+%else %let varinfo=;
+%let j=%eval(&j+1);
+%end;
+/*** Build macro variable with Proc SQL ******/
+proc sql noprint;
+select distinct '(' ||
+%do i=1 %to &j-1;
+/***** Character variable ********************/
+%if %upcase(%scan(&vartype, &i))=C %then
+" &&text&i " ||
+translate(quote(&&var&i),"'",'"') ||;
+/***** Numeric variable *********************/
+%else %if %upcase(%scan(&vartype, &i))=N %then
+" &&text&i " || compress(put(&&var&i,
+best20.)) ||;
+/***** Date variable ************************/
+%else %if %upcase(%scan(&vartype, &i))=D %then
+" &&text&i '" || put(&&var&i,
+yymmdd10.)||"'" ||;
+/***** Time variable ************************/
+%else %if %upcase(%scan(&vartype, &i))=T %then
+" &&text&i '" ||
+translate(put(&&var&i, time.),'.',':','0',
+' ')||"'"||;
+/***** Datetime variable ********************/
+%else %if %upcase(%scan(&vartype, &i))=DT %then
+" &&text&i '" || put(datepart(&&var&i),
+yymmdd10.)||
+"-" ||translate(put(timepart(&&var&i),
+time15.6), '.',':','0',' ')||"'"||;
+%else %put ********** Invalid variable type:
+%scan(&vartype,&i) *************;
+%end; /* %do i=1 %to &j-1 */
+" &varinfo)" into :&globname separated by
+' or ' from &dsn;
+quit;
+%end; /* %else for %if &numvars=1 */
+%mend MakeList;
+/*>==============================================
+        END    MakeList.sas
+==============================================>*/
+
+/*>==============================================
+       my_symbols.sas 
+       Last Modified Sat Nov  8 13:00:01 2008
+==============================================>*/
+
+/*=====================================================
+Macro: %my_SYMBOLs(H=2, W=1, I=JOIN);
+Action: Run SYMBOL1,...,SYMBOL10 statements
+Parameters: 
+	H = HEIGHT of SYMBOLs
+	W = WIDTH of SYMBOLs
+	I = VALUE of INTERPOLATE option
+		- NONE, JOIN, STEPJ, SM40 etc
+Example:
+
+DATA A; DO Y=1 TO 10;
+	X=Y; OUTPUT; X=Y+5; OUTPUT; END;
+RUN;
+
+PROC DATASETS MEMTYPE=CAT NOLIST; DELETE GSEG; RUN; QUIT;
+FILENAME Fig "c:\JES\figures\Chapter_11\";
+GOPTIONS RESET=ALL BORDER; 
+GOPTIONS DEVICE=PSLEPSFC XMAX=6IN YMAX=4IN GSFNAME=Fig GSFMODE=REPLACE;  
+
+GOPTIONS GUNIT=PCT HTEXT=3 FTEXT='Arial';
+%my_symbols(H=3, W=2, I=JOIN)
+%foot_note(Note=Test of my_symbols macro)
+TITLE1 H=4 "my_symbols Example";
+PROC GPLOT DATA=A;
+	PLOT Y*X=Y / NAME="F11_1_";
+RUN; QUIT;
+
+=====================================================*/
+
+  %MACRO my_symbols(H=2, W=1, I=JOIN);
+
+   SYMBOL1  VALUE='PLUS'      HEIGHT=&H  COLOR=green  W=&W I=&I ;
+   SYMBOL2  VALUE='x'         HEIGHT=&H  COLOR=red    W=&W I=&I ;
+   SYMBOL3  VALUE='star'      HEIGHT=&H  COLOR=blue   W=&W I=&I ;
+   SYMBOL4  VALUE='square'    HEIGHT=&H  COLOR=brown  W=&W I=&I ;
+   SYMBOL5  VALUE='diamond'   HEIGHT=&H  COLOR=black  W=&W I=&I ;
+
+   SYMBOL6  VALUE='triangle' HEIGHT=&H  COLOR=brown  W=&W I=&I ;
+   SYMBOL7  VALUE='hash'     HEIGHT=&H  COLOR=orange W=&W I=&I ;
+   SYMBOL8  VALUE='Y'        HEIGHT=&H  COLOR=violet W=&W I=&I ;
+   SYMBOL9  VALUE='Z'        HEIGHT=&H  COLOR=cyan   W=&W I=&I ;
+   SYMBOL10 VALUE='paw'      HEIGHT=&H  COLOR=violet W=&W I=&I ;
+
+   SYMBOL11  VALUE='point'   HEIGHT=&H  COLOR=green  W=&W I=&I ;
+   SYMBOL12  VALUE='dot'     HEIGHT=&H  COLOR=red    W=&W I=&I ;
+   SYMBOL13  VALUE='circle'  HEIGHT=&H  COLOR=blue   W=&W I=&I ;
+   SYMBOL14  VALUE='_'       HEIGHT=&H  COLOR=brown  W=&W I=&I ;
+   SYMBOL15  VALUE='"'       HEIGHT=&H  COLOR=black  W=&W I=&I ;
+
+   SYMBOL16  VALUE='#'      HEIGHT=&H  COLOR=brown  W=&W I=&I ;
+   SYMBOL17  VALUE='$'      HEIGHT=&H  COLOR=orange W=&W I=&I ;
+   SYMBOL18  VALUE='%'      HEIGHT=&H  COLOR=violet W=&W I=&I ;
+   SYMBOL19  VALUE='&'      HEIGHT=&H  COLOR=cyan   W=&W I=&I ;
+   SYMBOL20  VALUE="'"      HEIGHT=&H  COLOR=violet W=&W I=&I ;
+
+   SYMBOL21  VALUE='='      HEIGHT=&H  COLOR=green  W=&W I=&I ;
+   SYMBOL22  VALUE='-'      HEIGHT=&H  COLOR=red    W=&W I=&I ;
+   SYMBOL23  VALUE='@'      HEIGHT=&H  COLOR=blue   W=&W I=&I ;
+   SYMBOL24  VALUE='*'      HEIGHT=&H  COLOR=brown  W=&W I=&I ;
+   SYMBOL25  VALUE='+'      HEIGHT=&H  COLOR=black  W=&W I=&I ;
+
+   SYMBOL26  VALUE='>'      HEIGHT=&H  COLOR=brown  W=&W I=&I ;
+   SYMBOL27  VALUE='.'      HEIGHT=&H  COLOR=orange W=&W I=&I ;
+   SYMBOL28  VALUE='<'      HEIGHT=&H  COLOR=violet W=&W I=&I ;
+   SYMBOL29  VALUE=','      HEIGHT=&H  COLOR=cyan   W=&W I=&I ;
+   SYMBOL30  VALUE='/'      HEIGHT=&H  COLOR=violet W=&W I=&I ;
+
+   SYMBOL31  VALUE='?'      HEIGHT=&H  COLOR=orange W=&W I=&I ;
+   SYMBOL32  VALUE='('      HEIGHT=&H  COLOR=violet W=&W I=&I ;
+   SYMBOL33  VALUE=')'      HEIGHT=&H  COLOR=cyan   W=&W I=&I ;
+   SYMBOL34  VALUE=':'      HEIGHT=&H  COLOR=violet W=&W I=&I ;
+ %MEND my_SYMBOLs;
+
+
+
+/*>==============================================
+        END    my_symbols.sas
+==============================================>*/
+
+/*>==============================================
+       obscnt.sas 
+       Last Modified Sat Nov  8 14:44:15 2008
+==============================================>*/
+
+
+/*=====================================
+Macro: %obscnt(dsn)
+Source: Carpenter's Complete Guide, Second Edition, p. 320
+Parameters: dsn = name of SAS data set
+Example: 
+	DATA A; DO i=1 TO 10; OUTPUT; END; RUN;
+	%LET N=%obscnt(A);
+	%PUT N=&N;
+	%LET M=%obscnt(No_Such_Data_Set);
+	%PUT M=&M;
+
+%PUT The number of rows in JES.Vendor_List is %obscnt(JES.Vendor_List);
+%MACRO Test;
+	%IF %obscnt(JES.Vendor_List)=0 %THEN %GOTO DONE;
+	%DO i=1 %TO %obscnt(JES.Vendor_List);
+		%PUT &i;
+	%END;	
+%DONE: ;
+%MEND Test;
+%Test
+*/
+
+%MACRO obscnt(dsn);
+	%LOCAL nobs;
+	%LET nobs=.;
+	%IF %SYSFUNC(EXIST(&dsn)) %THEN %DO;
+		%LET dsnid=%SYSFUNC(OPEN(&dsn));
+		%IF &dsnid %THEN %DO;
+			%LET nobs=%SYSFUNC(ATTRN(&dsnid, nlobs));
+    		%LET rc  =%SYSFUNC(CLOSE(&dsnid));
+		%END;
+		%ELSE %DO;
+    		%PUT Unable to open &dsn - %SYSFUNC(SYSMSG());
+		%END;
+	%END;
+    %ELSE %DO;
+		%LET NOBS=0;
+	%END; 
+	&nobs
+%MEND obscnt;
+
+
+
+
+/*>==============================================
+        END    obscnt.sas
+==============================================>*/
+
+/*>==============================================
+       RunQuery.sas 
+       Last Modified Mon Feb 18 13:07:30 2008
+==============================================>*/
+/*=============================================================================================
+Macro: %DBMSlist
+Source: Garth W. Helf, 2001 "Can't Relate? A Primer on Using SAS With Your Relational Database"
+		Proceedings of the Twenty-Seventh Annual SAS Users Group International Conference
+		Paper 155-27
+==============================================================================================*/
+
+/*=====================
+SOURCE CODE FOR MACROS
+The source code for the three macros %DBMSlist, %MakeList,
+and %RunQuery are included below. Copy and paste each one
+to a file by the same name in your autocall macro library to make
+them visible to your SAS programs. The macro you use is
+%DBMSlist, the other two are called by this macro. You can copy
+this code from the CD copy of the Proceedings you receive at the
+conference, or from the SUGI web site after the conference:
+http://www.sas.com/usergroups/sugi/proceedings/index.html.
+
+=======================*/
+
+
+/*========================================
+SOURCE CODE FOR MACRO %RUNQUERY
+Change the value for macro variable &DBMStype to the correct
+value for your DBMS - DB2, Oracle, Teradata, etc.
+=========================================*/
+%macro RunQuery(dbinfo, dsname, query);
+%let DBMStype=DB2;
+proc sql;
+connect to &DBMStype (&dbinfo);
+create table &dsname as select * from
+connection to &DBMStype (
+%unquote(&query) for fetch only);
+%put &sqlxmsg;
+disconnect from &DBMStype;
+quit;
+%mend RunQuery;
+/*>==============================================
+        END    RunQuery.sas
+==============================================>*/
+
+/*>==============================================
+       sasver_os.sas 
+       Last Modified Sat Feb  9 12:08:20 2008
+==============================================>*/
+/*=============================================================
+Macro: %sasver_os;
+Action: Define macro variables
+	&SASver = SAS Version (8 or 9)
+	&SASver  = SAS Version and ReleaseNumber (e.g. 9_1, 9_2)
+	&OS = operating system (PC or UNIX)
+	&Slash = Slash appropriate for operating system (\ or /)
+
+Example:
+%sasver_os
+%PUT OS=[&OS] Slash=[&Slash] SASver=[&SASver] SASnum=[&SASnum];
+
+==============================================================*/
+
+
+%MACRO sasver_os;
+	%GLOBAL OS Slash SASver SASnum;
+	%LET SASver=%SUBSTR(&SYSVER,1,1); 
+	%LET SASnum=&SASver._%SUBSTR(&SYSVER,3,1);
+	%LET OS=UNIX;
+	%IF (&SYSSCP=WIN) %THEN %LET OS = PC;
+	%IF "&OS"="PC"    %THEN %LET Slash = \;
+	%IF "&OS"="UNIX"  %THEN %LET Slash = /;
+%MEND sasver_os; 	
+
+
+/*>==============================================
+        END    sasver_os.sas
+==============================================>*/
+
+/*>==============================================
+       sas_papers.sas 
+       Last Modified Mon Jan  5 17:28:49 2009
+==============================================>*/
+/*==========================================================================
+Macro:  %sas_papers
+Usage: 
+	Edit the ~JES\docs\SUGI_Papers.csv file to add pdf files if desired
+		Add any new pdf foles to ~JES\docs\pdfs
+	Close the SUGI_Papers.csv file
+	Run %sas_papers
+	The ~\JES\docs\papers.html file will be updated
+
+%SAS_papers
+options mprint mlogic symbolgen; 
+============================================================================*/
+
+%MACRO SAS_papers;
+PROC IMPORT DATAFILE="&JES.docs/SUGI_Papers.csv"
+	OUT =Papers REPLACE ;
+	GUESSINGROWS= 10 ;
+RUN;
+DATA Papers; SET Papers;
+	ChapterTitle=TRANSLATE(ChapterTitle, ' ', ',');
+RUN;
+%MACRO Table_of_Papers(dsin, title, Chapter);
+  ODS PROCLABEL="&title"; 
+  TITLE2 H=5 "&Title";
+  ODS NOPROCTITLE;
+  PROC REPORT DATA=&dsin NOWINDOWS HEADLINE LS=256;
+	COLUMN &Chapter Paper Author TITLE ;
+	DEFINE &Chapter/ GROUP;
+	DEFINE Paper/ DISPLAY;
+	DEFINE Title / DISPLAY ;
+	DEFINE Author / DISPLAY ;
+	COMPUTE Paper;
+		ref="./pdfs/"||TRIM(LEFT(Paper));
+		CALL DEFINE (_COL_, 'URL', ref);
+	ENDCOMP;
+	BREAK AFTER &Chapter / SKIP;
+  RUN;
+%MEND Table_of_Papers;
+ODS HTML PATH="&JES.docs" (URL=NONE)
+	BODY ="papers_body.html" headtext="<base target=_blank>"
+	CONTENTS="papers_toc.html"
+	FRAME="papers.html" (TITLE="SAS Papers") STYLE=Minimal; * NEWFILE=PAGE;
+	TITLE1 H=7  "Papers included with Just Enough SAS";
+	FOOTNOTE;
+	%Table_of_Papers(Papers, All Papers, Chapter);
+	%DO i=1 %TO 12; 
+		DATA Chapter; SET Papers(where=(Chapter=&i)); RUN;
+		%IF %obscnt(Chapter)>0 %THEN %DO;
+			PROC SQL NOPRINT; SELECT ChapterTitle INTO :Title FROM Chapter; QUIT: 
+			%Table_of_Papers(Chapter, &Title, Chapter);
+		%END;
+	%END;
+ODS HTML CLOSE;
+%MEND sas_papers;
+
+/*>==============================================
+        END    sas_papers.sas
+==============================================>*/
+
+/*>==============================================
+       thedate.sas 
+       Last Modified Tue Feb  5 16:28:14 2008
+==============================================>*/
+/*==========================================================
+Macro:	%theDate;
+Action: Creates two global macro variables
+		  &theDate = Date when the macro is run
+		  %theDateTime = Date and time when the macro is run
+Example:
+	%theDate;
+	%PUT theDate = [&theDate] theDateTime=[&theDateTime];
+==========================================================*/
+
+%MACRO theDate;
+	%GLOBAL theDate theDateTime;
+	DATA _NULL_;
+		CALL SYMPUT('theDate', PUT(TODAY(),DATE9.));
+		CALL SYMPUT('theDateTime', PUT(DATETIME(),DATETIME20.));
+	RUN;
+%MEND theDate;
+/*>==============================================
+        END    thedate.sas
+==============================================>*/
+
+/*>==============================================
+       varexist.sas 
+       Last Modified Sat Nov  8 15:48:42 2008
+==============================================>*/
+/*============================================================
+Macro: %varexist(dsn, varlist)
+Source: Carpenter's Complete Guide to the SAS Macro Language, 
+		Second Edition, p. 313.
+Parameters:
+	dsn = Data set name
+	varlist = list of variable names
+Action:
+	Returns 1 if all names in varlist are variables in dsn
+	Returns 0 otherwise
+Example:
+%PUT %varexist(JES.Results, Vendor Month Resistance);
+%PUT %varexist(JES.Results, Vendor Week Resistance); 
+===========================================================*/
+
+
+%MACRO varexist(dsn, varlist);
+	%LOCAL dsid i ok var num rc;
+	%LET dsid=%SYSFUNC(OPEN(&dsn, i));
+	%LET i=1;
+	%LET ok=1;
+	%LET var=%SCAN(&varlist, &i);
+	%DO %WHILE(&var ne );
+		%LET num=%SYSFUNC(VARNUM(&dsid, &var));
+		%IF &num=0 %THEN %LET ok=0;
+		%LET i=%EVAL(&i+1);
+		%LET var=%SCAN(&varlist,&i);
+	%END;
+	%LET rc=%SYSFUNC(CLOSE(&dsid));
+	&ok
+%MEND varexist;
+
+
+
+/*>==============================================
+        END    varexist.sas
+==============================================>*/
+
+/*>==============================================
+       vars_in.sas 
+       Last Modified Sat Nov  8 16:59:55 2008
+==============================================>*/
+/*============================================================
+Macro: %vars_in(dsn, varlist)
+Parameters:
+	dsn = Data set name
+	varlist = list of variable names
+Action:
+	Creates a GLOBAL macro variable &vars_in_dsn which contains
+	a list of all variable names in &varlist which are also
+	variables in dsn
+Example:
+
+
+%vars_in(JES.Results, Vendor Month Week Resistance)
+%PUT vars_in_dsn = [&vars_in_dsn]; 
+PROC PRINT DATA=JES.Results;
+	VAR Vendor Month Week Resistance;
+RUN;
+PROC PRINT DATA=JES.Results;
+	VAR &vars_in_dsn;
+RUN;
+===========================================================*/
+
+
+%MACRO vars_in(dsn, varlist);
+	%GLOBAL vars_in_dsn;
+	%LOCAL dsid i ok var num rc;
+	%LET dsid=%SYSFUNC(OPEN(&dsn, i));
+	%LET vars_in_dsn = ;
+	%LET i=1;
+	%LET var=%SCAN(&varlist, &i);
+	%DO %WHILE(&var ne );
+		%IF %varexist(&dsn, &var)=1 
+			%THEN %LET vars_in_dsn=&vars_in_dsn &var;
+		%LET i=%EVAL(&i+1);
+		%LET var=%SCAN(&varlist, &i);
+	%END;
+%MEND vars_in;
+
+
+
+/*>==============================================
+        END    vars_in.sas
+==============================================>*/
+
+/*>==============================================
+       xlxp2sas.sas 
+       Last Modified Fri Feb 17 14:38:08 2006
+==============================================>*/
+%macro xlxp2sas(excelfile=,
+                mapfile=,
+                library=work,
+                haslabels=y,
+                cleanup=y,
+                verbose=n,
+                excelfileref=_xlfref,
+                mapfileref=_mapfref,
+                tempfileref=_tmpfref,
+                excelfrefopts=,
+                mapfrefopts=,
+                sxlelrefopts=,
+                tempfrefopts=,
+                showver=n);
+
+%*********************************************************************;
+%*
+%*  MACRO: XLXP2SAS
+%*
+%*  USAGE: %xlxp2sas(arg1=value, arg2=value, ... argN=valueN);
+%*
+%*  DESCRIPTION:
+%*    This macro is used to import an Excel XP workbook that has been
+%*    saved in the Excel Stylesheet Specification XML format.
+%*
+%*  NOTES:
+%*    None.
+%*
+%*  SUPPORT: sasvcd, sasalf
+%*
+%*  VERSION: 9.1.2
+%*
+%*********************************************************************;
+
+%local CLEANUP EXCELFILE EXCELFILEREF EXCELFREFFLAG EXCELFREFOPTS 
+       HASLABELS I LIBRARY MAPFILEREF MAPFILEREF MAPFREFFLAG 
+       MAPFREFOPTS MSGLEVEL N_TABLES NOTES SHOWVER SOURCE2 
+       SXLELREFOPTS TEMPDSN1 TEMPDSN2 TEMPDSN3 TEMPFILEREF 
+       TEMPFREFOPTS TEMPSTR1 TEMPSTR2 VERBOSE;
+
+%*  Save current option settings;
+
+%let NOTES   = %sysfunc(getoption(notes));
+%let SOURCE2 = %sysfunc(getoption(source2));
+
+%let VERBOSE = %substr(%qupcase(&VERBOSE), 1, 1);
+
+%*  Change some options based on the VERBOSE setting;
+
+%if (&VERBOSE eq Y or &VERBOSE eq 1)
+  %then %let MSGLEVEL = options notes source2;
+  %else %let MSGLEVEL = options nonotes nosource2;
+
+&MSGLEVEL;
+
+%*  Perform some error checking before going further;
+
+%if (%qcmpres(&EXCELFILE) eq ) %then %do;
+  %put;
+  %put ERROR: You must specify a value for the Excel file to be
+%str(imported.);
+  %put;
+  %goto exit;
+%end;
+
+%if (%qcmpres(&MAPFILE) eq ) %then %do;
+  %put;
+  %put ERROR: You must specify a value for the SAS Libname Engine
+%str(Map file to be used.);
+  %put;
+  %goto exit;
+%end;
+
+%if (%qcmpres(&LIBRARY) eq ) %then %do;
+  %put;
+  %put ERROR: You must specify an output library for the SAS
+%str(table.);
+  %put;
+  %goto exit;
+%end;
+
+%if (%qcmpres(&EXCELFILEREF) eq ) %then %do;
+  %put;
+  %put ERROR: You must specify a value for the FILEREF to use to
+%str(import the Excel file.);
+  %put;
+  %goto exit;
+%end;
+
+%if (%qcmpres(&MAPFILEREF) eq ) %then %do;
+  %put;
+  %put ERROR: You must specify a value for the FILEREF to use to
+%str(access the SAS Libname Engine Map file.);
+  %put;
+  %goto exit;
+%end;
+
+%if (%qcmpres(&TEMPFILEREF) eq ) %then %do;
+  %put;
+  %put ERROR: You must specify a value for the FILEREF to use for
+%str(temporary files.);
+  %put;
+  %goto exit;
+%end;
+
+%*  Determine whether files or filerefs have been specified;
+
+%if (%lowcase(%qsubstr(&EXCELFILE, 1, 8)) EQ fileref:) %then %do;
+  %let EXCELFREFFLAG = 1;
+  %let EXCELFILEREF = %qsubstr(&EXCELFILE, 9);
+%end;
+
+%if (%lowcase(%qsubstr(&MAPFILE, 1, 8)) EQ fileref:) %then %do;
+  %let MAPFREFFLAG = 1;
+  %let MAPFILEREF = %qsubstr(&MAPFILE, 9);
+%end;
+
+%*  Set up various option flags;
+
+%let HASLABELS = %substr(%qupcase(&HASLABELS), 1, 1);
+
+%let CLEANUP = %substr(%qupcase(&CLEANUP), 1, 1);
+
+%let SHOWVER = %substr(%qupcase(&SHOWVER), 1, 1);
+
+%*  Assign FILEREFs and LIBREFs if needed;
+
+%if (&EXCELFREFFLAG NE 1) %then %do;
+  filename  &EXCELFILEREF "&EXCELFILE" &EXCELFREFOPTS;
+  %if (&SYSFILRC NE 0) %then %do;
+    %put;
+    %put ERROR: Unable to assign a FILEREF for the Excel XML file.;
+    %put;
+    %goto exit;
+  %end;
+%end;
+
+libname &EXCELFILEREF xml xmlmap=&MAPFILEREF access=readonly &SXLELREFOPTS;
+
+%if (&SYSLIBRC NE 0) %then %do;
+  %put;
+  %put ERROR: Unable to assign a LIBREF for the XML file.;
+  %put;
+  %goto exit;
+%end;
+
+%if (&MAPFREFFLAG NE 1) %then %do;
+  filename &MAPFILEREF "&MAPFILE" &MAPFREFOPTS;
+  %if (&SYSFILRC NE 0) %then %do;
+    %put;
+    %put ERROR: Unable to assign a FILEREF for the XML map file.;
+    %put;
+    %goto exit;
+  %end;
+%end;
+
+%*  Determine the number of tables (worksheets) in the workbook;
+
+proc sql noprint;
+  select count(Name) into: N_TABLES from
+  &EXCELFILEREF.._Table;
+quit;
+
+%if (&SYSERR GT 4) %then %do;
+  %put;
+  %put ERROR: Unable to determine the number of tables in the
+%str(workbook.);
+  %put;
+  %goto exit;
+%end;
+
+%let N_TABLES = %qcmpres(&N_TABLES);
+
+%*  Declare local variables that will hold the table names;
+
+%let TEMPSTR1=;
+%let TEMPSTR2=;
+%do I = 1 %to &N_TABLES;
+  %let TEMPSTR1 = &TEMPSTR1 TABNAME_&I;
+  %let TEMPSTR2 = &TEMPSTR2 TABLABEL_&I;
+%end;
+
+%local &TEMPSTR1 &TEMPSTR2;
+
+%*  Workaround for sequential access problem;
+
+%let TEMPDSN1 = _Table;
+
+proc datasets nodetails nolist library=&EXCELFILEREF;
+  copy out=work;
+    select &TEMPDSN1;
+run; quit;
+
+%if (&SYSERR GT 4) %then %do;
+  %put;
+  %put ERROR: Unable to copy the Excel table data to the WORK table.;
+  %put;
+  %goto exit;
+%end;
+
+%*;
+%*  Determine the table names by converting worksheet names to 
+%*  valid SAS table names as needed.
+%*;
+
+data _null_;  set &TEMPDSN1;
+
+length MvarName $45;
+
+*  Store the label;
+
+MvarName = 'TABLABEL_' || compress(put(_N_, best32.));
+call symput(MvarName, strip(Name));
+
+*  Change invalid chars to '_';
+
+patternid = prxparse('s/[^\w]/_/');  
+call prxchange(patternid, -1, strip(Name), Name);
+
+*  Change first character to '_' if it is numeric;
+
+patternid = prxparse('s/^[\d]/_/');
+call prxchange(patternid, 1, Name);
+
+*  Store the name;
+
+MvarName = 'TABNAME_' || compress(put(_N_, best32.));
+call symput(MvarName, strip(Name));
+run;
+
+%if (&SYSERR GT 4) %then %do;
+  %put;
+  %put ERROR: Unable to determine the table names from the workbook.;
+  %put;
+  %goto exit;
+%end;
+
+filename &TEMPFILEREF temp &TEMPFREFOPTS;
+
+%if (&SYSFILRC GT 1) %then %do;
+  %put;
+  %put ERROR: Unable to assign a temporary FILEREF for the
+%str(intermediate import code.);
+  %put;
+  %goto exit;
+%end;
+
+%*  Workaround for sequential access problem;
+
+proc datasets nodetails nolist library=&EXCELFILEREF;
+  copy out=work;
+    select _ExcelData;
+run; quit;
+
+%if (&SYSERR GT 4) %then %do;
+  %put;
+  %put ERROR: Unable to copy the Excel data to the WORK table.;
+  %put;
+  %goto exit;
+%end;
+
+%let TEMPDSN2 = _ExcelData;
+%let TEMPDSN3 = _ExcelData2;
+
+options notes;
+%put;
+%if (&HASLABELS eq Y or &HASLABELS eq 1)
+  %then %put NOTE: Column labels in the first row of the
+%str(worksheet(s) will be used.);
+  %else %put NOTE: There are no column labels in the first row
+%str(of the worksheet(s), so generic column labels will be generated.);
+%put;
+
+&MSGLEVEL;
+
+%*  Create data and code needed to do the import;
+
+data work.&TEMPDSN3;
+
+set work.&TEMPDSN2; by WorksheetIndex rowIndex;
+
+length ColumnName TempStr $32 TableName $41 TableLabel $256;
+length FirstObs i LastObs NCols PatternID 8;
+
+retain FirstObs 0 LastObs 0 NCols 0 NRecords;
+
+*  Excel worksheets are limited to 256 columns;
+
+array ColLabel(256) $256;
+array ColLen(256)   8;
+array ColName(256)  $32;
+array ColType(256)  $6;
+
+retain ColLabel ColLen ColName ColType;
+
+keep ColumnName RowIndex Value WorksheetIndex;
+
+*;
+*  Set the value to be used with the FIRSTOBS option.  NRecords
+*  will contain the number of records read from the worksheet.
+*;
+
+if (first.WorksheetIndex) then do;
+  FirstObs = LastObs + 1;
+  NRecords = 0;
+end;
+
+NRecords + 1;
+
+*;
+*  Read the column names and labels one time, and initialize 
+*  the data type and length.
+*;
+
+if (RowIndex EQ 1 and last.RowIndex) 
+  then NCols = ColumnIndex;
+
+*  Make sure column names are valid. Change invalid chars to '_';
+
+if (RowIndex EQ 1) then do;
+
+  ColType(ColumnIndex) = 'Number';
+  ColLen(ColumnIndex)  = 0;
+
+
+  if ("&HASLABELS" in ("Y" "1")) then do; *  Use label cells;
+
+    if (compress(Value) eq '') then do; *  Empty cell;
+      ColName(ColumnIndex)  = '_' || 
+          substr(translate(uuidgen(), '_', '-'), 1, 31);
+      ColLabel(ColumnIndex) = '.';
+    end;
+    else do;
+      ColLabel(ColumnIndex) = Value;
+
+      PatternID = prxparse('s/[^\w]/_/');  
+      call prxchange(PatternID, -1, strip(Value), TempStr);
+
+      *  Change first character to '_' if it is numeric;
+
+      PatternID = prxparse('s/^[\d]/_/');
+      call prxchange(PatternID, 1, TempStr);
+      
+      ColName(ColumnIndex) = TempStr;
+
+      *  Check to see if this is a duplicate name, and change if so;
+      
+      do i = 1 to ColumnIndex-1;
+        if (lowcase(TempStr) EQ lowcase(ColName(i))) then do;
+          ColName(ColumnIndex)  = '_' || 
+              substr(translate(uuidgen(), '_', '-'), 1, 31);
+          leave;
+        end;
+      end;
+    end;
+    return;
+  end;
+  else do; *  Define arbitrary column names and labels;
+    ColName(ColumnIndex)  = 'COLUMN'  || 
+                            left(trim(put(ColumnIndex,z3.)));
+    ColLabel(ColumnIndex) = 'Column ' || 
+                            left(trim(put(ColumnIndex,z3.)));
+  end;
+end;
+
+ColumnName = ColName(ColumnIndex);
+
+*;
+*  If any cell in a column is tagged as a string, set 
+*  the column type to string;
+*;
+
+if lowcase(Type) EQ 'string' then do;
+  ColType(ColumnIndex) = 'String';
+  ColLen(ColumnIndex)  = max(ColLen(ColumnIndex), length(Value));
+end;
+else
+  ColLen(ColumnIndex) = max(ColLen(ColumnIndex), 
+                            length(input(Value, $256.)));
+
+output;
+
+if (last.WorksheetIndex);
+
+*  Account for column headings if they are in the worksheet;
+
+if ("&HASLABELS" in ("Y" "1"))
+  then LastObs = LastObs + NRecords - NCols;
+  else LastObs = LastObs + NRecords;
+
+file &TEMPFILEREF;
+
+TableName = "&LIBRARY.." || 
+            symget('TABNAME_' || 
+                   compress(put(WorksheetIndex, best32.)));
+
+TableLabel = symget('TABLABEL_' || 
+                    compress(put(WorksheetIndex, best32.)));
+
+put 'data ' TableName +(-1) "(label='" TableLabel +(-1) "');";
+put "  set &TEMPDSN3.(firstobs=" FirstObs 'obs=' LastObs +(-1) 
+    '); by WorksheetIndex RowIndex;';
+
+put '  keep   ' @;
+do i = 1 to NCols;
+  put ColName(i) @;
+end;
+put +(-1) ';';
+
+put '  retain ' @;
+do i = 1 to NCols;
+  put ColName(i) @;
+end;
+put +(-1) ';';
+
+put ' ';
+do i = 1 to NCols;
+  put '  attrib ' ColName(i) "label='" ColLabel(i) +(-1) 
+      "' length=" @;
+  if lowcase(ColType(i)) EQ 'string'
+    then put '$' ColLen(i) +(-1) ';';
+    else put '8;';
+end;
+
+put ' ';
+put '  if (first.RowIndex) then do;';
+do i = 1 to NCols;
+  if lowcase(ColType(i)) EQ 'string'
+    then put '    ' ColName(i) " = '';";
+    else put '    ' ColName(i) ' = .;';
+end;
+put '  end;';
+
+put ' ';
+put "  if (ColumnName EQ '" ColName(1) +(-1) "')";
+if (lowcase(ColType(1)) EQ 'string')
+  then put '    then ' ColName(1) '= Value;';
+  else put '    then ' ColName(1) '= input(Value, best32.);';
+do i = 2 to NCols;
+  put "  else if (ColumnName EQ '" ColName(i) +(-1) "')";
+  if (lowcase(ColType(i)) EQ 'string')
+    then put '    then ' ColName(i) '= Value;';
+    else put '    then ' ColName(i) '= input(Value, best32.);';
+end;
+
+put ' ';
+put '  if (last.RowIndex) then output;';
+put 'run;';
+put ' ';
+  
+put '%let TEMPSTR1=&SYSERR;';
+
+put 'options notes;';
+put 'data _null_;';
+put '  if (&TEMPSTR1 GT 4) then do;';
+put '    put " ";';
+put '    put "ERROR: A problem was encountered when attempting to ' @;
+put 'create table ' TableName 'from worksheet number ' @;
+put WorksheetIndex +(-1) '.";';
+put '    put " ";';
+put '  end;';
+put '  else do;';
+put '    put " ";';
+put '    put "NOTE: Table ' TableName 'successfully created from ' @;
+put 'worksheet number ' WorksheetIndex +(-1) '.";';
+put '    put " ";';
+put '  end;';
+put 'run;';
+put ' ';
+put "&MSGLEVEL" ';';
+put ' ';
+run;
+
+%if (&SYSERR GT 4) %then %do;
+  %put;
+  %put ERROR: A problem was encountered when attepmting to generate
+%str(the intermediate import code.);
+  %put;
+  %goto exit;
+%end;
+
+%*  Run the code that will import the data;
+
+%include &TEMPFILEREF;
+
+%exit:
+
+%*  Clean up, but do not deassign user-assigned filerefs;
+
+%if (&CLEANUP eq Y or &CLEANUP eq 1) %then %do;
+  %if (&EXCELFREFFLAG NE 1 and %sysfunc(fileref(&EXCELFILEREF)) LE 0) %then %do;
+    filename &EXCELFILEREF;
+  %end;
+
+  %if (%sysfunc(libref(&EXCELFILEREF)) EQ 0) %then %do;
+    libname &EXCELFILEREF;
+  %end;
+
+  %if (&MAPFREFFLAG NE 1 and %sysfunc(fileref(&MAPFILEREF)) LE 0) %then %do;
+    filename  &MAPFILEREF;
+  %end;
+
+  %if (%sysfunc(fileref(&TEMPFILEREF)) LE 0) %then %do;
+    filename &TEMPFILEREF;
+  %end;
+  
+  proc datasets nodetails nolist library=work;
+  %if (&TEMPDSN1 ne ) %then %do;
+    delete &TEMPDSN1;
+  %end;
+  %if (&TEMPDSN2 ne ) %then %do;
+    delete &TEMPDSN2;
+  %end;
+  %if (&TEMPDSN3 ne ) %then %do;
+    delete &TEMPDSN3;
+  %end;
+  run; quit;
+%end;
+
+%*  Display the version number for this code, if requested;
+
+%if (&SHOWVER eq Y or &SHOWVER eq 1) %then %do;
+  options notes;
+  %put NOTE: XLXP2SAS Macro Version: 9.1.2;
+%end;
+
+%*  Restore the original option settings;
+
+options &NOTES &SOURCE2;
+
+%mend xlxp2sas;
+/*>==============================================
+        END    xlxp2sas.sas
+==============================================>*/
+

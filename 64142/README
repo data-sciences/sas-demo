@@ -1,0 +1,27 @@
+
+This page contains the SAS code and full-color sample output
+for all the examples in the book "SAS/GRAPH - Beyond the Basics".
+
+All of the SAS jobs are named the same as the Example number
+(such as example01.sas), and most of the output is also named
+the same (except for the example03, where controlling the
+name of the SAS output is one of the things being demonstrated
+in the example).
+
+Most of these SAS jobs contain the data in the SAS code, but
+a few of the examples read the data from an external file
+(.xlsx, .csv, etc).  In those cases, that external file is
+in this same folder.  Similarly, a few of the examples reference
+an image file (jpg, png, etc) - those image files are also 
+located in this same folder.
+
+All these jobs are set up to use the "current working directory"
+to read the input, and write the output.  You can modify the 
+SAS jobs to change that, if needed.       
+
+You should be able to save these SAS jobs (and associated files)
+to your hard drive, and then run them to produce the graphs
+(with the exception of Example 22, which requires a SAS/Intrnet
+server).  
+
+

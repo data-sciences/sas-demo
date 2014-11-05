@@ -1,0 +1,105 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_CreateDataTables.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Basic syntax for creating data tables
+
+
+//----------  Original code to create a data table  ----------
+prop_dt = New Table( "Proportions",
+	New Column( "height (inches)",
+		Numeric,
+		Continuous,
+		Set Values( [72, 68, 73, 72, 76, 66, 65, 71] )
+	),
+	New Column( "arm span (inches)",
+		Numeric,
+		Continuous,
+		Set Values( [71, 68, 74, 73, 77, 65, 65, 72] )
+	),
+	New Column( "ration height/arm span",
+		Numeric,
+		Continuous,
+		Format( "Fixed Dec", 12, 3 ),
+		Formula( :Name( "height (inches)" ) / :Name( "arm span (inches)" ) )
+	)
+);  //end New Table
+
+prop_dt << get script;
+
+/*  Code to create the revised data table that has
+	- a continuous color scale for height
+	- a column property Note added to the column height
+	- the third row marker changed to a "P"
+*/
+  
+//----------  This is output to the log after making changes to data table  ----------
+
+prop2_dt = New Table( "Proportions",
+	Add Rows( 8 ),
+	New Column( "height (inches)",
+		Numeric,
+		Continuous,
+		Format( "Best", 12 ),
+		Set Property( "Notes", "height and arm span are positively correlated" ),
+		Set Values( [72, 68, 73, 72, 76, 66, 65, 71] )
+	),
+	New Column( "arm span (inches)",
+		Numeric,
+		Continuous,
+		Format( "Best", 12 ),
+		Set Values( [71, 68, 74, 73, 77, 65, 65, 72] )
+	),
+	New Column( "ration height/arm span",
+		Numeric,
+		Continuous,
+		Format( "Fixed Dec", 12, 3 ),
+		Formula( :Name( "height (inches)" ) / :Name( "arm span (inches)" ) )
+	),
+	Set Row States(
+		[20992.7679840326, 20992.5256167054, 172800.798776865, 20992.7679840326,
+		4864.98454350233, 1280.29437142611, 1280.1650390029, 20480.7527573109]
+	)
+);
+
+
+// Add a list (or matrix) of values to a column
+gen = {"M", "F", "M", "M", "M", "F", "F", "F"};
+prop2_dt << New Column( "gender", Character, Nominal, Values( gen ) );
+
+// Create empty JMP table
+JMPtbl_dt = New Table( "Empty Table" );
+
+/* Column 1 will be retained in the table if rows are  
+added prior to creating new columns; comment out the Add Rows() command
+if Column 1 is not needed  */
+JMPtbl_dt << Add Rows( 3 );
+JMPtbl_dt << New Column( "X", numeric, continuous, values( [1, 2, 3] ) );
+
+// Using the invisible command
+JMPtblinv_dt = New Table( "Invisible Table", invisible );
+Ntab = N Table();
+Close( JMPtblinv_dt, NoSave );
+
+// Get table names
+For( i = 1, i <= N Table(), i++,
+	nme = Data Table( i ) << get name;
+// if needed filter on the name
+	Close( Data Table( nme ), NoSave );
+// Close( Data Table(i), NoSave) is also valid;
+);
+
+// Control when the display is updated
+//--------Begin Data Update & End Data Update ----------
+prop2_dt << Begin Data Update;  //turn off display updates
+New Column( "age",
+	Numeric,
+	Continuous,
+	Format( "Best", 12 ),
+Set Values( [61, 42, 24, 33, 54, 23, 34, 21] )
+); 
+show( prop2_dt:age[ 3 ] ); 
+// note the table stored these values in memory
+
+//----------run to here----------------------
+prop2_dt << End Data Update;  //turn on display updates
+// column age is now visible, updates are rendered (visible) 

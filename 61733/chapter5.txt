@@ -1,0 +1,590 @@
+/*-------------------------------------------------------------------*/
+/*       Jump into JMP(r) Scripting                                  */
+/*          by Wendy Murphrey and Rosemary Lucas                     */
+/*       Copyright(c) 2009 by SAS Institute Inc., Cary, NC, USA      */
+/*                   SAS Publications order                          */
+/*                   ISBN 978-1-59994-658-0                          */
+/*-------------------------------------------------------------------*/
+/*                                                                   */
+/* This material is provided "as is" by SAS Institute Inc.  There    */
+/* are no warranties, expressed or implied, as to merchantability or */
+/* fitness for a particular purpose regarding the materials or code  */
+/* contained herein. The Institute is not responsible for errors     */
+/* in this material as it now exists or will exist, nor does the     */
+/* Institute provide technical support for it.                       */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+/* Date Last Updated: 12SEP2009                                      */
+/*-------------------------------------------------------------------*/
+/* Questions or problem reports concerning this material may be      */
+/* addressed to the author:                                          */
+/*                                                                   */
+/* SAS Institute Inc.                                                */
+/* SAS Press                                                         */
+/* Attn: Wendy Murphrey and Rosemary Lucas                           */
+/* SAS Campus Drive                                                  */
+/* Cary, NC   27513                                                  */
+/*                                                                   */
+/*                                                                   */
+/* If you prefer, you can send email to:  saspress@sas.com           */
+/* Use this for subject field:                                       */
+/*     Comments for Wendy Murphrey and Rosemary Lucas                */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+
+/* Chapter 5 */
+
+/* Solution 5.1 */
+
+Current Data Table() << Get Script;
+
+/* Open the sample data table, Big Class. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Select rows where the age is 16 or greater. */
+dt << Select Where( :age >= 16 );
+
+/* Delete the selected rows. */
+dt << Delete Rows;
+
+/* Add a column containing the column mean of height. */
+dt << New Column( "Mean Height", Numeric, Continuous, Formula( Col Mean( :height ) ) );
+
+
+
+/* Solution 5.2 */
+
+/* Open the sample data table, Big Class.jmp. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+dt << Select Where( :age > 14 & :height < 65 );
+
+dt << Select Where( :age > 14 | :height > 65 );
+
+
+/* Solution 5.3 */
+
+/* Open the sample data table, Abrasion.jmp. */
+dt = Open( "$SAMPLE_DATA/Abrasion.jmp" );
+
+/* Use the Informat function to convert the string datetime
+value to a JMP date value. */
+dt << Select Where(
+    :Date >= Informat( "4/30/1995 12:00:00 PM", "m/d/y h:m:s" ) & :Date <=
+    Informat( "5/01/1995 12:00:00 PM", "m/d/y h:m:s" )
+);
+
+
+/* Solution 5.4 */
+
+/* Open the sample data table, Fitness.jmp. */
+dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+/* Select, exclude, and hide some rows for demonstration purposes */
+dt << Select Where( :age <= 40 ) << Exclude( 1 ) << Hide( 1 );
+selRows = N Row( dt << Get Selected Rows );
+exclRows = N Row( dt << Get Excluded Rows );
+hidnRows = N Row( dt << Get Hidden Rows );
+
+/* Print variable values in the log. */
+Show( selRows, exclRows, hidnRows );
+
+
+/* Solution 5.5 */
+
+/* Open the sample data table, Fitness.jmp. */
+dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+/* Select, exclude, and hide some rows for demonstration purposes */
+dt << Select Where( :age <= 40 ) << Exclude( 1 ) << Hide( 1 );
+dt << Clear Select;
+
+/* Select excluded rows then count with Get Selected Rows. */
+dt << Select Excluded;
+exclRows = N Row( dt << Get Selected Rows );
+
+/* Select hidden rows then count with Get Selected Rows. */
+dt << Select Hidden;
+hidnRows = N Row( dt << Get Selected Rows );
+
+/* Print variable values in the log. */
+Show( exclRows, hidnRows );
+
+
+
+/* Solution 5.6 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+/* Select the desired rows. */
+dt << Select Where( :age == 54 & :sex == "F" );
+
+/* Store the number of selected rows in a global variable. */
+selRows = N Row( dt << Get Selected Rows );
+
+/* Perform a subset if rows were selected. Otherwise, print a message in the log. */
+If( selRows > 0,
+    dt << Subset( Output Table Name( "Age 54 Females" ) ),
+    Print( "No rows selected." )
+);
+
+
+/* Solution 5.7 */
+
+/* Open a sample data table for demonstration purposes. */
+dt = Open( "$SAMPLE_DATA/Big Class.JMP" );
+
+/* Select the first two columns for demonstration purposes. */
+Column( 1 ) << Set Selected;
+Column( 2 ) << Set Selected;
+
+/* Store the list of selected columns in a variable. */
+selColList = dt << Get Selected Columns;
+
+/* Store the number of items in the list in a variable. */
+numSelCols = N Items( selColList );
+
+/* Show variable values in the log. */
+Show( selColList, numSelCols );
+
+
+/* Solution 5.8 */
+
+/* Create a new data table. */
+dt = New Table( "City Data",
+    Add Rows( 10 ),
+    New Column( "US Cities",
+        Character,
+        Nominal,
+        Set Values(
+            {"NEW YORK CITY", " LOS ANGELES", " CHICAGO ", "HOUSTON", "PHOENIX", "PHILADELPHIA ",
+            " SAN ANTONIO ", "SAN DIEGO ", "DALLAS", " SAN JOSE "}
+        )
+    ),
+    New Column( "State",
+        Character,
+        Nominal,
+        Set Values(
+            {"NEW YORK", "CALIFORNIA", "ILLINOIS", "TEXAS", "ARIZONA", "PENNSYLVANIA", "TEXAS",
+            "CALIFORNIA", "TEXAS", "CALIFORNIA"}
+        )
+    )
+);
+Wait( 1 ); //For demonstration purposes.
+
+/* Titlecase - In Place */
+For Each Row(
+/* Make each value lowercase. */
+    :State = Lowercase( :State );
+/* Capture a list of all the words in the string. */
+    wrds = Words( :State, " " );
+/* Loop through each word, capitalizing the first letter.
+*/
+
+    For( i = 1, i <= N Items( wrds ), i++,
+        wrds[i] = Munger( wrds[i], 1, 1, Uppercase( Substr( wrds[i], 1, 1 ) ) );
+        If( i > 1,
+            newVal = newVal || " ",
+            newVal = ""
+        );
+        newVal = newVal || wrds[i];
+    );
+/* Assign the Titlecase value. */
+    :State = newVal;
+);
+Wait( 1 ); //For demonstration purposes.
+/* Uppercase/Lowercase - In Formula Column*/
+dt << New Column( "State Case",
+    Character,              
+/* Move comment characters for desired case */
+    Formula(
+        Uppercase( :State )
+//Lowercase( :State )
+    )
+);
+Wait( 1 ); //For demonstration purposes.
+
+/* Trim and Collapse Whitespace - In New Column */
+/* Add a new column. */
+dt << New Column( "Trimmed Cities", Character );
+For Each Row(
+/* Capture a list of all the words in the string. */
+    wrds = Words( :US Cities, " " );
+/* Loop through each word, concatenating the values
+with a single space between each. */
+    For( i = 1, i <= N Items( wrds ), i++,
+        If( i == 1,
+            newVal = "",
+            newVal = newVal || " "
+        );
+        newVal = newVal || wrds[i];
+    );
+/* Assign the trimmed value to the new column. */
+    :Trimmed Cities = newVal;
+);
+
+Wait( 1 ); //For demonstration purposes.
+
+/* Specify new recode values in a formula column. */
+dt << New Column( "State Abbr.",
+    Character,
+    Formula(
+        Match( :State,
+            "New York", "NY",
+            "California", "CA",
+            "Illinois", "IL",
+            "Texas", "TX",
+            "Arizona", "AZ",
+            "Pennsylvania", "PA"
+        )
+    )
+);
+
+
+/* Solution 5.9 */
+
+/* Open the sample data table, Big Class.jmp. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Store all the character column names in a list. */
+cols = dt << Get Column Names( Character );
+
+/* Delete the columns. */
+dt << Delete Columns( cols );
+
+
+/* Solution 5.10 */
+
+/* Open the IRLS Example sample data table. */
+dt = Open( "$SAMPLE_DATA/Nonlinear Examples/IRLS Example.jmp" );
+
+/* Loop through each column in the data table. */
+For( i = 1, i <= N Col( dt ), i++,            
+/* Obtain the formula column property. */
+    fmla = Column( dt, i ) << Get Property( "Formula" );
+/* Delete the formula, if one exists. */
+    If( Type( Name Expr( fmla ) ) == "Expression",
+        Column( dt, i ) << Delete Formula
+    );
+);
+
+/* Solution 5.11 */
+/* Open a sample data table for demonstration purposes. */
+dt = Open( "$SAMPLE_DATA/Big Class.JMP" );
+
+/* Create the list of values to be used in the List Check. */
+genderList = {"M", "F"};
+
+/* Create a reference to the desired column. */
+col = Column( dt, "sex" );
+
+/* Create an expression within an expression. */
+listCkExpr = Expr( col << Set Property( "List Check", Expr( genderList ) ) );
+
+/* Resolve the main expression. */
+Eval(
+/* Resolve the global variable expression. */
+    Eval Expr( listCkExpr )
+);
+
+
+/* Solution 5.12 */
+
+/* Prompt the user for information in a Dialog. */
+dlg = Dialog(
+    "BMI Calculator",
+    Vlist(
+        Text Box( " " ),
+        Hlist( Text Box( "Enter your Height (in inches): " ), ht = EditNumber( 0 ) ),
+        Text Box( " " ),
+        Hlist( Text Box( "Enter your Weight (in pounds): " ), wt = EditNumber( 0 ) ),
+        Text Box( " " )
+    )
+);
+/* Extract the values to be used in the formula. */
+yourHt = dlg["ht"];
+yourWt = dlg["wt"];
+
+/* Create a new table to store the results. */
+nt = New Table( "Your BMI",
+    New Column( "Date", Numeric, Continuous, Format( "m/d/y", 10 ), Formula( Today() ) ),
+    New Column( "BMI", Numeric, Continuous ),
+    New Column( "Range",
+        Character,
+        Formula(
+            If(
+                :BMI < 18.5, "Underweight",
+                18.5 <= :BMI < 25, "Normal",
+                25 <= :BMI < 30, "Overweight",
+                :BMI > 30, "Obese"
+            )
+        )
+    ),
+    Add Rows( 1 )
+);
+/* Build the main expression that will add the formula. */
+formulaExpr = Expr(
+/* Identify the global variables which must be resolved
+first. */
+    Column( "BMI" ) << Formula( Expr( yourWt ) / (Expr( yourHt ) ^ 2) * 703 )
+);
+/* Resolve the main expression. */
+Eval(
+/* Resolve the global variable expression. */
+    Eval Expr( formulaExpr )
+);
+
+
+/* Solution 5.13 */
+
+/* Open the sample data table, Cities.jmp. */
+dt = Open( "$SAMPLE_DATA/Cities.jmp" );
+
+/* Obtain a list of all numeric column names as strings. */
+numCols = dt << Get Column Names( Numeric, String );
+
+/* Loop through each numeric column. */
+For( i = 1, i <= N Items( numCols ), i++,         
+/* Loop through each row. */
+    For( j = 1, j <= N Rows( dt ), j++,         
+/* The IsMissing function will return a ‘1’ or true if the
+value is missing. If true, cell is assigned zero. */
+        If( Is Missing( Column( dt, numCols[i] )[j] ),
+            Column( dt, numCols[i] )[j] = 0
+        )
+    )
+);
+
+
+/* Solution 5.14 */
+
+/* Initialize an empty list where the table names will be
+stored. */
+dtNames = {};
+
+/* Loop through each open data table and insert its name into the list. */
+For( i = 1, i <= N Table(), i++,
+    Insert Into( dtNames, Data Table( i ) << Get Name )
+);
+
+/* Print names in the log. */
+Show( dtNames );
+
+
+/* Solution 5.15 */
+
+/* Assign the number of open data tables to a variable */
+numTables = N Table();
+
+/* Issue the Close statement once for each of the open Data tables in a For loop */
+For( i = 1, i <= numTables, i++,
+    Close( Data Table( 1 ), No Save );
+    Wait( 0 ); //Needed for releases prior to JMP 7 only
+);
+Show( N Table() );
+
+
+/* Solution 5.16 */
+
+/*  Data for this sample was obtained from:  
+    http://www.cfsan.fda.gov/~acrobat/nutfacts.pdf  */
+
+
+/*  First, create and save some data to be concatenated  */
+Clear Globals();
+
+
+nt1 = New Table( "Fat Content",
+    Add Rows( 3 ),
+    New Column( "Nutrient",
+        Character,
+        Nominal,
+        Set Values( {"Total Fat", "Saturated Fats", "Trans Fat"} )
+    ),
+    New Column( "Amount Per Serving",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [12, 3, 3] )
+    ),
+    New Column( "Pct Daily Value",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [18, 15, .] )
+    )
+
+);
+Close( nt1, Save( "C:\Fat Content.jmp" ) );
+
+nt2 = New Table( "Total Carbohydrates",
+    Add Rows( 3 ),
+    New Column( "Nutrient",
+        Character,
+        Nominal,
+        Set Values( {"Total Carbohydrates", "Fiber", "Sugars"} )
+    ),
+    New Column( "Amount Per Serving",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [31, 0, 5] )
+    ),
+    New Column( "Pct Daily Value",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [10, 0, .] )
+    )
+);
+Close( nt2, Save( "C:\Total Carbohydrates.jmp" ) );
+
+nt3 = New Table( "Nutrients",
+    Add Rows( 4 ),
+    New Column( "Nutrient",
+        Character,
+        Nominal,
+        Set Values( {"Vitamin A", "Vitamin C", "Calcium", "Iron"} )
+    ),
+    New Column( "Amount Per Serving",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [., ., ., .] )
+    ),
+    New Column( "Pct Daily Value",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [4, 2, 20, 4] )
+    )
+);
+Close( nt3, Save( "C:\Nutrients.jmp" ) );
+
+/* Create a list of all the files to be concatenated. */
+myFiles = {"Fat Content.jmp", "Total Carbohydrates.jmp", "Nutrients.jmp"};
+
+/* Loop through each file */
+For( i = 1, i <= N Items( myFiles ), i++,      
+/* If the file is the first in the list, open it. Otherwise, open the table, concatenate with the main table, and close the table just opened. */
+    If( i == 1,
+        mainDt = Open( "C:\" || myFiles[i] ),
+        dt = Open( "C:\" || myFiles[i] );
+        mainDt = mainDt << Concatenate( dt, Append to First Table );
+        Close( dt, NoSave );
+        Wait( 0 );
+    )
+);
+/* Give the final table a name. */
+mainDt << Set Name( "Concatenated Files" );
+
+/* Solution 5.17 */
+
+/*  Data for this sample was obtained from:  
+    http://www.cfsan.fda.gov/~acrobat/nutfacts.pdf  */
+
+
+/*  First, create and save some data to be concatenated  */
+Clear Globals();
+
+
+nt1 = New Table( "Fat Content",
+    Add Rows( 3 ),
+    New Column( "Nutrient",
+        Character,
+        Nominal,
+        Set Values( {"Total Fat", "Saturated Fats", "Trans Fat"} )
+    ),
+    New Column( "Amount Per Serving",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [12, 3, 3] )
+    ),
+    New Column( "Pct Daily Value",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [18, 15, .] )
+    )
+
+);
+Close( nt1, Save( "C:\Fat Content.jmp" ) );
+
+nt2 = New Table( "Total Carbohydrates",
+    Add Rows( 3 ),
+    New Column( "Nutrient",
+        Character,
+        Nominal,
+        Set Values( {"Total Carbohydrates", "Fiber", "Sugars"} )
+    ),
+    New Column( "Amount Per Serving",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [31, 0, 5] )
+    ),
+    New Column( "Pct Daily Value",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [10, 0, .] )
+    )
+);
+Close( nt2, Save( "C:\Total Carbohydrates.jmp" ) );
+
+nt3 = New Table( "Nutrients",
+    Add Rows( 4 ),
+    New Column( "Nutrient",
+        Character,
+        Nominal,
+        Set Values( {"Vitamin A", "Vitamin C", "Calcium", "Iron"} )
+    ),
+    New Column( "Amount Per Serving",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [., ., ., .] )
+    ),
+    New Column( "Pct Daily Value",
+        Numeric,
+        Continuous,
+        Format( "Best", 10 ),
+        Set Values( [4, 2, 20, 4] )
+    )
+);
+Close( nt3, Save( "C:\Nutrients.jmp" ) );
+
+/* Create a list of all the files to be concatenated. */
+myFiles = {"Fat Content.jmp", "Total Carbohydrates.jmp", "Nutrients.jmp"};
+/* Loop through each file. */
+For( i = 1, i <= N Items( myFiles ), i++,     
+/* If the file is first in the list, open it. Otherwise, open the table, concatenate with the main table, and close the originals. */
+    If( i == 1,
+        mainDt = Open( "C:\" || myFiles[i] ),
+        dt = Open( "C:\" || myFiles[i] );
+        tmp = mainDt;
+        mainDt = mainDt << Concatenate( dt );
+        Close( dt, NoSave );
+        Close( tmp, NoSave );
+        Wait( 0 );
+    )
+);
+
+/* Give the final table a name. */
+mainDt << Set Name( "Concatenated Files" );
+
+
+/* Solution 5.18 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.JMP" );
+
+/* Assign a global variable to represent the list. */
+meanCols = dt << Get Column Names( Continuous );
+
+/* Wrap the global variable in an Eval() function. */
+dt << Summary( Group( :age, :sex ), Mean( Eval( meanCols ) ) );
+
+/* End of Chapter 5 solutions */

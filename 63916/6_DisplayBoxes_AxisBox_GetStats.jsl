@@ -1,0 +1,52 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_DisplayBoxes_AxisBox_GetStats.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax and statements for getting and setting Axis Box settings.
+
+
+//  Adds a reference line to the X axis
+//  Retrieves several statististics from a regression analysis
+//  demonstrating named referencing.
+//  Incorporates those statistics into the Bivariate regression title using character functions.
+
+bigclass_dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+bigclass_biv = Bivariate( Y( :height ), X( :weight ), Fit Line() );
+
+bigclass_rpt = bigclass_biv << Report;
+//Retrieve information - the notation [2][1] 
+//is the first element of the second column
+rsq_htvswt = bigclass_rpt["Summary of Fit"][Table Box( 1 )][2][1];
+rsqadj_htvswt = bigclass_rpt["Summary of Fit"][Table Box( 1 )][2][2];
+rmse_htvswt = bigclass_rpt["Summary of Fit"][Table Box( 1 )][2][3];
+
+//Add retrieved information to the outline title.
+ttl = words(bigclass_rpt[Outline Box( 1 )] << get title);
+Show( "Title as list: ", ttl);
+ttl = Concat Items( ttl[ Contains( ttl, "of" ) + 1 :: N Items( ttl ) ] );
+Show( "Title as concatenated items: ", ttl);
+ttl = ttl || Eval Insert(": RSQ( ^char(rsq_htvswt, 4, 2)^ ), RMSE( ^char(rmse_htvswt,5)^ )");
+Show( "Final title with incorporated statistics : ", ttl);
+
+/* -----------------------------------------------------------------------------------------
+Character Function Syntax: 
+   Words(str, <delimiters>) returns a list of sub-strings of str as defined by any 
+     characters listed as delimiters.  If no delimiters are specified, white-space 
+     characters are used (spaces, tabs, etc.)
+   Char(num, <w>, <d>). Using the optional arguments, especially width can create
+     a more aesthetically pleasing display.
+   EvalInsert( str, <begin delimiter>, <end delimiter> ); Evaluates sub-strings defined
+     by begin/end delimiters as expressions and places the evaluted values with in the
+     string str.  Default begin/end delimiters are the carat (^).
+ -----------------------------------------------------------------------------------------*/ 
+   
+bigclass_rpt[Outline Box( 1 )] << set title (ttl);
+
+//Format Output to a width of 12 and 3 decimal places
+bigclass_rpt["Summary of Fit"][Table Box( 1 )][2] << Set Format( 8, 3 );
+
+//Change X-axis settings so Min=50, Max=190, Inc=10, #Min ticks=1
+bcrpt_xaxis = bigclass_rpt[Picture Box( 1 )][Axis Box( 2 )];
+bcrpt_xaxis << Min( 50 ) << Max( 190 ) << Inc( 20 ) << Minor Ticks( 1 );
+
+bcrpt_xaxis << Add Ref Line( 120, Dashed, Blue );

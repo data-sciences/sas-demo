@@ -1,0 +1,48 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_InformationList.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for retrieving information from lists.
+
+
+//Is List
+//Paste each of these four variables into the code that checks for a list
+a_lst = {1, 2, 3};  //list, script prints “Hello”
+b_lst = {};  //empty list, script prints “Hello”
+c_lst = .;  //missing, script opens the caption
+d_mat = [1, 2, 3];  //matrix, script opens the caption
+
+//Checking for a list
+If( Is List( a_lst ) != 1,
+	Caption( "Script Cancelled" );
+	Wait( 2 );
+	Caption( remove );
+	Throw();
+);
+Print( "Hello" );
+	
+// Create a unique list of values in a column
+Cereal_dt = Open( "$SAMPLE_DATA/Cereal.jmp" );
+Cereal_dt << New Column( "Manufacturer Abbrev", Character, Nominal, Width( 5 ) );
+Summarize( by_var = By( :Manufacturer ) );
+
+// Method 1: Loop through the list and use For Each Row()
+For( i = 1, i <= N Items( by_var ), i++,
+	For Each Row(
+		If( :Manufacturer == by_var[i],
+			:Manufacturer Abbrev = Substr( Concat( Word( 1, by_var[i] ) ), 1, 1 )
+			 || Substr( Concat( Word( 2, by_var[i] ) ), 1, 1 )
+		)
+	)
+);
+
+// Method 2: Use Get Values and set abbreviation using row numbers
+Manufac_lst = :Manufacturer << Get Values;
+For( i = 1, i <= N Items( by_var ), i++,
+	tmp = Loc( Manufac_lst, by_var[i] );
+	:Manufacturer Abbrev[tmp] = Substr( Concat( Word( 1, by_var[i] ) ), 1, 1 ) ||
+	Substr( Concat( Word( 2, by_var[i] ) ), 1, 1 )
+);
+
+//Create a distribution plot of the continuous columns
+cont_lst = Cereal_dt << Get Column Names( Continuous );
+Distribution( Column( Eval( cont_lst ) ), Horizontal Layout( 1 ), Vertical( 0 ) );

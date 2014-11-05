@@ -1,0 +1,228 @@
+
+   /********************************************************************/
+   /********** Changing Marker Properties **********/
+
+   /* use marker shape to encode category */
+   declare DataObject dobj;                        
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   dobj.SetRoleVar(ROLE_LABEL, "Title");                   /* 1 */
+   
+   dobj.GetVarData("MPAARating", Group);                   /* 2 */
+   u = unique(Group);                                      /* 3 */
+   shapes = MARKER_SQUARE || MARKER_X || 
+            MARKER_TRIANGLE || MARKER_PLUS || 
+            MARKER_INVTRIANGLE;                            /* 4 */
+   do i = 1 to ncol(u);                                    /* 5 */
+      idx = loc(Group = u[i]);
+      dobj.SetMarkerShape(idx, shapes[i]);                 /* 6 */
+   end;
+    
+   declare ScatterPlot plot;                       
+   plot = ScatterPlot.Create(dobj, "ReleaseDate", "US_Gross");
+   plot.SetMarkerSize(5);                                  /* 7 */
+
+   /* if more categories than shapes, reuse shapes */
+   j = 1 + mod(i-1, ncol(shapes));
+   shape = shapes[j];
+   dobj.SetMarkerShape(idx, shape);
+
+
+   /* module that uses marker shape to encode category */
+   start SetMarkerShapeByGroup(DataObject dobj, VarName);
+      dobj.GetVarData(VarName, Group);
+      u = unique(Group);              
+      shapes = MARKER_SQUARE || MARKER_X || MARKER_TRIANGLE || 
+               MARKER_PLUS || MARKER_INVTRIANGLE ||             
+               MARKER_CIRCLE || MARKER_DIAMOND || MARKER_STAR;
+      do i = 1 to ncol(u);
+         idx = loc(Group = u[i]);
+         j = 1 + mod(i-1, ncol(shapes));
+         shape = shapes[j];
+         dobj.SetMarkerShape(idx, shape);
+      end;
+   finish;
+
+
+   /* convert colors between different representations */
+   RoyalBlueRGB = {65 105 225};             /* input as ordered triple */
+   IntColor = RGBToInt(RoyalBlueRGB);
+   print IntColor[format=hex6.];            /* print as hexadecimal    */
+   
+   RoyalBlueInt = 04169E1x;                 /* input as hexadecimal    */
+   TripletColor = IntToRGB(RoyalBlueInt);
+   print TripletColor;                      /* print as ordered triple */
+
+
+   /* names and RGB values of predefined colors */
+   colName = {"BLACK","RED","GREEN","BLUE","ORANGE","PINK","YELLOW","WHITE"};
+   color   =   BLACK// RED// GREEN// BLUE// ORANGE// PINK// YELLOW// WHITE;
+   RGB   = IntToRGB(color); 
+   print colName color[format=hex6.] RGB[colname={"Red" "Green" "Blue"}];
+
+
+   /* color each observation based on value of a continuous variable */
+   declare DataObject dobj;                        
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   dobj.GetVarData("US_Gross", v);                         /* 1 */
+   EndPts = {0       25      100      200} || max(v);      /* 2 */
+   Color  = BLUE || CYAN || ORANGE || RED;                 /* 3 */
+   do i = 1 to ncol(Color);                                /* 4 */
+      idx = loc(v>EndPts[i] & v<=EndPts[i+1]);             /* 5 */
+      if ncol(idx)>0 then 
+         dobj.SetMarkerColor(idx, Color[i]);
+   end;
+
+
+   /* linearly interpolate color of each observation */
+   dobj.GetVarData("US_Gross", v);                  
+   a = IntToRGB(CREAM);                                    /* 1 */
+   b = IntToRGB(BROWN); 
+   t = (v-min(v)) / (max(v)-min(v));                       /* 2 */
+   colors = (1-t)*a + t*b;                                 /* 3 */
+   dobj.SetMarkerColor(1:nrow(v), colors);                 /* 4 */
+
+   /********************************************************************/
+   /********** Changing the Display Order of Categories **********/
+
+   /* create a bar chart of variable; bars displayed alphabetically */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   dobj.GetVarData("ReleaseDate", r);
+   month = putn(r,"monname3.");          /* Jan, Feb, ..., Dec         */
+   dobj.AddVar("Month", month);          /* add new character variable */
+   
+   declare BarChart bar;
+   bar = BarChart.Create(dobj, "Month");
+
+
+   /* change order of bars; display chronologically */
+   order = {"Jan" "Feb" "Mar" "Apr" "May" "Jun" 
+            "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"};
+   /* alternatively:  order = putn(mdy(1:12,1,1960), "monname3."); */
+   dobj.SetVarValueOrder("Month", order);
+
+
+   /* compute a statistic for each category */
+   GroupVar = "Month";          /* variable that contains categories   */
+   dobj.GetVarData(GroupVar, group);
+   dobj.GetVarData("US_Gross", y);
+
+   u = unique(group);           /* find the categories                 */
+   numGroups = ncol(u);         /* number of categories                */
+   stat = j(1,numGroups);       /* allocate a vector for results       */
+   do i = 1 to numGroups;       /* for each group...                   */
+      idx = loc(group=u[i]);    /* find the observations in that group */
+      m = y[idx];               /* extract the values                  */
+      stat[i] = m[:];           /* compute statistic for group         */
+   end;
+   print stat[colname=u];
+
+
+   /* sort categories according to the statistic for each category */
+   r = rank(stat);
+   print r[colname=u];
+   sorted_u = u;               /* copy data in u                       */
+   sorted_u[r] = u;            /* permute categories into sorted order */
+   print sorted_u;
+
+
+   dobj.SetVarValueOrder(GroupVar, sorted_u);
+   declare BoxPlot box;
+   box = BoxPlot.Create(dobj, GroupVar, "US_Gross");
+
+
+
+   /********************************************************************/
+   /********** Selecting Observations **********/
+
+
+   /* select observations that contain a missing value for a variable */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   dobj.GetVarData("World_Gross", wGross);
+   /* find observations with missing values */
+   idx = loc(wGross=.);
+   if ncol(idx)>0 then 
+      dobj.SelectObs(idx);
+
+
+   /* select observations that satisfy a formula */
+   dobj.GetVarData("US_Gross", usGross);
+   jdx = loc(wGross>10*usGross);
+   if ncol(jdx)>0 then 
+      dobj.SelectObs(jdx);                /* add to previous selection */
+
+
+   /********************************************************************/
+   /********** Getting and Setting Attributes of Data **********/
+
+
+   /* call DataObject methods related to variable properties */
+   obsNum = t(1:5);                              /* 5 x 1 vector       */
+   x = obsNum / 100;
+   declare DataObject dobj;
+   dobj = DataObject.Create("Properties", {"ObsNum","x"}, obsNum||x); 
+
+   /* call some "Set" methods for variable properties */
+   /* standard SAS variable properties */
+   dobj.SetVarFormat("x", "Percent6.1");         /* set format         */
+   dobj.SetVarLabel("x", "A few values");        /* set label          */
+
+   /* IMLPlus properties */
+   dobj.SetRoleVar(ROLE_WEIGHT, "x");            /* set role (=WEIGHT) */
+   dobj.SelectVar("x");                          /* select variable    */
+   
+   /* displays data table in front of any other SAS/IML Studio windows */
+   DataTable.Create(dobj).ActivateWindow(); 
+
+
+   /* call some "Get" methods for variable properties */
+   dobj.GetVarNames(varNames);                /* get name of all vars  */
+   dobj.GetSelectedVarNames(varName);         /* get name of sel. vars */
+   /* standard SAS variable properties */   
+   format = dobj.GetVarFormat(varName);       /* get format            */
+   label = dobj.GetVarLabel(varName);         /* get label             */ 
+   informat = dobj.GetVarInformat(varName);   /* get informat          */
+   if informat="" then                        /* return empty string   */
+      informat = "None";                      /*    if no informat     */
+   /* IMLPlus properties */
+   weightName = dobj.GetRoleVar(ROLE_WEIGHT); /* get name of WEIGHT var*/
+   isNominal = dobj.IsNominal(varName);       /* is variable nominal?  */
+   
+   print varName format informat label;       /* SAS properties        */   
+   print weightName isNominal;                /* IMLPlus properties    */  
+
+
+   /* call DataObject methods related to observation attributes */
+   /* call some "Set" methods for observation attributes */
+   dobj.DeselectAllVar();                    /* remove selected var    */
+   dobj.SetMarkerColor(1:2, RED);            /* set marker color       */
+   dobj.SetMarkerShape(2:3, MARKER_STAR);    /* set marker shape       */
+   dobj.IncludeInAnalysis(3:4, false);       /* set analysis indicator */
+   dobj.IncludeInPlots(4:5, false);          /* set plot indicator     */
+   dobj.SelectObs({1,3,5});                  /* select observations    */
+
+   /* call some "Get" methods for observation attributes */
+   dobj.GetMarkerFillColor(colorIdx);     /* get all colors            */
+   dobj.GetMarkerShape(shapeIdx);         /* get all shapes            */
+   dobj.GetObsNumbersInAnalysis(analIdx); /* get only obs numbers with */
+   dobj.GetObsNumbersInPlots(plotsIdx);   /*    a certain indicator    */
+   dobj.GetSelectedObsNumbers(selIdx);    /* get selected obs numbers  */
+   
+   /* compute some combinations */
+   selColor = colorIdx[selIdx];           /* color of selected obs     */
+   shapePlots = shapeIdx[plotsIdx];       /* shapes in plots           */
+   selAnal = xsect(analIdx, selIdx);      /* selected obs in analyses  */
+
+   /* printing convenience: 
+      create a format that associates marker names with marker values  */
+   submit;
+   proc format;
+      value shape 
+      0='Square' 1='Plus'     2='Circle'      3='Diamond'
+      4='X'      5='Triangle' 6='InvTriangle' 7='Star';
+   run;
+   endsubmit;
+   
+   print selColor[format=hex6.] shapePlots[format=shape.], selAnal;
+

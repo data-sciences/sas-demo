@@ -1,0 +1,130 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_GeneratingAnalysis.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax and statements for generating reports and
+//      enabling and disabling report options.
+
+
+bigclass_dt = Open("$SAMPLE_DATA/Big Class.jmp");
+
+//Bivariate same as Fit Y by X with continuous Y and continuous X
+bigclass_dt << Bivariate( Y( :height ), X( :weight ), Fit Line );
+
+bigclass_dt << Bivariate(Y( :height ), X( :weight ), Fit Line, Fit Spline( 1000 ));
+
+bigclass_biv = Bivariate( Y( :height ), X( :weight ), Fit Line );
+bigclass_biv << Fit Spline(10000);
+bigclass_biv << Fit Spline;  // No error in Log, JMP supplies default value of 100
+
+Clear Log();
+Show( bigclass_biv );  //*Log: bigclass_biv = Bivariate[];
+Show Properties( bigclass_biv );
+Window("Log") << Bring Window to Front;
+
+
+bigclass_biv << Save Script to Script Window;
+
+Bivariate(
+	Y( :height ),
+	X( :weight ),
+	Fit Spline,      //no prompt default smoothing 100,
+	Fit Special,     //user is prompted – choose ex. X SquareRoot 
+	Group by,        //user is prompted - choose column sex
+	Fit Polynomial,  //no prompt polynomial 1. ie line fit
+	Fit Orthogonal   //no prompt Univariate Variances, Prin Comp
+);
+
+
+//------------------------------------------------------------
+//Oneway same as Fit Y by X with continuous Y, nominal or ordinal X
+
+bigclass_onew = bigclass_dt << Oneway( Y( :height ), X( :age ) );
+
+bigclass_onew << Means and Std Dev( 1 ) << Plot Actual by Quantile( 1 ) << Box Plots( 1 ) << Std Dev Lines( 0 )
+ << Mean Error Bars( 0 );
+
+//-- alternate syntax for setting multiple options with one statement
+bigclass_onew << {Means and Std Dev( 1 ), Plot Actual by Quantile( 1 ) ,
+           Line of Fit(0), X Axis Proportional(0), Points Jittered(1),
+           Box Plots( 1 ),  Std Dev Lines( 0 ),  Mean Error Bars( 0 )};
+
+ 
+Oneway( Y( :height ), X( :age ), By( :sex ) );
+wait(2);
+Oneway( Y( :height ), X( :age ), Where( :sex == "F" ) );
+wait(2);
+Oneway( Y( :height ), X( :age ), Where( :age < 16  ) , By( :sex )  );
+
+//--------JSL allows Fit Y by X ---------------------------------------------------------
+bc_YbyX_1 = Fit Y By X ( Y( :weight), X(:age)); //*Log: bc_YbyX_1 = Oneway[];
+bc_YbyX_2 = Fit Y By X ( Y( :weight), X(:height)); //*Log: bc_YbyX_2 = Bivariate[];
+bc_YbyX_3 = Fit Y By X ( Y( :weight), X(:age, :height ));  //*Log: bc_YbyX_3 = {Oneway[], Bivariate[]};
+show( bc_YbyX_1, bc_YbyX_2, bc_YbyX_3 );  //See Log
+//Notice with multiple X's or Y's the analyses are nested within
+//an outline box titled "Fit Y by X Group"
+ 
+//----------Extras-----------------------------------------------------------------------
+
+//--------Generating a Distribution Report
+bigclass_hist = bigclass_dt << Distribution( Y( :weight, :height, :sex ) );
+bc_hist_script = bigClass_hist << get script;
+show( bc_hist_script );  
+//see Log window -- JMP writes detailed information that is useful for the current 
+//set of data but may not be appropriate for a different set of data or a different 
+//time frame.  When capturing a script for re-use, consider which options to remove
+//that are data specific and likely not appropriate for other data 
+
+//Alternately, display the script in a script box. Run the commented block of commands.
+/*  
+New Window( "bc_hist_script", sb = Script Box( "" ) ) 
+  << Size Window( 575, 660 );
+  sb << Append Text( Char( Name Expr( bc_hist_script ) ) );
+  sb << Reformat;
+*/
+
+
+//----------Advanced ------------------------------------------------------------------
+//-- oneway_options can be stored in a list at the beginning of a script
+//-- and applied later on, making code more maintainable. If options need to be
+//-- changed it is changed in one place in the script. 
+oneway_options_list = {Means and Std Dev( 1 ), Plot Actual by Quantile( 1 ) ,
+           Line of Fit(0), X Axis Proportional(0), Points Jittered(1),
+           Box Plots( 1 ),  Std Dev Lines( 0 ),  Mean Error Bars( 0 )};
+           
+
+bc_onew = bigclass_dt << Oneway( Y( :height ), X( :age ) );
+
+eval(Substitute(Expr(bc_onew << _xx_), Expr(_xx_), oneway_options_list)); 
+
+//--------Getting and setting user preferences--------------------------------
+usr_onew_pref = Get Platform Preferences(Oneway());
+Platform Preferences (Oneway( Means and Std Dev( 1 ), Plot Actual by Quantile( 1 ) ,
+           Line of Fit(0), X Axis Proportional(0), Points Jittered(1), Means(0),
+           Box Plots( 1 ),  Std Dev Lines( 0 ),  Mean Error Bars( 0 )));
+
+bc_onew2 = bigclass_dt << Oneway( Y( :height ), X( :age ) );
+wait (2);
+//to reset user preferences 
+eval(usr_onew_pref);
+bc_onew3 = bigclass_dt << Oneway( Y( :height ), X( :age ) );
+
+//Note if you want Mean Error Bars and Stdev Lines off they need to be
+//turned off after the Oneway command is executed, if Means(1) or Means and Stdev(1)
+//are enabled.  JMP automatically turns them on when the means are calculated.
+//Except for this last exception, the program can get a users preferences, then set the 
+//preferences so each analysis has the options set when it is called and then before 
+//the program completes or on error reset the user prefernces. 
+
+//---Late news: A JMP bug was discovered recently in JMP9.0.3 for getting and setting
+//---user preferences. It is targeted to be fixed in JMP10.  The best method is to
+//---explicitly turn on or off specific preferences like using a preferences lists. 
+
+// Using variables
+semi_dt = Open( "$Sample_Data\Semiconductor Capability.jmp" );
+pnames = semi_dt << Get Column Names( Continuous );
+pstr = semi_dt << Get Column Names( Continuous, String );//text names
+//randomly pull 20
+idx = Random Shuffle( 1 :: N Items( pstr ) );
+//using pnames, column names
+Show( idx[1 :: 20], pnames[idx[1 :: 20]] );
+cp1 = semi_dt << Capability( Y( pnames[idx[1 :: 20]] ), Goal Plot( 0 ) );

@@ -1,0 +1,168 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_Expressions.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates the use and evaluation of expressions
+
+
+//----------  Getting Started with Expressions  -----------
+x = 3;
+y = 4;
+z = Expr( x + y );   // x + y
+
+z;   // 7, this line and the next result in the same output
+Eval( z );   // 7, same as above because it is not a nested Expr  
+Expr( z );   // z, its argument unevaluated
+Name Expr( z );   // x + y, the value of its argument unevaluated
+
+x = 10;    // the value of x is updated
+Eval( z );   // 14, the change in x is reflected in the evaluation of z     
+
+
+//----------  Variables and Formulas  ----------
+bigclass_dt = Open( "$SAMPLE_DATA\Big Class.jmp" );
+bias = 2;
+bigclass_dt << New Column( "height + bias", Numeric, Continuous );
+formbias_Expr = Expr( Column( "height + bias" ) << Formula( :height + Expr( bias ) ) );
+Eval( Eval Expr( formbias_Expr ) );
+
+
+//----------  Dialog Box and Getting User Input  ----------
+Clear Globals();
+bigclass_dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+GetCol = New Window( "Ratio",
+	V List Box(
+		Text Box( "Ratio of Two Columns" ),
+		Lineup Box( N Col( 4 ), Spacing( 3 ),
+			H List Box(
+				Panel Box( "Define Variables", ColListData = Col List Box( All, NLines( 6 ) ) ),
+				V List Box(
+					Panel Box( "Column Roles",
+						Lineup Box( N Col( 2 ), Spacing( 3 ), 
+							//Get columns and append names to column lists
+							Button Box( "Numerator", colNum << Append( colListData << GetSelected ) ),
+							colNum = Col List Box( numeric, maxitems( 1 ), minitems( 1 ), nLines( 1 ) ),
+							Button Box( "Denominator", colDen << Append( colListData << GetSelected ) ),
+							colDen = Col List Box( numeric, maxitems( 1 ), minitems( 1 ), nLines( 1 ) )
+						)
+					)
+				),
+				Panel Box( "Action", 
+					//Define Action buttons and create new column with ratio
+					Lineup Box( N Col( 1 ), Spacing( 3 ),
+						Button Box( "OK",
+							numtmp_col = Eval( colNum << Get Items );
+							dentmp_col = Eval( colDen << Get Items );
+							//Use Expr to add the new column using the variable names from the dialog box
+							RatioExpr = Expr(
+								Ratio_col = bigclass_dt << New Column( "Ratio of " || numtmp_col[1] || " to " || dentmp_col[1], Numeric, Continuous );
+								Ratio_col << Formula( __xxx / __yyy );
+							);
+							Substitute Into( RatioExpr,
+								Expr( __xxx ), Name Expr( As Column( numtmp_col[1] ) ),
+								Expr( __yyy ), Name Expr( As Column( dentmp_col[1] ) )
+							);
+							RatioExpr;   //Equivalently, Eval(RatioExpr)
+							GetCol << CloseWindow;
+						),
+						Button Box( "Cancel", GetCol << CloseWindow ),
+						Text Box( " " ),
+						Button Box( "Remove",
+							colNum << RemoveSelected;
+							colDen << RemoveSelected;
+						)
+					)
+				)
+			)
+		)
+	)
+);
+
+
+
+
+/*----------  Interactive graphs and using Expressions with a Button Box  -----------
+Note that these are global variables and if the graph is journaled and globals are cleared the 
+graph will be cleared.  This issue will be addressed in a later section. 
+*/
+
+Clear Globals();
+//Initial Weibull parameters
+α1 = 3;
+β1 = 0.75;
+α2 = 3;
+β2 = 1;
+α3 = 3;
+β3 = 4;
+
+//Random Numbers
+N = 500;
+
+//Create expression for generating table of random numbers
+weib_rand = Expr(
+	New Table( "Weibull Data",
+		Add Rows( N ),
+		New Column( "Weibull(" || Char( β1 ) || ", " || Char( α1 ) || ")", numeric, continuous, Set Each Value( Random Weibull( ___b1, ___a1 ) ) ),
+		New Column( "Weibull(" || Char( β2 ) || ", " || Char( α2 ) || ")", numeric, continuous, Set Each Value( Random Weibull( ___b2, ___a2 ) ) ),
+		New Column( "Weibull(" || Char( β3 ) || ", " || Char( α3 ) || ")", numeric, continuous, Set Each Value( Random Weibull( ___b3, ___a3 ) ) )
+	)
+);
+
+//Substitute Weibull parameters with values from interactive graph
+Substitute Into( weib_rand, Expr( ___b1 ), β1, Expr( ___a1 ), α1, Expr( ___b2 ), β2, Expr( ___a2 ), α2, Expr( ___b3 ), β3, Expr( ___a3 ), α3 );
+
+//Define New Window with graphs and random data button
+New Window( "Weibull Plots",
+	H List Box(
+		V List Box(
+	//Create graph and define functions
+			gr = Graph Box(
+				Pen Color( "red" ),
+				Pen Size( 3 ),
+				FrameSize( 600, 300 ),
+				X Scale( 0, 8 ),
+				Y Scale( 0, 1.5 ),
+				Double Buffer,
+				XAxis( Show Major Grid ),
+				YAxis( Show Major Grid ),
+				Y Function( Weibull Density( x, β1, α1 ), x );
+				Pen Color( "green" );
+				Y Function( Weibull Density( x, β2, α2 ), x );
+				Pen Color( "blue" );
+				Y Function( Weibull Density( x, β3, α3 ), x );
+				Text Color( 3 );
+				Text( {5, 1.4}, "α1 =  ", α1, ";   β1 =  ", β1 );,
+				Text Color( 4 );
+				Text( {5, 1.2}, "α2 =  ", α2, ";   β2 =  ", β2 );,
+				Text Color( 5 );
+				Text( {5, 1.0}, "α3 =  ", α3, ";   β3 =  ", β3 );, 
+
+			), 
+	//Add sliders and re-draw graphs		
+			H List Box(
+				V List Box(
+					H List Box( Slider Box( 0, 6, α1, gr << reshow ), Text Box( "α 1" ) ),
+					H List Box( Slider Box( 0, 6, β1, gr << reshow ), Text Box( "β 1" ) ),
+					Global Box( α1 ),
+					Global Box( β1 )
+				),
+				V List Box(
+					H List Box( Slider Box( 0, 6, α2, gr << reshow ), Text Box( "α 2" ) ),
+					H List Box( Slider Box( 0, 6, β2, gr << reshow ), Text Box( "β 2" ) ),
+					Global Box( α2 ),
+					Global Box( β2 )
+				),
+				V List Box(
+					H List Box( Slider Box( 0, 6, α3, gr << reshow ), Text Box( "α 3" ) ),
+					H List Box( Slider Box( 0, 6, β3, gr << reshow ), Text Box( "β 3" ) ),
+					Global Box( α3 ),
+					Global Box( β3 )
+				)
+			)
+		)
+	),
+	H List Box( Global Box( N ) ), 
+	//Generate a data table with Weibull random data	
+	Button Box( "Weibull Random Data", Eval( weib_rand ) )
+);
+
+

@@ -1,0 +1,140 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	App_GetTableScript.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Simple application to retrieve, data and/or column properties from the current data table
+
+
+/* ------------JSL Companion Script-----------------------------------------------
+  Uses:
+  -  Here Namespace
+  -  Current Data Table()
+  -  Tables: Subset with sampling and options
+  -  Table/Column meassges: Get Script, Delete Rows
+  -  Display Boxes: CheckBox, RadioBox, IfBox, ColListBox, ScriptBox
+  -  Functions: Char() NameExpr(), Eval(), Substitute(), IsExpr()
+
+A good table to test this on is Diamonds Data.jmp since is has several table properties,
+formats, and values ordering options.  Run the commented Open statement to test.
+
+Suggest you add a menu item that runs this script.  Then anytime you are 
+working on a table or need to check syntax a few clicks will bring it to view.
+
+See JSL Companion Appendix: Building an Application - Get Table Script for more details 
+
+*/
+
+//Open("$Sample_Data\Diamonds Data.jmp");
+//select a few columns to test option 2
+Names Default To Here( 1 );
+
+Try( nc = N Col( Current Data Table() ), Throw( "Currently no data table exists" ) );
+xx = Current Data Table() << get selected columns;
+
+//---------------Dialog Portion of Script----------------------------------------------------------
+//This section uses features described in Chapters 7 and 8
+
+//--Define CheckBox and control
+tblOpt = 1;  //default if none selected
+tbl_cb = Check Box( {"Table Properties"}, <<Set( 1, 1 ), tblOpt = tbl_cb << Get() );
+
+//--Define RadioControl and Options
+colOpt = 1;  //default if none selected
+col_rb = Radio Box(
+	{"All Columns", "Selected columns", "Choose columns"},
+	colOpt = col_rb << Index Of( col_rb << Get Selected );
+	If( colOpt == 3,
+		ifbOpt = 1,
+		ifbOpt = 0
+	);
+	col_ifb << set( ifbOpt );
+);
+col_rb << Set( 1 );
+If( N Items( xx ) == 0,
+	col_rb << EnableItem( 2, 0 ),
+	colSel = xx
+); 
+
+//--Define IfBox and ColListBox
+ifbOpt = 0;
+col_ifb = If Box(
+	ifbOpt,
+	col_clb = Col List Box(
+		all,
+		width( 250 ),
+		nlines( Min( 12, nc ) ),  //no more than 12 lines
+		colSel = col_clb << GetSelected
+	)
+);
+//--Define Modal User Dialog - user selections are returned as button, tblOpt, colOpt, colSel
+New Window( "Get Script Filters",
+	<<Modal,
+	H List Box(
+		Panel Box( "Select Options", H List Box( V List Box( tbl_cb, col_rb ), col_ifb ) ),
+		Panel Box( "Actions", //After winod is closed, Log will show -1 for cancel or user selections
+			V List Box(
+				ok_bb = Button Box( "OK",
+					button = 1;
+					Show( button, tblOpt, colOpt, If( colOpt == 3, colSel ) );
+				),
+				ex_bb = Button Box( "Cancel",
+					button = -1;
+					Show( button );
+				)
+			)
+		)
+	)
+);
+
+//Check for user cancel
+If( button == -1,
+	Throw( "User cancel" )
+);
+
+//------------------------------Actual Actions-------------------------------------------------
+//Except for the display this section of code should be familiar after Chapters 1-4
+subOpt = Choose( colOpt,
+	Expr( Selected Columns( 0 ) ),          // All columns
+	Expr( Selected Columns( 1 ) ),     //Current tables selected(highlighted) columns
+	Insert( Name Expr( Columns() ), Name Expr( colSel ) )  //Selected from a list 
+);
+//--Error Checking
+//subOpt should be an expression.  Use NameExpr(subOpt) to return teh expression not evaluated
+If( !Is Expr( Name Expr( subOpt ) ),
+	Throw( "Error: proper column option was not created" )
+);
+
+
+Eval(
+	Substitute( Expr( dt = Current Data Table() << Subset( __opt__, Sample Size( 1 ), Invisible ) ),
+		Expr( __opt__ ), Name Expr( subOpt )
+	)
+);
+dt << delete rows( [1] );
+
+//--dt now contains no rows and the columns seleceted by the user
+//--Note dt in this script will not affect another scripts reference to dt, 
+//     since Names Default to Here is enabled
+// Based upon the option tblOpt to get the table script, that is, the script to create the entire table
+// send the get script message to the table if yes/1 otherwise get the script for each column
+
+dt << Set Name( "New_Table_Name" );
+sb = Script Box();
+If( tblOpt,
+	xx = dt << get script;
+	sb << Append Text( Char( Name Expr( xx ) ) );
+, 
+// else
+	For( i = 1, i <= N Col( dt ), i++,
+		xx = Column( dt, i ) << get script;
+		sb << Append Text( Char( Name Expr( xx ) ) || ";\!r\!r" )
+//Add a semicolon and two carriage returns after each column script
+		;
+	) // for - else
+);  // end If 
+Wait( 0 );
+Close( dt, NoSave );
+
+//Instead if displaying it to the log write it to a window
+nw = New Window( "tableScript", sb );
+sb << Reformat;
+nw << Set Window Size( 800, 800 );

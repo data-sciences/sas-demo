@@ -1,0 +1,96 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_ColumnFormats.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates setting and changing column formats
+
+
+// Create data table
+currency_dt = New Table( "Currency",
+	Add Rows( 10 ),
+	New Table Variable( "Canadian Dollar", "1.03301" ),
+	New Table Variable( "Chinese Yuan", "6.83072" ),
+	New Table Variable( "Norwegian Krone", "6.49616" ),
+	New Column( "Date",
+		Numeric,
+		Continuous,
+		Format( "m/d/y", 10 ),
+		Input Format( "m/d/y" ),
+		Set Values(
+			[3355516800, 3356035200, 3356035200, 3357417600, 3357936000,
+			3358195200, 3358886400, 3358886400, 3358972800, 3358972800]
+		)
+	),
+	New Column( "Toy",
+		Character,
+		Nominal,
+		Set Values(
+			{"Stuffed Cow", "Musical Microphone", "Activity Turtle",
+			"Stuffed Giraffe", "Mirror Cone", "Shopping Set",
+			"Stuffed Monkey", "Stacking Tower", "Farmyard Activity",
+			"Musical Bee"}
+		)
+	),
+	New Column( "Price USD",
+		Numeric,
+		Continuous,
+		Format( Currency( "USD" ), 17, 2 ),
+		Set Values(
+			[28.88, 47.65, 24.99, 23.99, 20.22, 24.99, 19.99, 46.28, 60,
+			50.99]
+		)
+	),
+	New Column( "Price CAD",
+		Numeric,
+		Continuous,
+		Format( "Best", Use thousands separator, 12 ),
+		Formula( :Canadian Dollar * :Price USD )
+	),
+	New Column( "Price CNY",
+		Numeric,
+		Continuous,
+		Format( "Best", Use thousands separator, 12 ),
+		Formula( :Chinese Yuan * :Price USD )
+	),
+	New Column( "Price NOK",
+		Numeric,
+		Continuous,
+		Format( "Best", Use thousands separator, 12 ),
+		Formula( :Norwegian Krone * :Price USD )
+	)
+);
+
+//Define data table
+currency_dt = Data Table( "Currency.jmp" );
+
+// Update column formats
+// Update date display to show only month and year
+Column( currency_dt, "Date" ) << Format( "m/y", 10, "m/d/y" );
+
+//Update format of currency columns
+Column( currency_dt, "Price CAD" ) << Format(
+	"Currency",
+	CAD,
+	Use thousands separator( 1 ),
+	10,
+	2
+);
+Column( currency_dt, "Price CNY" ) << Format(
+	"Currency",
+	CNY,
+	Use thousands separator( 1 ),
+	10,
+	2
+);
+Column( currency_dt, "Price NOK" ) << Format(
+	"Currency",
+	NOK,
+	Use thousands separator( 1 ),
+	10,
+	2
+);
+
+// Shows the format of the column in the log window
+Column( currency_dt, "Price NOK" ) << get script;  //see Log Window
+
+// Using the Format() function to assign a value
+val_NOK = Format( 187.6091008, "Currency", "NOK", 2 );

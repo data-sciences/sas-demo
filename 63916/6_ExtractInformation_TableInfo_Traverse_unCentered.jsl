@@ -1,0 +1,136 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_ExtractInformation_TableInfo_Traverse_unCentered.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for navigating and accessing information in a report.
+
+
+//Uses Rate of Rise Data Set with stacked (Model) format
+//Tasks
+//   Fit quadratic models and traverse the report gathering the desired nuggets into a table.
+//   The results table should include coefficients for b0 + b1*Time + b2*Time^2 
+//   for each By (Tool, Lot) and Group (Wfr) combination. 
+//   Each plot represents a single By group (Tool, Lot) with separate curves for 
+//   each wafer.
+ror_stk_dt = Open( "$JSL_Companion\ROR Model Format.jmp" );
+
+ror_biv = ror_stk_dt << Bivariate(
+	Y( :Temperature ),
+	X( :Time ),
+	By( :Tool, :Lot ),
+	Group By( :Wfr ),
+	Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )
+);
+
+rpt_dt = New Table( "Temperature ROR Profiles Wafer",
+	New Column( "DateTime", numeric, continuous, Format( "m/d/y h:m" ) )
+);
+dtCol = Column( rpt_dt, "DateTime" );
+entCol = rpt_dt << New Column( "Tool", character, nominal );
+lotCol = rpt_dt << New Column( "Lot", character, nominal );
+wfrCol = rpt_dt << New Column( "Wfr", numeric, nominal );
+obsCol = rpt_dt << New Column( "N", numeric, continuous );
+xbCol = rpt_dt << New Column( "Mean", numeric, continuous );
+b0Col = rpt_dt << New Column( "b0", numeric, continuous );
+b1Col = rpt_dt << New Column( "b1", numeric, continuous );
+b2Col = rpt_dt << New Column( "b2", numeric, continuous );
+r2Col = rpt_dt << New Column( "RSquare", numeric, continuous );
+errCol = rpt_dt << New Column( "RMSE", numeric, continuous );	
+
+//Bivariate is Format "A" so loop thru the series of bivariate analyses
+//Note each nItems(ror_biv) = # unique combinations of Ent Lot
+crow = 0;
+For( i = 1, i <= N Items( ror_biv ), i++,
+	rpt = Report( ror_biv[i] );   // work on each Bivariate
+	ttl = rpt[Outline Box( 1 )] << get title;
+
+//use pattern matching to get the entity and lot values
+	p1 = Pat Arb() + "Tool=" + Pat Arb() >? entid + "," + Pat Arb() + "Lot=" + Pat Rem() >? lotid;
+	Pat Match( ttl, p1 );
+
+/* --- Alternative -----
+// Without pattern matching and regular expressions
+  entid = trim(word(2, ttl, "=,"));
+  lotid = trim(word(4, ttl, "=,"));
+*/
+
+	// show(entid, lot id);   
+	rpt_dt << add rows( 3 );
+	For( j = 1, j <= 3, j++,
+		entCol[crow + j] = entid;
+		lotCol[crow + j] = lotid;
+		wfrCol[crow + j] = j;
+//see Notes below on Structure and Robust code
+		newobj = rpt[Outline Box( "?Wfr==" || Char( j ) || "??" )];
+		sum_fit = newobj["Summary of Fit"][Table Box( 1 )][2];
+		obsCol[crow + j] = sum_fit[5];
+		xbCol[crow + j] = sum_fit[4];
+		r2Col[crow + j] = sum_fit[1];
+		errCol[crow + j] = sum_fit[3];
+//the desired coefficients are for b0 + b1*Time + b2*Time^2 
+		coef_fit = newobj["Parameter Estimates"][Number Col Box( "Estimate" )];
+		b0Col[crow + j] = coef_fit[1];
+		b1Col[crow + j] = coef_fit[2];
+		b2Col[crow + j] = coef_fit[3];
+//If desired clean up the display by turning off each curve's report
+		//Comment out if you want to check the newly created report values with JMP's report
+		ror_biv[i] << (Curve[j] << Report( 0 ));
+	);
+	crow = N Row( rpt_dt );
+);
+//The last table report task is to get the datetime. This could have been added
+//to the By variable and pulled out from each bivariate's outline box title
+//However, this would have changed the structure since time for wafers 2-3 are 
+//some offset from wafer 1, so use a join or summary here.  Below is summarize
+Current Data Table( ror_stk_dt );
+Summarize( tgrps = By( :Tool, :Lot, :Wfr ), ttime = Min( :DateTime ) ); //keep same order as Bivariate
+//check of the number of times match the number of rows in the report
+If( N Row( ttime ) != N Row( rpt_dt ),
+	Throw( "unexpected mismatch while joining datetime" )
+);
+dtCol << set values( ttime );
+
+
+/* ------ Notes -----------------------
+*  When using a Group By variable in Bivariate, each "fit" request 
+*  generates output for each unique By Group value, in this case 
+*  Wfr has unique values, 1,2,3.  However, once created a user has the
+*  option to remove a specific GroupBy fit, and/or the report for that
+*  fit so JMP's structure uses an IfBox wrapper around each Group 
+*  analysis.  I point this out for 2 reasons: Structure and Robust
+*  code. 
+*  Structure 
+     i=1; rpt=report(ror_biv[i]);  //needed if run outside for i loop
+     for(j=1, j<=3, j++,
+      if(j==1, newobj = rpt[OutlineBox(2)],
+      	newobj = ((currobj << parent)<<sib)<<child
+      );
+      show(newobj<<class name, newobj<<get title);
+      newobj << select;
+      wait(5);
+      newobj << deselect;
+      currobj = newobj;  
+  );
+*  In each loop the currobj is the report for "fit" of a group
+*  Its parent is the IfBox; its sib is the next IfBox, and
+*  its child is the OutlineBox conataining the next "fit"
+*  group report. 
+ 
+*  Robust Code
+*  If you are generating an interactive report where a 
+*  user may interact with the report and you have a custom
+*  button to create a report, this should be in a while loop
+*  stopping when no more fit/group reports are found.
+*  and to be really safe a strategically placed Try() function 
+*  to capture any issues should be deployed.
+*
+*  When you are writing code, where you have control
+*  assuming you have a report for each wafer is probably
+*  safe.  However, what if one lot had only 2 wafers results?
+*  A Try() should be wrapped around the commands within
+*  the For loop.  Depending upon the application, I might
+*  keep a row for each of 3 wafers, highlighting one was missing,
+*  or I might change the script to add a row only when a 
+*  fit report was found.
+*  
+*/
+

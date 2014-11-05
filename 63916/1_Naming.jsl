@@ -1,0 +1,49 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	1_Naming.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates required naming conventions and the Name() command
+
+
+Clear Symbols(); //erases the values set for variables
+
+// Open data table and define Body Measurements.jmp dataset as BMI_dt.
+BMI_dt=Open("$SAMPLE_DATA\Body Measurements.jmp");
+
+// This script statement throws an egregious error...
+<80Waist_col=New Column("<80 Waist");
+
+// But these two work very well.
+lt80Waist_col=New Column("<80 Waist");
+Name("<80Waist_col")=New Column("<80 Waist");
+
+// Some names are "reserved" for functions...
+beta=0.05;
+// ...but can be unambiguously resolved with a special parser directive Name().
+Name("beta")=0.05;
+
+/* Colons can be used as Scoping Operators
+::var;  // Var is a Global Variable
+
+:var;	// Var is a Table Column
+
+var; 	// Depends on when first used...
+*/
+
+//------Extra Examples-----------------------------------------
+// Remove the /* and */ below and run that block of script
+// This block of code demonstrates how JSL ignores spaces in 
+// script names and how spaces are important in column names
+/*
+var12 = 52;
+var1 2 = 10;
+show( var12, var1 2);  //see Log window 
+
+dt = New Table( "tryit", 
+  New Column( "var12", numeric ), 
+  New Column( "var1 2", character ) 
+ );
+dt << add row( 1 );
+:var1 2[1] = "Hi";
+:var12[1] = 20;
+
+*/

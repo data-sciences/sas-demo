@@ -1,0 +1,72 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_MultipleFileSelection.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates reading multiple files
+
+
+// Script outline
+//   - Pick Directory
+//      -  Posix format and path convert functions
+//   - Files in Directory
+//   - Function Creation Date
+//   - Pick File() see 2_ReadData.jsl for details and examples.
+// Run this script in blocks and view results in the log or by hovering over variables
+//--------------------------------------------------------------------------------------
+//-------Prompt user to Pick Directory and check for cancel 
+
+usrDir = Pick Directory( "Select a directory for files to be opened." );
+
+// Program flow control and type checking code
+// Note type checking is not needed here. However, if you decide to ask 
+// the user to type in a string to define a directory then checking it exists
+// is probably wise.
+If( Length( usrDir ) == 0 | !Directory Exists( usrDir ),
+	Throw( "No valid directory was specified" )
+);
+
+// Using a known path, get file names
+// Get the full path for JMP Sample Data  
+
+sdPath = Convert File Path( "$Sample_Data", Windows );
+
+//-- Get a listing of all the files in the directory & subdirectories 
+//   since recursive option is specified
+sdFids_all_lvl = Files In Directory( sdPath, recursive );
+// As of JMP 9 Files in Directory() has no filter
+
+
+// Next Section uses Table/Column functions and commands that are covered in Chapters 3-4 
+// Create a table listing all files
+//   Note: the files are alphabetical and not organized by subfolder. That is,
+//   the top level is intermixed between subfolders.
+//   You need to scroll down to about row 160 in the table to see the foldername/file
+//   The forward slash is POSIX format.  See more about "Paths" in 2_Paths.jsl 
+
+//-- Create a table listing all files
+//   Note: the files are alphabetical,  
+sdFids_dt = New Table( "Sample Data Files", 
+  New Column( "File Paths", character, values( sdFids_all_lvl ) ) );
+
+//-- Creation Date function will return the latest date for the file, 
+//   it can be applied to one file or used in a column formula .
+sdFids_dt << New Column( "Creation", numeric, Continuous );
+
+// The syntax on the left hand side of send operator ( << ) is an  example of 
+// scoping.  The syntax is < Table Name | Table Reference>:Column Name
+sdFids_dt:Creation << set each value( Creation Date( sdPath || :FilePaths ) );
+sdFids_dt:Creation << Format( "m/d/y h:m:s", 23, 0 );
+
+// At this point you might select files based upon the creation date, subfolder or search for a string
+wait(4);
+Close( sdFids_dt, No Save ); 
+
+// The script App_InteractiveMutipleFileSelection.jsl is a concept script based upon the
+// the JSL functions demonstated in this script.  It also includes functions and 
+// scripting methods from Chapters 3-7.  Run it to visualize features that may be
+// useful for an interactive multiple file selection interface.  
+// Plan on reading and studying it once you read Chapter 7.
+ 
+// The script 2_Extra_MSDirUsingWeb.jsl has a dialog that allows the user to 
+// select multiple files.  Even if you are a Mac user, and do not have the Web command, 
+// you might find the selection dialog interesting.  It is using skills up through Chapter 7.
+ 

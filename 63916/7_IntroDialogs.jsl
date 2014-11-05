@@ -1,0 +1,172 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_IntroDialogs.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for dialogs.
+
+
+//Run the scripts in blocks delimited by //------------
+
+//Example of a non-modal dialog 
+//Similar to other analysis platforms, Distribution is non-modal
+cars_dt = Open( "$SAMPLE_DATA/Cars 1993.jmp" );
+cars_dt << Distribution();
+cars_dt << Bivariate(
+	Y( :Name( "Minimum Price ($1000)" ) ),
+	X( :Name( "Midrange Price ($1000)" ) )
+);
+//Notes: 
+//  The Bivariate report window containing the scatterplot appears 
+//  immediately after the Distribution Dialog Window appears...it does 
+//  *NOT* wait for the user response...this is non-modal behavior
+//
+//---------------------------------------------------------------------
+
+//Example of a modal dialog window
+//Open() is a modal dialog 
+cars_dt = Open();
+cars_dt << Distribution();
+cars_dt << Bivariate(
+	Y( :Name( "Minimum Price ($1000)" ) ),
+	X( :Name( "Midrange Price ($1000)" ) )
+);
+//Notes: 
+//  Neither Distibution nor Bivariate run until the "Open Data File"
+//  (a.k.a browse window) has been dismissed. Once the user selects okay
+//  or cancel the rest of the program will run.
+//  If a file is selected then Distribution will run.  However, if the
+//  file selected is not the Cars 1993.jmp file, Bivariate will not
+//  run unless the specified columns exist.
+//  If Cars 1993.jmp is selected and OK then this block of code will 
+//  have the same behavior as above: 
+//  The Bivariate report window containing the scatterplot appears 
+//  immediately after the Distribution Dialog Window appears...it does 
+//  *NOT* wait for the user response...this is non-modal behavior
+//
+//  An important aspect of writing a script is program flow, managing
+//  the order in which code/JSL commands are executed.  Modality is just
+//  one aspect.  Errors affect program flow as well. If a script is expecting 
+//  a user response, for example actually selecting a file and not cancelling,
+//  or selecting a table that will have a column named Minimum Price ($1000)
+//  the JSL code should include error checking, especially user responses.
+//  Try(Open(), Throw() );  would halt the program,i.e., do nothing
+//  if the user did not open a file. 
+//  
+// A statement like
+//  If(
+//    !(Try (Is Number(:Name( "Minimum Price ($1000)" )[1]), 0)),
+//    Throw("error with column Minimum Price ($1000)"));
+//  
+//  Would halt the script if a column with that name did not exist in the 
+//  current data table or if it was not a numeric column.
+//---------------------------------------------------------------------
+
+//Format of a Custom Dialog Window
+New Window( "Customer Survey",
+	Text Box( "Gathering Customer Information") ,
+	Lineup Box(
+		2,
+		Text Box( "Name" ), Text Edit Box( "Last, First  " ),
+		Text Box( "Zip Code" ), Text Edit Box( "97110" )
+	)
+);
+//---------------------------------------------------------------------
+//Now let's look at modality. Compare this block with the next.
+//The only change is the specification to make it Modal ,  <<Modal
+
+//Non-Modal Custom Dialog Window
+win1 = New Window( "Customer Survey",
+	Text Box( "Gathering Customer Information") ,
+	Lineup Box(
+		2,
+		Text Box( "Name" ),
+		Text Edit Box( "Last, First  " ),
+		Text Box( "Zip Code" ),
+		Text Edit Box( "97110" )
+	)
+);
+win2 = New Window("Welcome", tb =Text Box("Hello World") );
+  tb << set Font Size(32);
+  tb << set Font ("Arial Black");
+  tb << Font Color (red);
+  
+//-----Clean-up if needed-----------------------------------------------
+Wait( 5 );
+Try( win1 << Close Window() );
+Try( win2 << close Window() );
+
+//---------------------------------------------------------------------
+//Modal Custom Dialog Window
+win1 = New Window( "Customer Survey", << Modal,
+	Text Box( "Gathering Customer Information") ,
+	Lineup Box(
+		2,
+		Text Box( "Name" ),
+		Text Edit Box( "Last, First  " ),
+		Text Box( "Zip Code" ),
+		Text Edit Box( "97110" )
+	)
+);
+win2 = New Window("Welcome", tb =Text Box("Hello World") );
+  tb << set Font Size(32);
+  tb << set Font ("Arial Black");
+  tb << Font Color (red);
+  
+//-----Clean-up if needed
+Wait( 5 );
+Try( win1 << Close Window() );
+Try( win2 << close Window() );
+
+//Notes: by adding the New Window option <<Modal, JMP adds an OK button
+//  and nothing below is executed until the user response.
+//  Non-modal is nice and familiar..I can look at other tables and do 
+//  other things in JMP before responding.  However, there is more
+//  complexity and program logic to manage non-modal windows.
+//  If you are just learning, and are using
+//  a custom window, we suggest you use the <<Modal option.  Once you
+//  learn the techniques of display box scripting then tackle
+//  the structure of your script to make dialogs non-modal.
+
+//----------  Extra   -----------------------------------------------------------
+//This is a look ahead script. It adds a few display boxes for organizing the display.
+//retrieves the user response and deploys it. Taking the recommedation above, make 
+//the dialog window modal. Run all statements to the end. 
+//Read this script again after completing Chapter 7.
+
+cs_win = New Window( "Customer Survey", << Modal,
+  HListBox(
+	Panel Box( "Gathering Customer Information" ,
+	Lineup Box(
+		2,
+		Text Box( "Name" ),
+		name_tb = Text Edit Box( "Last, First  " ),
+		Text Box( "Zip Code" ),
+		zip_tb = Text Edit Box( "97110" )
+	)), 
+	Panel Box( "Action", 
+		Lineup Box(
+		  VListBox(
+			ButtonBox("OK",    // getting user input 
+			   usr_name= name_tb << get text; 
+			   usr_zip = num( (zip_tb << get text));
+			   usr_Button= 1 ),
+			Button Box("Cancel", usr_button = -1  )
+		  )
+		)
+	) // end action panel box
+  )
+);
+
+//Deploying user input
+nmeList = words(usr_name, ",");
+If (nitems(nmeList) >1, 
+   nme = concat Items({ Trim(nmeList[2]), Trim(nmeList[1])}, " "),
+ // else
+   nme = trim(usr_name)  // no comma use whole name
+);
+win2 = New Window("Welcome", 
+  tb =Text Box("Hello " || nme);
+ );
+  tb << set Font Size(32);
+  tb << set Font ("Arial Black");
+  tb << Font Color (red);
+ 

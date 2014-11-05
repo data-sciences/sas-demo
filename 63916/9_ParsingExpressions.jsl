@@ -1,0 +1,137 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_ParsingExpressions.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates Arg(), N Arg(), and Head() functions to find
+//          arguments and peel off layers of nested expressions.  Uses Wild(),
+//			Wild List(), and Extract Expr() to parse expressions.
+
+
+/*  Get the contour values: min, max, and number of contours  */
+candy_bars_dt = Open( "$SAMPLE_DATA\Candy Bars.jmp" );
+cal_cp = candy_bars_dt << Contour Plot(
+	X( :Sugars g, :Protein g ),
+	Y( :Calories ),
+	Show Data Points( 1 ),
+	Fill Areas( 1 ),
+	Label Contours( 0 ),
+	SendToReport(
+		Dispatch( {}, "Contour Plot Graph", FrameBox, {Frame Size( 420, 363 )} ),
+		Dispatch( {}, "Contour Legend", FrameBox, {Frame Size( 96, 150 )} )
+	)
+);
+
+cal_cp_script = cal_cp << get script;
+nargs_cp = N Arg( cal_cp_script );
+found = 0;
+i = 1;
+
+//--Look for the argument Specify Contours(), hover over speccon_cp
+//  after running this While loop. This code relies on the JMP 
+//  script pattern that reports Min(), Max() and N() as the 1st, 
+//  2nd and 3rd arguments of Specify Contours(). 
+While( (found == 0 & i <= nargs_cp),
+	If( Char( Head( Arg( cal_cp_script, i ) ) ) == "Specify Contours",
+		speccon_cp = Arg( cal_cp_script, i );
+		min_cp = Arg( Arg( speccon_cp, 1 ), 1 );
+		max_cp = Arg( Arg( speccon_cp, 2 ), 1 );
+		N_cp = Arg( Arg( speccon_cp, 3 ), 1 );
+		found = 1,
+		i = i + 1
+	)
+);
+
+//-- Functions Extract Expr() especially with Wild() and WildList()
+//   are very powerfull tools. Since we know speccon_cp exists,
+//   run the next statement. The Log reports Min(150).
+//   Run the next 3 statements, one line at a time and verify the
+//   results in the Log.  JMP will find these arguments and your script
+//   will not need to rely on the assumed order of these arguments.
+
+Show( Extract Expr(speccon_cp, Min(Wild()) ) ); //Min(150)
+ex_min_cp = Arg( Extract Expr(speccon_cp, Min( Wild()) ), 1 );   //150
+ex_max_cp = Arg( Extract Expr(speccon_cp, Max( Wild()) ), 1 );   //350
+ex_N_cp = Arg( Extract Expr(speccon_cp, N( Wild()) ), 1 );       //5
+
+/*----------------------------------------------------------------------*/
+
+//Open data filter and get column name used on filter
+// -- Run this line and then filter the data with one variable
+data_fil = candy_bars_dt << Data Filter( Select( 1 ) );
+
+// -- Before running the next line select a single variable and filter the data
+data_fil << to Data Table;
+dtscript_names = candy_bars_dt << Get Table Script Names();
+Nscripts = N Items( dtscript_names );
+
+// Get data filter from table and determine column name
+select_expr = Eval( Expr( candy_bars_dt << Get Property( dtscript_names[Nscripts] ) ) );
+col_name = Arg( Arg( Arg( select_expr, 1 ), 1 ), 1 );
+
+/*----------------------------------------------------------------------*/
+
+//Create list of columns used in the data filter when more than one column is used
+iris_dt = Open( "$SAMPLE_DATA\iris.jmp" );
+
+//Create data filter
+iris_dfil = iris_dt << Data Filter(
+	Location( {643, 157} ),
+	Add Filter(
+		columns( :Name("Sepal width"), :Name( "Sepal length" ) ),
+		Where( :Sepal width >= 2.9522 & :Sepal width <= 4.2043 ),
+		Where(
+			:Name( "Sepal length" ) >= 5.7478 & :Name( "Sepal length" ) <= 7.4696
+		)
+	),
+	Add Filter( columns( :Species ), Where( :Species == "versicolor" ) )
+);
+
+//Send the filter to the data table as a table property
+iris_dfil << Save Script To Data Table;
+	
+//Check to ensure the user has selected a filter
+dtscript_names =  iris_dt << Get Table Script Names();
+
+//Get data filter from table and determine column name
+select_stmnt = iris_dt << Get Property( dtscript_names[NItems(dtscript_names)] );
+select_expr = Eval Expr( select_stmnt );
+	
+//Extract columns used in the data filter
+dfExpr = Extract Expr( select_expr, Data Filter( Wild List() ) );
+Col_AA = [=> ];
+For( i = 1, i <= N Arg( dfExpr ), i++,
+	tmpExpr = Arg Expr( dfExpr, i );
+	If( Head Name( tmpExpr ) != "Add Filter",
+		Continue()
+	);
+	tmpList = Extract Expr( tmpExpr, columns( Wild List() ) );
+	For( j = 1, j <= N Arg( tmpList ), j++,
+		tmpStr = Eval Insert( "^ArgExpr(tmpList,j) << Get name^" );
+		Col_AA[tmpStr] = 1;
+	);
+);
+
+//Create a list of unique columns
+col_lst = Col_AA << Get Keys;
+Show(col_lst);
+
+/*Notes:
+This last example demonstrates the power of understanding the characteristics
+of each JMP platform, object and function.
+   - Data Filter allows adding new filters, both as AND(+) and OR(|). Each
+     OR has a new Add Filter in its saved script. 
+   - Using a For loop and expression functions find all instances of
+     Add Filter.  
+   - If an argument is not an Add Filter, skip it using the Continue statement.
+   - For each Add filter use Extract Expr() with columns(WildList()) to 
+     retrieve the list of columns used for that Add Filter.
+   - Since the logic could be complex, columns could be used more than once.
+     Knowing that an associative array must have unique keys, creating a key 
+     for each column found will ensure a list of unique columns.
+This is called "putting it all together".  We could show you 3 ways of
+achieving this same result.  
+
+As you script more, look for methods that are first and foremost robust 
+and fast, then short and easy.  Extract Expr() is great for small platform and 
+Data Filter scripts, but may not be a good choice for extracting expressions 
+from complex, deeply nested scripts and expressions.    
+*/

@@ -1,0 +1,54 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_PolygonAnnotation.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates alternative methods to add a custom box to a FrameBox
+
+
+Clear Globals();
+Names Default To Here( 1 );
+
+//---- Block #1 ----------------------------------------------------------------
+Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+biv = bivariate( y( weight ), x( height ) );
+rbiv = biv << report;
+rbiv << Add Polygon Annotation(
+    Points( {200, 300}, {200, 200}, {400, 200}, {400, 300} ),
+	Color( "Blue" ),
+	Closed( 1 )
+);
+
+rbiv[FrameBox(1)] << {Frame Size( 486, 300 )};
+
+//--------run to here----------------------------------------------------------
+//Note Add Polygon Annotation was assigned to entire display
+//Run the next block of commands to add another box the same size to the FrameBox
+
+//---- Block #2 ----------------------------------------------------------------
+rbiv[FrameBox(1)] << Add Polygon Annotation(
+    Points( {200, 300}, {200, 200}, {400, 200}, {400, 300} ),
+	Color( "Red" ),
+	Closed( 1 )
+);
+
+
+rbiv[FrameBox(1)] << Add Graphics Script(
+    PenSize(2); PenColor("Purple");
+    Rect( 56, 113, 65, 73, 0 )
+);
+
+ 
+//----Use the hand grabber (H) to scroll the Y-axis, weight, up-down.
+//----Move your mouse to the corner of the FrameBox and resize it.
+//Note: PolygonAnnotation enables circling and highlighting inside and outside
+//the Framebox.  When annotation is added to the FrameBox it scales and moves
+//with Framebox scaling and resizing.  Added to the entire display does not 
+//have the same behavior.  
+ 
+// Rect() is provided as an alternative to define a box relative to data 
+// values vs. pixels.
+
+//Recall  the synatx for the command to add a graphics script is
+//    Add Graphics Script(<order>, script) where order can be the 
+//    word BACK or a number
+//Use Back or 2 if you want the purple rectangle to be drawn behind the points

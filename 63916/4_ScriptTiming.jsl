@@ -1,0 +1,61 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_ScriptTiming.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates how to control the timing of a script by using Wait(), 
+//          suppressing formula evaluation, and using Expressions
+
+
+//----------  Wait Function  ----------
+For( i = 99, i > 0, i--,
+	  Caption(Wait( 2 ),{10, 30},
+		    Char( i ) || " bottles of beer on the wall, " 
+		    || Char( i ) 
+		    || " bottles of beer; take one down  pass it around, " 
+		    || Char( i - 1 ) 
+		    ||" bottles of beer on the wall. "
+	  )
+);
+Wait( 3 );
+Caption( Remove );
+
+
+//----------  Suppress formulas in a table  ----------
+new_dt = New Table( "Random Numbers", Add Rows( 100000 ) );
+
+new_dt << delete columns( "Column 1" );
+new_dt << Suppress Formula Eval( 1 );
+new_dt << New Column( "Random Normal 1", Formula( Random Normal() ) );
+new_dt << New Column( "Random Normal 2", Formula( Random Normal() ) );
+new_dt << New Column( "Ratio", Formula( :Random Normal 1 / :Random Normal 2 ) );
+
+//Evaluate formulas for the table
+new_dt << Suppress Formula Eval( 0 );
+
+
+
+//----------  Suppress formulas globally  ----------
+Suppress Formula Eval( 1 );
+
+new1_dt = New Table( "Random Numbers 1",
+	Add Rows( 100000 ),
+	New Column( "Random Normal", Formula( Random Normal() ) )
+);
+
+new2_dt = New Table( "Random Numbers 2",
+	Add Rows( 100000 ),
+	New Column( "Random Normal", Formula( Random Normal() ) )
+);
+
+//Evaluate formulas globally
+Suppress Formula Eval( 0 );
+
+
+//Delay execution and evaluation of an expression
+a = Expr( b + 4 );
+Show( a );  //a = b + 4;
+b = 1;
+Show( a );
+Eval( a );  //a = b + 4;  5
+b = 2;
+Show( a );
+Eval( a );  //a = b + 4;  6

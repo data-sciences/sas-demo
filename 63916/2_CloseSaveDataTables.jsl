@@ -1,0 +1,85 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_CloseSaveDataTables.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Basic syntax for Close and Save commands
+
+
+//---------Example #1:  Simple Syntax ---------------------------------------
+// Open a specific file, count the number of rows and columns, and save and close the file.
+// Suggestion: Maintain different globals for directory paths and file names.
+
+// Change the globals to test the script on different input files
+::pathOut = "c:\temp\";
+::pathIn = "$Sample_Data\";
+::fid = "Candy Bars.jmp";
+raw_dt = Open( ::pathIn || fid );
+//----Do something: get table information or modify the table
+
+nr_dt = N Row( raw_dt );
+nc_dt = N Col( raw_dt );
+//save the table in the default path using the default name
+raw_dt << Save(); 
+
+//save in directory ::pathOut
+ttl = raw_dt << get name;
+raw_dt << Save( ::pathOut || ttl || ".jmp" ); //JMP file
+raw_dt << Save( ::pathOut || ttl || ".xls" ); //Excel file
+raw_dt << Save( ::pathOut || ttl || ".csv" ); 
+//comma, space, value file
+raw_dt << Save( ::pathOut || ttl || ".txt" ); 
+//text file uses current Export Settings
+
+// Save and close
+Close( raw_dt, Save( ::pathOut || ttl || ".jmp" ) );
+
+//----Close NoSave is commented out since a table can be closed once
+//Close( raw_dt, NoSave );
+
+
+//---------Example #2:  Linked vs. Unlinked Tables ---------------------------------------
+// Extra: Close All - a useful command while testing scripts  
+// Close without prompting, unsaved changes will not be saved
+// Close All( Data Tables );   //closes all data tables and linked reports
+// Close All( Reports );       //closes all analysis windows
+// Close All( Journals );      //closes all analysis windows
+
+/****************************************************************************
+  JMP creates linked tables from two platforms: Tables -> Summary and Tables -> Subset.  
+  JMP 9 provides options for each of these commands to specify whether the 
+  resulting table should be linked.  
+  - The default for Summary is linked 
+  - The default for Subset is unlinked.  
+  - These options must be set with the initial command.
+****************************************************************************/
+
+// Create linked tables
+raw_dt = Open( ::pathIn || fid );
+raw_dt << select where( :Brand == "Hershey" );
+sub_dt = raw_dt << Subset( All columns, linked );
+sum_dt = raw_dt << Summary( 
+  Group( :Brand ), 
+  Mean( :Calories ), 
+  Link to original data table( 1 ) 
+ );
+Close( raw_dt );  //closes raw_dt, sum_dt, sub_dt
+
+//--Create unlinked tables
+raw_dt = Open( ::pathIn || fid );
+raw_dt << select where( :Brand == "Hershey" );
+sub_dt = raw_dt << Subset( All columns );
+sum_dt = raw_dt << Summary( 
+   Group( :Brand ), 
+   Mean( :Calories ), 
+   Link to original data table( 0 ) 
+);
+Close( raw_dt );  //closes only raw_dt
+
+
+//---------Example #3:  Delete Files Created by this Script ---------------------------------------
+Close( sum_dt, NoSave );
+Close( sub_dt, NoSave );
+Delete File( ::pathOut || ttl || ".jmp" ); //jmp file
+Delete File( ::pathOut || ttl || ".xls" ); //Excel file
+Delete File( ::pathOut || ttl || ".csv" ); //comma, space, value file
+Delete File( ::pathOut || ttl || ".txt" ); //text file uses Export Settings
+

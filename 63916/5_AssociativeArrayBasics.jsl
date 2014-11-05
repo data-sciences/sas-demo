@@ -1,0 +1,148 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_AssociativeArrayBasics.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax and statements for Associative Arrays, including some extras
+//		not discussed in the book.
+
+
+// This script demonstrates syntax for the 3 methods to building an associative array, 
+// the syntax for specifying/creating a default value, and its use. It shows how to add new
+// items and remove items from and associative array object (AAobj), and how 
+// associative arrays can be combined simply with insert object.
+// Run the script in blocks.  See results in the log after Show() statements.
+//-----------Alternate Methods to Create an Associative Array ----------------------
+
+//--AA created by a list of key-value pairs
+cheese_AA = Associative Array({
+    {"colby", 4.79}, {"swiss", 5.25}, {"havarti", 6.79}, 
+    {"provolone", 5.79}, {"cheddar", 5.10}, {"aged_cheddar", 6.50}
+    }); 
+show( cheese_AA,  cheese_AA["aged_cheddar"]);    
+
+//--AA created by 2 same-sized lists 
+//  The first list defines keys, the second list defines values    
+meat_AA =Associative Array( 
+     {"black_forest_ham" ,"honey_baked_ham", "smoked_turkey", "boneless_riblets"},
+	 {6.99, 5.99, 5.88, 6.67}, 0  );   //meat_AA has a default value of 0
+show(meat_AA, meat_AA["smoked_turkey"]);
+ 
+//--AA created with short-hand syntax 
+fish_AA = [ "smoked_alaskan_salmon" => 7.29, 
+      "teriyaki_mahi_mahi" => 8.29,
+      "hawaiian_glazed_shrimp" => 6.35 , => 0  ];  //default value zero
+show(fish_AA, fish_AA["teriyaki_mahi_mahi"], fish_AA["tuna"] );          
+           
+//--Create an empty AA, or an empty AA with a default value, then insert or remove
+cppAA = Associative Array(0);  // equivalent to short-hand cppAA= [ => 0 ];
+prices_AA = [ => ];     // equivalent to function prices_AA = Associative Array();
+cppAA["colby"] = 4.79;  //replaces and old value or creates a new item
+
+//syntax: Insert( key, value ) equivalent to Insert item( key, value ) 
+cppAA << Insert("cheddar", 5.10);  
+
+
+//----------Combine Associative Arrays-----------------------------------
+//syntax :Insert ( AAobj)  insert an associative array object
+prices_AA << Insert(cheese_AA) << Insert(meat_AA)  << Insert(fish_AA);
+show(prices_AA);    //prices_AA has no default value, note the order 
+
+//------------Errors with no default value-------------------------------------------
+//----Run one line at a time
+Show( cheese_AA["pepper_jack"] );   //throws and error
+Show( cheese_AA["Cheddar"] ) ;      //keys are case sensitive "Cheddar" does not exist
+
+
+//-----------------------------------------------------------------------------------
+//--AA created from two table columns 
+//--Behavior when duplicates in the "key" column
+Open( "$Sample_Data\Big Class.jmp" );
+bcAA = Associative Array( :name, :age );
+Show( bcAA );  
+//There are 2 "Robert" rows in Big Class but only one key, 
+//the value is the age of the last Robert in the data table
+Close(Data Table ("Big Class"), NoSave);
+
+
+//----------------------------------------------------------------------------------
+//--AA created from two table columns
+Open( "$JSL_Companion/Deli Items.jmp" );
+cppAA = Associative Array( :Item Name, :ItemPrice ); //cppAA new AAobj
+//--Set a Default Value after an AAobj is created
+cppAA << Set Default Value( 0 ); 
+
+//----------Remove Items------------------------------------------------------------
+cppAA << Remove("aged_cheddar");  //remove one key
+Show( cppAA << First ); //*: cppAA << First = "black_forest_ham";
+
+//--update example
+bcpp = Char( cppAA["colby"] );
+cppAA["colby"] *= 1.10;   //cppAA price is updated
+acpp = Char( cppAA["colby"] ); 
+caption ("before price increase is " ||bcpp || " after a 10% increase is " || acpp ); 
+
+//--Remove(AAobj) example
+//Removes all items listed in one AAobj from another in a single command without 
+//looping.  
+cppAA << Remove(cheese_AA);  //same result as Remove( cheese_AA << get keys)
+//Note cheese_AA and cppAA have different values for key "colby" 
+show(cppAA,  cppAA << Next("smoked_alaskan_salmon")); //*: "smoked_turkey"
+
+
+//-----------------Extras: More Examples----------------------------------------------
+
+//-----create a table from an associative array
+dt = New Table( "My Deli Items",
+	New Column( "Item Name", character, nominal ),
+	New Column( "Item Price", numeric, continuous )
+);
+dt << add rows( N Items( prices_AA ) );
+:Item Name << set values( prices_AA << get keys );
+:Item Price << set values( prices_AA << get values );  
+:Item Price << Format( Currency( "USD" ), 15, 2 ); 
+
+//-----create an asociative array to store spec limits
+// JMP column property specs is an alternative if length, width and height were 
+// data table columns.
+
+usl_aa = Associative Array({ {"length",60.1}, {"width", 49.1}, {"height",27.05 }}, empty());
+tar_aa = Associative Array({ {"length",60}, {"width", 49}, {"height",27 }}, empty());
+lsl_aa = Associative Array({ {"length",59.9}, {"width", 48.9}, {"height",26.95 }}, empty());
+specs_aa = Associative Array();  //empty array
+//--AAobj value is a matrix
+specs_aa <<  Set Default Value ([.,.,.]);
+specs_aa["length"] =  [59.9,60,60.1 ];
+//--JMP syntax does not allow syntax with nested brackets [ Max([ 1,2,3 ]), etc]  each matrix element must evaluate to
+// a number, so use a list and convert to a matrix
+specs_aa["height"] =  Matrix({lsl_aa["height"],  tar_aa["height"],usl_aa["height"] } );
+specs_aa << insert( "width" , [49.9, 49, 49.1]) ;
+show( specs_aa);
+// The column property "specs" may save time and coding if the specification
+// limits are the same for the entire column.  However, if the data table includes
+// a column :Parts where each part has its own specs, an associative array
+// parts_usl, parts_tar, and parts_lsl is a good option, especially for a very large
+// table and look-up is fast when using an associative array.  Of course, another
+// alternative is to create AAobj parts_AA whose value is an associative array
+
+//This script was copied from the Object Scripting Index -> Project 
+// -> Document ->Properties
+
+p = Open Project("$SAMPLE_SCRIPTS/Sample Project.jmpprj" );
+obj = p << Add Document(
+	"$SAMPLE_SCRIPTS/demoMeanTestPValue.jsl"
+);
+Print( p );
+prop = obj << Properties;
+Show( prop );
+
+Wait( 2 );
+p << close;		//Close the projects before running other examples.
+
+//--Look at the Log window JMP stores project properties as an associative array
+/*
+prop = ["Created" => 24Jan2011:17:51:31, "Exists" => "Yes", 
+"Location" => "C:\Program Files\SAS\JMP\9\Support Files English\Sample Scripts\demoMeanTestPValue.jsl", 
+"Modified" => 07Apr2011:13:28:44, 
+"Name" => "$SAMPLE_SCRIPTS/demoMeanTestPValue.jsl", 
+"Restore with project" => "No", "Size" => 1891
+   ];
+*/

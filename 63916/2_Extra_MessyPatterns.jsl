@@ -1,0 +1,59 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Extra_MessyPatterns.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates using patterns to help read and parse data
+
+
+// define sequences or specific patterns
+::spaces = Pat Span( " " );
+::lineBreak = Pat Span( "\!n\!r" );
+::restOfLine = Pat Break( "\!n\!r" );
+
+:: word = Pat Break( " \!n\!r" );
+::number = Pat Span( "0123456789." ) >> ::numberString;
+::latitude = ::number + Pat Any( "NS" );
+::longitude = ::number + Pat Any( "WE" );
+
+// note a pattern match can include an executable statement
+::numberOut = ::spaces + ::number + expr( dataOutput; PatFence() );
+
+// define header as a specific sequence
+::header = 
+    ::spaces + "VARIABLE : " + ::restOfLine >> ::TVariable + ::lineBreak +
+    ::spaces + "FILENAME : " + ::restOfLine >> ::TFilename + ::lineBreak +
+    ::spaces + "FILEPATH : " + ::restOfLine >> ::TFilepath + ::lineBreak +
+    ::spaces + "SUBSET   : " + ::restOfLine >> ::TSubset   + ::lineBreak +
+    ::spaces + "TIME     : " + ::restOfLine >> ::TTime + ::lineBreak;
+::longline =PatArbNo(::spaces + ::longitude) + ::spaces + ::lineBreak;
+::xline = PatArbNo(::spaces + number) + ::lineBreak;
+::dataline = ::spaces + ::latitude + ::spaces + "/" + ::spaces + ::number + ":" +
+   PatArbNo(::numberOut);
+::allLines = ::header + ::longline + ::xline + PatArbNo(::dataline + ::lineBreak) 
+   + PatRPos(0);
+// so far only patterns have been defined
+
+// create a new table
+dt = New Table( "ASAExpos2006.jmp",
+	New Column( "Var", character ),
+	New Column( "Time", Character ),
+	New Column( "Value", Numeric )
+);
+
+// define an executable JSL command
+// when the pattern numberOut is matched this expression will run
+dataOutput = Expr(
+	dt << AddRow(
+		{:Var = ::TVariable, :Time = ::TTime, :Value =
+		Num( ::numberString )}
+	)
+);
+
+//load the entire file into a "string" called textfid
+jcpath = "$JSL_Companion\";
+textfid = Load Text File( jcpath || "cloudhigh1.txt" );
+
+//--this command tells JMP to match each line of the text file to the pattern allLines to textfid
+rc=patMatch(textfid,allLines,"", ANCHOR,FULLSCAN);
+
+dt << Bring Window to Front;
+ 

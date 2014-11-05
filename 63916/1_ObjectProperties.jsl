@@ -1,0 +1,86 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	1_ObjectProperties.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the basic syntax for referencing objects and sending messages
+
+
+// Script:
+//  - Introduces the basic syntax for referencing table columns and 
+//    column values, and the send syntax << Get Values.
+//  - Demonstrates the utility of the show properties command,
+//    highlighting objects that have properties and those that do not.
+//----------------------------------------------------------------------
+
+// Define a table reference
+BC_dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+Candy_dt = Open( "$SAMPLE_DATA/Candy Bars.jmp" );
+
+BC_dt << Distribution(); //open Distribution dialog for Big Class
+
+
+
+Class_dt = Open( "$Sample_Data/Big Class.jmp" );  //table reference
+ageCol = Column( Class_dt, "age" );			  //column reference
+nameCol = Column( Class_dt, "name" );
+
+//--a1 is the value in the first row of age
+a1 = ageCol[1];
+				     
+//--ageVal is a vector of all values in ageCol 
+ageVal = ageCol << get values;   
+
+// nameVal is a List of all values in ageCol, note it is a list, {}  
+nameVal = nameCol << Get Values;
+  
+//---table is a scriptable object with numerous messages
+//--includes Table/Analyze/Graph commands 
+Show Properties( Class_dt );	 
+
+//---column is scriptable with many messages
+Show Properties( ageCol );	
+
+//---a global variable is not scriptable, no messages
+Show Properties( a1 ); 
+
+//---a vector [or a list] is not scriptable,
+//---no messages
+Show Properties( ageVal );       			 
+
+// biv is assigned to the report window created by Bivariate
+biv = Class_dt << Bivariate( Y( :weight ), X( :height ) );
+
+// commands sent to biv
+biv << Group By( :sex ); //a separate analyses for F and M
+
+biv << FitLine( 1 );  //unless :sex has Value Ordering, F will be Curve[1], M Curve[2]
+
+// commands sent to each curve
+biv << {Curve[2] << LineWidth( 3 )};   //wide solid line
+biv << {Curve[1] << Line Style( Dashed ), Line Width( 3 )};  //wide dashed line
+
+// See the log for all commands for biv report window.
+Show Properties( biv );
+
+// Determine the type of argument using the Utility function "Type." 
+Show(
+	Type( Class_dt ),
+	Type( ageCol ),
+	Type( ageVal ),
+	Type( nameCol ),
+	Type( nameVal ),
+	Type( a1 ),
+	Type( biv )
+);
+
+tbl_name = Class_dt << Get Name;
+Show(
+	Is String( a1 ),
+	Is String( tbl_name ),
+	Is String( nameVal[2] )
+);
+Show( Is Number( a1 ), Is Number( tbl_name ) );
+
+/*
+Once a variable hase been assigned, hover over the variable to see its value.
+This is an alternative to Show() commands.
+*/

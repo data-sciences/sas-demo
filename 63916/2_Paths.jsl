@@ -1,0 +1,48 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Paths.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the function Convert File Path and other Utility functions
+
+
+/* Syntax
+
+  Convert File Path(path,    //pathname may be Windows or POSIX, pathname reference
+       <absolute|relative>,  //optional, default value is absolute
+       <posix|windows>,      //optional, default is posix (/c:/temp/ is posix and c:\temp\ is Windows)
+       <base(path)>          //useful if a relative path is specified
+    );
+*/
+
+//--------- Several function to get and set directories.  See JSL Function Index -> Utilities for details.
+defPath_pre = Get Default Directory();
+currPath = Get Current Directory();    //should be the path of this script
+myPath = Pick Directory( "Select the directory to get all files" );
+Set Default Directory( myPath );          //change the default directory to the user selected path
+defPath_post = Get Default Directory();
+Show( defPath_pre, currPath, myPath, defPath_post );
+
+//--------- Use system global path variables 
+haw = Convert File Path( "$HOME", absolute, windows );
+hap = Convert File Path( "$HOME", absolute, posix );
+hrp = Convert File Path( "$HOME", relative, posix );
+Show( haw, hap, hrp );
+
+//--------- Same for Sample Data
+daw = Convert File Path( "$SAMPLE_DATA", absolute, windows );
+dap = Convert File Path( "$SAMPLE_DATA", absolute, posix );
+drp = Convert File Path( "$SAMPLE_DATA", relative, posix );
+Show( daw, dap, drp );
+
+//--------- Relative Paths
+//----Two dots ("..") point upwards in the hierarchy, indicating the parent directory
+//----Single dot (".") is current directory
+upOneLevel = Convert File Path( "../", absolute, posix, Base( "$SAMPLE_DATA" ) );
+upTwoLevel = Convert File Path( "../../", absolute, posix, Base( "$SAMPLE_DATA" ) );
+upTriLevel = Convert File Path( "../../../", absolute, posix, Base( "$SAMPLE_DATA" ) );
+upOneCurr = Convert File Path( "../", absolute, posix );
+Show( upOneLevel, upTwoLevel, upTriLevel, upOneCurr );
+
+/* Built in Path variables
+HOME, DOCUMENTS, SAMPLE_DATA, SAMPLE_IMPORT_DATA, 
+SAMPLE_SCRIPTS, SAMPLE_IMAGES, and TEMP as path variables.
+*/

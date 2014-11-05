@@ -1,0 +1,172 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_DesigningADialogWindow_Extra.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the DisplyBox objects and methods to recreate 
+//  the JMP Fit Y by X dialog.
+
+/* This script extends 7_DesigningADialogWindow_Step3.jsl 
+   Extras include adding Icon box displays and a "concept" script
+   for the Column Filter new to JMP 9, which we would like to be 
+   a DisplayBox object in JMP 10.  
+*/
+
+//---Recall Step 3--------------------------------------
+//-- Results are returned and every feature is enabled except Recall.
+//-- Results are displayed in the Log
+
+//dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+Try(
+	If(N Table() == 0, 
+		Open(),
+	),
+	Throw()  //user canceled do not proceed
+);
+
+//initialize
+_win_info = "Distribution of Y for each X.  Modeling types "
+      ||"determine analysis." ;
+_ww = 200;
+_yvarList={}; _xvarList={}; _blkList={}; _wtList={};
+_freqList={}; _byList={};
+
+//Since there is a single source_inputCol, only the target_clb is needed
+_addCol_fn = Function( {target_clb},
+	{Default Local},
+	target_clb << Append( ::_inputCol << Get Selected );
+	// Send Get Items to a Col List Box	
+);
+
+
+//-- close window
+_closeit = Expr ( Current Window() << close window() );
+
+//-- return button status
+_btn_fn = Function({val}, 
+      If( val!=1, val = -1); 
+      Button = val   );
+
+//-- cancel 
+_cancel_xp = Expr( _btn_fn(-1); _closeit );
+
+//-- get results
+_get_rslt_xp  = Expr(
+	_yvarList = (_yvar_clb << get Items);
+	_xvarList = (_xvar_clb << get Items);
+	_blkList  = (_blk_clb << get Items);
+	_wtList   = (_wt_clb << get Items);
+	_freqList = (_freq_clb << get Items);
+	_byList   = (_by_clb << get Items);
+);
+
+_ok_action_xp =Expr(
+	_get_rslt_xp;  //get results
+	_btn_fn(1);    //set the button response
+	_closeit;       // close this window
+	Show( _yvarList, _xvarList, _blkList, _wtList, _FreqList, _byList, Button)
+);
+
+//-- remove items
+_remove_xp =Expr(
+	_yvar_clb << Remove Selected;
+	_xvar_clb << Remove Selected;
+	_blk_clb  << Remove Selected;
+	_wt_clb   << Remove Selected;
+	_freq_clb << Remove Selected;
+	_by_clb   << Remove Selected;
+);  
+
+//-- recall items  disabled button for now
+
+//-- help
+_help_xp = Expr(
+web("mk:@MSITStore:C:\Program%20Files\SAS\JMP\9\Support%20Files%20English\Help\JMP.chm::/BAG_03_FitYbyX_Intro.html")
+);
+
+//--Cast into Roles Controls    	
+_inputCol = ColListBox(ALL, width(_ww), nlines(9)); //all current data table columns
+
+_yvar_clb = ColList Box(width(_ww), nlines(6), min items(1) );
+_xvar_clb = ColList Box(width(_ww), nlines(6), min items(1) );
+_blk_clb =  ColList Box(width(_ww), nlines(1) );
+_wt_clb =   ColList Box(width(_ww), nlines(1), max items(1), numeric );
+_freq_clb = ColListBox(width(_ww), nlines(1),max items(1), Numeric);
+_by_clb =   ColListBox(width(_ww), nlines(2));
+
+
+_yvar_bb = Button Box( "Y, Response", _addCol_fn( _yvar_clb ) );
+_xvar_bb = Button Box( "X, Factor", _addCol_fn( _xvar_clb ) );
+_blk_bb  = Button Box( "Block", _addCol_fn( _blk_clb ) );
+_wt_bb   = Button Box( "Weight", _addCol_fn( _wt_clb ) );
+_freq_bb = Button Box( "Frequency", _addCol_fn( _freq_clb ) );
+_by_bb   = Button Box( "By", _addCol_fn( _by_clb ) );
+
+//--Action Controls
+_ok_bb   = Button Box("OK", _ok_action_xp );
+_cncl_bb = Button Box("Cancel", _cancel_xp );
+_rmv_bb = Button Box("Remove", _remove_xp); 
+ 
+_redo_bb = Button Box("Recall", Enable(0) );
+_redo_bb << Set Tip("Not implemented yet");
+_Help_bb = Button Box("Help", _help_xp );
+//-------------------------------------------------------------------------------------
+//--Extras
+//----Icon graphics ...kinda
+sp1 = text box("   ");
+icon_pic =Border Box(sides(15),
+LineupBox(ncol(4), spacing(5),
+    IconBox("Continuous"), ul=IconBox("Bivariate"),sp1, ur=IconBox("Oneway"),
+    sp1, TextBox("Bivariate"),sp1, textBox("Oneway"),
+    
+   VlistBox(IconBox("Nominal"), IconBox("Ordinal")),  ll=IconBox("Logistic"),sp1, lr=IconBox("Categorical"),
+   sp1,  TextBox("Logistic" ), sp1,TextBox("Contingency"),
+   sp1, IconBox("Continuous"), sp1,HlistBox(IconBox("Nominal"), IconBox("Ordinal"))
+));
+
+//----Column Filter -- not totally functional
+//Included here to demonstrate PopUpBox, IfBox and a few
+//functions to control the UI behavior.  Additional functions
+//and varaiable mangement with namespaces would be next steps.
+
+Include("$JSL_Companion\ColumnFilt.jsl");
+cf = Popup Box(commandlist);
+ifStrBox=IfBox(::getUsrStr, ::teb=TextEditBox(::UsrStr,
+  <<Script(::UsrStr=::teb<<get text), <<Set width(-1)));
+
+//--------------------------------------------------------------------------------------
+//-- Window 
+New Window("Fit Y by X - Contextual - Step 2",
+VListBox(
+  TextBox(_win_info),
+  SpacerBox(Size(0,5)),
+  HListBox(
+  VListBox(
+	PanelBox("Select Columns", 
+	 HlistBox( cf, VlistBox(ifStrBox,_inputCol) )),
+    SpacerBox(Size(1,45)),
+    icon_pic
+   ),
+	Panel Box("Cast Columns into Roles",
+		LineUpBox(2,
+			_yvar_bb, _yvar_clb,
+			_xvar_bb, _xvar_clb,
+			_blk_bb,  _blk_clb,
+			_wt_bb,   _wt_clb,
+			_freq_bb, _freq_clb,
+			_by_bb,   _by_clb
+		)		
+	),
+	
+	PanelBox("Action",
+	  vListBox(_ok_bb,
+	    _cncl_bb,
+	    SpacerBox(Size(0,20)),
+	    _rmv_bb,
+	    _redo_bb,
+	    _Help_bb  
+	  )	
+	)	
+  ) // end HListBox
+ )  //end VListBox
+);  //end New Window
+
+

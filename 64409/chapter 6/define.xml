@@ -1,0 +1,1818 @@
+<?xml version="1.0" encoding="ISO-8859-1" ?>
+<?xml-stylesheet type="text/xsl" href="define-v1-updated-html.xsl"?>
+<!-- ******************************************************************************* -->
+<!-- File: define.xml                                                                -->
+<!-- Date: 05AUG2012                                                                -->
+<!-- Description: Define.xml file for XYZ123                          -->
+<!-- ******************************************************************************* -->
+<ODM
+  xmlns="http://www.cdisc.org/ns/odm/v1.2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:xlink="http://www.w3.org/1999/xlink"
+  xmlns:def="http://www.cdisc.org/ns/def/v1.0"
+  xmlns:adamref="http://www.cdisc.org/ns/ADaMRes/DRAFT"
+  xsi:schemaLocation="http://www.cdisc.org/ns/odm/v1.2 util/adamres-draft2.xsd"
+  FileOID="XYZ123"
+  ODMVersion="1.2"
+  FileType="Snapshot"
+  CreationDateTime="2012-08-05T22:29:56">
+<Study OID="123">
+  <GlobalVariables>
+    <StudyName>XYZ123</StudyName>
+    <StudyDescription>A PHASE IIB, DOUBLE-BLIND, MULTI-CENTER, PLACEBO CONTROLLED, PARALLEL GROUP TRIAL OF ANALGEZIA HCL FOR THE TREATMENT OF CHRONIC PAIN</StudyDescription>
+    <ProtocolName>XYZ123</ProtocolName>
+  </GlobalVariables>
+  <MetaDataVersion OID="CDISC.ADaM.1.2"
+    Name="XYZ123,Data Definitions"
+    Description="XYZ123,Data Definitions"
+    def:DefineVersion="1.0.0"
+    def:StandardName="CDISC ADaM"
+    def:StandardVersion="1.2">
+    <def:SupplementalDoc>
+      <def:DocumentRef leafID="Suppdoc"/>
+    </def:SupplementalDoc>
+    <def:leaf ID="Suppdoc" xlink:href="dataguide.pdf">
+      <def:title>Data Guide</def:title>
+    </def:leaf>
+    <def:leaf ID="SAP_Section_9.1.1"
+      xlink:href="..\..\..\..\53-clin-stud-rep\535-rep-effic-safety-stud\5351-stud-rep-contr\studyxyz123\studyxyz123_csr.pdf#nameddest=SAP_SEC_9.1.1">
+      <def:title>SAP Section 9.1.1 </def:title>
+    </def:leaf>
+    <def:leaf ID="SAP_Section_9.2.1"
+      xlink:href="..\..\..\..\53-clin-stud-rep\535-rep-effic-safety-stud\5351-stud-rep-contr\studyxyz123\studyxyz123_csr.pdf#nameddest=SAP_SEC_9.2.1">
+      <def:title>SAP Section 9.2.1 </def:title>
+    </def:leaf>
+    <def:leaf ID="SAP_Section_9.2.2"
+      xlink:href="..\..\..\..\53-clin-stud-rep\535-rep-effic-safety-stud\5351-stud-rep-contr\studyxyz123\studyxyz123_csr.pdf#nameddest=SAP_SEC_9.2.2">
+      <def:title>SAP Section 9.2.2 </def:title>
+    </def:leaf>
+    <def:leaf ID="Table_14.1.1"
+      xlink:href="..\..\..\..\53-clin-stud-rep\535-rep-effic-safety-stud\5351-stud-rep-contr\studyxyz123\studyxyz123_csr.pdf#page=302">
+      <def:title>Table 14.1.1 </def:title>
+    </def:leaf>
+    <def:leaf ID="Table_14.2.1"
+      xlink:href="..\..\..\..\53-clin-stud-rep\535-rep-effic-safety-stud\5351-stud-rep-contr\studyxyz123\studyxyz123_csr.pdf#page=352">
+      <def:title>Table 14.2.1 </def:title>
+    </def:leaf>
+    <def:leaf ID="Figure_14.2.1"
+      xlink:href="..\..\..\..\53-clin-stud-rep\535-rep-effic-safety-stud\5351-stud-rep-contr\studyxyz123\studyxyz123_csr.pdf#page=353">
+      <def:title>Figure 14.2.1 </def:title>
+    </def:leaf>
+    <!-- ******************************************* -->
+    <!-- COMPUTATIONAL METHOD INFORMATION        *** -->
+    <!-- ******************************************* -->
+    <def:ComputationMethod OID="CHANGEFROMBASELINE">AVAL-BASE</def:ComputationMethod>
+    <def:ComputationMethod OID="RESPONDER">IF (.Z&lt;CHG&lt;=-2) THEN CRIT1FL='Y' ELSE CRIT1FL='N'</def:ComputationMethod>
+    <!-- ******************************************* -->
+    <!-- VALUE LEVEL LIST DEFINITION INFORMATION  ** -->
+    <!-- ******************************************* -->
+    <def:ValueListDef OID="CRIT1FLVALUE">
+      <ItemRef ItemOID="CRIT1FLVALUE.XPPAIN"
+        Mandatory="No"/>
+    </def:ValueListDef>
+    <def:ValueListDef OID="CRIT1VALUE">
+      <ItemRef ItemOID="CRIT1VALUE.XPPAIN"
+        Mandatory="No"/>
+    </def:ValueListDef>
+    <def:ValueListDef OID="XPTESTCDVALUE">
+      <ItemRef ItemOID="XPTESTCDVALUE.XPPAIN"
+        Mandatory="No"/>
+    </def:ValueListDef>
+    <!-- ******************************************* -->
+    <!-- ADAE           ItemGroupDef INFORMATION *** -->
+    <!-- ******************************************* -->
+    <ItemGroupDef OID="ADAE"
+      Name="ADAE"
+      Repeating="Yes"
+      Purpose="Analysis"
+      IsReferenceData="No"
+      def:Label="Adverse Events Analysis Datasets"
+      def:Structure="ADAE - One record per event per subject"
+      def:DomainKeys="STUDYID, USUBJID, AEDECOD, AESDT"
+      def:Class="ADAE"
+      def:ArchiveLocationID="Location../ADAE"
+      Comment="Primarily derived from SDTM.AE">
+      <ItemRef ItemOID="STUDYID"
+        OrderNumber="1"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="USUBJID"
+        OrderNumber="2"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.SITEID"
+        OrderNumber="3"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.COUNTRY"
+        OrderNumber="4"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AESEQ"
+        OrderNumber="5"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AGE"
+        OrderNumber="6"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AGEGR1N"
+        OrderNumber="7"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AGEGR1"
+        OrderNumber="8"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.SEX"
+        OrderNumber="9"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.TRTAN"
+        OrderNumber="10"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.TRTA"
+        OrderNumber="11"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AETERM"
+        OrderNumber="12"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AEDECOD"
+        OrderNumber="13"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AEBODSYS"
+        OrderNumber="14"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AESDT"
+        OrderNumber="15"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.SAFFL"
+        OrderNumber="15"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AEEDT"
+        OrderNumber="16"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADAE.AESEV"
+        OrderNumber="16"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AESDY"
+        OrderNumber="17"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AESEVN"
+        OrderNumber="17"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AEEDY"
+        OrderNumber="18"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AESER"
+        OrderNumber="18"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AEACN"
+        OrderNumber="19"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AEREL"
+        OrderNumber="20"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.AERELN"
+        OrderNumber="21"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.CQ01NAM"
+        OrderNumber="22"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.RELGR1"
+        OrderNumber="23"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.RELGR1N"
+        OrderNumber="24"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADAE.TRTEMFL"
+        OrderNumber="25"
+        Mandatory="No"/>
+      <!-- **************************************************** -->
+      <!-- def:leaf details for hypertext linking the dataset   -->
+      <!-- **************************************************** -->
+      <def:leaf ID="Location.ADAE" xlink:href="./ADAE.xpt">
+        <def:title>./ADAE.xpt </def:title>
+      </def:leaf>
+    </ItemGroupDef>
+    <!-- ******************************************* -->
+    <!-- ADEF           ItemGroupDef INFORMATION *** -->
+    <!-- ******************************************* -->
+    <ItemGroupDef OID="ADEF"
+      Name="ADEF"
+      Repeating="Yes"
+      Purpose="Analysis"
+      IsReferenceData="No"
+      def:Label="Efficacy/Pain Scores Analysis Dataset"
+      def:Structure="One record per subject per visit"
+      def:DomainKeys="STUDYID, USUBJID, PARAMCD, AVISITN"
+      def:Class="BDS"
+      def:ArchiveLocationID="Location../ADEF"
+      Comment="Primarily derived from SDTM.XP">
+      <ItemRef ItemOID="STUDYID"
+        OrderNumber="1"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="USUBJID"
+        OrderNumber="2"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.AGE"
+        OrderNumber="3"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.AGEGR1N"
+        OrderNumber="4"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.RANDDT"
+        OrderNumber="5"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADEF.AGEGR1"
+        OrderNumber="5"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.SEX"
+        OrderNumber="6"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.SITEID"
+        OrderNumber="7"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.TRTPN"
+        OrderNumber="10"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.TRTP"
+        OrderNumber="11"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADEF.PARAMCD"
+        OrderNumber="13"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.PARAM"
+        OrderNumber="14"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.COUNTRY"
+        OrderNumber="15"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADEF.AVISIT"
+        OrderNumber="15"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.AVISITN"
+        OrderNumber="16"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.ABLFL"
+        OrderNumber="17"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.XPSEQ"
+        OrderNumber="18"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.VISITNUM"
+        OrderNumber="19"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.ADT"
+        OrderNumber="20"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.ADY"
+        OrderNumber="21"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.AVAL"
+        OrderNumber="22"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.AVALC"
+        OrderNumber="23"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.BASE"
+        OrderNumber="24"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.CHG"
+        OrderNumber="25"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.CRIT1FL"
+        OrderNumber="27"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.CRIT1"
+        OrderNumber="28"
+        Mandatory=" "/>
+      <ItemRef ItemOID="ADEF.ITTFL"
+        OrderNumber="29"
+        Mandatory=" "/>
+      <!-- **************************************************** -->
+      <!-- def:leaf details for hypertext linking the dataset   -->
+      <!-- **************************************************** -->
+      <def:leaf ID="Location.ADEF" xlink:href="./ADEF.xpt">
+        <def:title>./ADEF.xpt </def:title>
+      </def:leaf>
+    </ItemGroupDef>
+    <!-- ******************************************* -->
+    <!-- ADSL           ItemGroupDef INFORMATION *** -->
+    <!-- ******************************************* -->
+    <ItemGroupDef OID="ADSL"
+      Name="ADSL"
+      Repeating="No"
+      Purpose="Analysis"
+      IsReferenceData="No"
+      def:Label="Subject Level Analysis Dataset"
+      def:Structure="ADSL - One record per subject"
+      def:DomainKeys="STUDYID, USUBJID"
+      def:Class="ADSL"
+      def:ArchiveLocationID="Location../ADSL"
+      Comment="Derived from multiple SDTM domains">
+      <ItemRef ItemOID="STUDYID"
+        OrderNumber="1"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="USUBJID"
+        OrderNumber="3"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="SUBJID"
+        OrderNumber="4"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.RANDDT"
+        OrderNumber="5"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.TRTSDT"
+        OrderNumber="5"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.TRTEDT"
+        OrderNumber="6"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.SITEID"
+        OrderNumber="7"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.BRTHDT"
+        OrderNumber="8"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.AGE"
+        OrderNumber="9"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.AGEU"
+        OrderNumber="10"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.AGEGR1"
+        OrderNumber="10"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.AGEGR1N"
+        OrderNumber="10"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.SEX"
+        OrderNumber="11"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.RACE"
+        OrderNumber="12"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.RACEOTH"
+        OrderNumber="12"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.ARM"
+        OrderNumber="13"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.TRT01P"
+        OrderNumber="13"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.TRT01A"
+        OrderNumber="13"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.TRT01PN"
+        OrderNumber="13"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.TRT01AN"
+        OrderNumber="13"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.COUNTRY"
+        OrderNumber="15"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADSL.ITTFL"
+        OrderNumber="15"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.SAFFL"
+        OrderNumber="15"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADSL.RESPFL"
+        OrderNumber="15"
+        Mandatory="No"/>
+      <!-- **************************************************** -->
+      <!-- def:leaf details for hypertext linking the dataset   -->
+      <!-- **************************************************** -->
+      <def:leaf ID="Location.ADSL" xlink:href="./ADSL.xpt">
+        <def:title>./ADSL.xpt </def:title>
+      </def:leaf>
+    </ItemGroupDef>
+    <!-- ******************************************* -->
+    <!-- ADTTE          ItemGroupDef INFORMATION *** -->
+    <!-- ******************************************* -->
+    <ItemGroupDef OID="ADTTE"
+      Name="ADTTE"
+      Repeating="No"
+      Purpose="Analysis"
+      IsReferenceData="No"
+      def:Label="Time-to-Pain Relief Analysis Dataset"
+      def:Structure="One record per subject"
+      def:DomainKeys="STUDYID, USUBJID"
+      def:Class="BDS"
+      def:ArchiveLocationID="Location../ADTTE"
+      Comment="Primarily derived from ADaM.ADAE">
+      <ItemRef ItemOID="STUDYID"
+        OrderNumber="1"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="USUBJID"
+        OrderNumber="2"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.AGE"
+        OrderNumber="3"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.AGEGR1N"
+        OrderNumber="4"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.AGEGR1"
+        OrderNumber="5"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.SEX"
+        OrderNumber="6"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.SITEID"
+        OrderNumber="7"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.TRTPN"
+        OrderNumber="10"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.TRTP"
+        OrderNumber="11"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.PARAMCD"
+        OrderNumber="13"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.PARAM"
+        OrderNumber="14"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.COUNTRY"
+        OrderNumber="15"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.ADT"
+        OrderNumber="20"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.AVAL"
+        OrderNumber="22"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.STARTDT"
+        OrderNumber="23"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.CNSR"
+        OrderNumber="24"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.EVNTDESC"
+        OrderNumber="25"
+        Mandatory="Yes"/>
+      <ItemRef ItemOID="ADTTE.SRCDOM"
+        OrderNumber="26"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.SRCVAR"
+        OrderNumber="27"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.SRCSEQ"
+        OrderNumber="28"
+        Mandatory="No"/>
+      <ItemRef ItemOID="ADTTE.ITTFL"
+        OrderNumber="29"
+        Mandatory=" "/>
+      <!-- **************************************************** -->
+      <!-- def:leaf details for hypertext linking the dataset   -->
+      <!-- **************************************************** -->
+      <def:leaf ID="Location.ADTTE" xlink:href="./ADTTE.xpt">
+        <def:title>./ADTTE.xpt </def:title>
+      </def:leaf>
+    </ItemGroupDef>
+    <!-- ************************************************************ -->
+    <!-- The details of each variable is here for all domains         -->
+    <!-- ************************************************************ -->
+    <ItemDef OID="STUDYID"
+      Name="STUDYID"
+      DataType="text"
+      Length="15"
+      Comment="SOURCE: ADSL.STUDYID"
+      def:Label="Study Identifier">
+    </ItemDef>
+    <ItemDef OID="USUBJID"
+      Name="USUBJID"
+      DataType="text"
+      Length="25"
+      Comment="SOURCE: ADSL.USUBJID"
+      def:Label="Unique Subject Identifier">
+    </ItemDef>
+    <ItemDef OID="ADAE.SITEID"
+      Name="SITEID"
+      DataType="text"
+      Length="7"
+      Comment="SOURCE: ADSL.SITEID"
+      def:Label="Study Site Identifier">
+    </ItemDef>
+    <ItemDef OID="ADAE.COUNTRY"
+      Name="COUNTRY"
+      DataType="text"
+      Length="3"
+      Comment="SOURCE: ADSL.COUNTRY"
+      def:Label="Country">
+      <CodeListRef CodeListOID="CodeList.COUNTRY"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.AESEQ"
+      Name="AESEQ"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Sequence Number">
+    </ItemDef>
+    <ItemDef OID="ADAE.AGE"
+      Name="AGE"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL"
+      def:Label="Unique Subject Identifier">
+    </ItemDef>
+    <ItemDef OID="ADAE.AGEGR1N"
+      Name="AGEGR1N"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Pooled Age Group 1 (N)">
+    </ItemDef>
+    <ItemDef OID="ADAE.AGEGR1"
+      Name="AGEGR1"
+      DataType="text"
+      Length="20"
+      Comment="SOURCE: Derived"
+      def:Label="Pooled Age Group 1">
+    </ItemDef>
+    <ItemDef OID="ADAE.SEX"
+      Name="SEX"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: ADSL"
+      def:Label="Sex">
+    </ItemDef>
+    <ItemDef OID="ADAE.TRTAN"
+      Name="TRTAN"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Actual Treatment (N)">
+    </ItemDef>
+    <ItemDef OID="ADAE.TRTA"
+      Name="TRTA"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: Derived"
+      def:Label="Actual Treatment">
+    </ItemDef>
+    <ItemDef OID="ADAE.AETERM"
+      Name="AETERM"
+      DataType="text"
+      Length="200"
+      Comment="SOURCE: CRF page 6"
+      def:Label="Reported Term for the Adverse Event">
+    </ItemDef>
+    <ItemDef OID="ADAE.AEDECOD"
+      Name="AEDECOD"
+      DataType="text"
+      Length="200"
+      Comment="SOURCE: Derived"
+      def:Label="Dictionary-Derived Term">
+      <CodeListRef CodeListOID="CodeList.MedDRA"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.AEBODSYS"
+      Name="AEBODSYS"
+      DataType="text"
+      Length="200"
+      Comment="SOURCE: Derived"
+      def:Label="Body System or Organ Class">
+      <CodeListRef CodeListOID="CodeList.MedDRA"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.AESDT"
+      Name="AESDT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: CRF page 6"
+      def:Label="Start Date/Time of Adverse Events">
+    </ItemDef>
+    <ItemDef OID="ADAE.SAFFL"
+      Name="SAFFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: ADSL"
+      def:Label="Safety Population Flag">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.AEEDT"
+      Name="AEEDT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: CRF page 6"
+      def:Label="End Date/Time of Adverse Events">
+    </ItemDef>
+    <ItemDef OID="ADAE.AESEV"
+      Name="AESEV"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: CRF page 6"
+      def:Label="Severity/Intensity">
+    </ItemDef>
+    <ItemDef OID="ADAE.AESDY"
+      Name="AESDY"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Study Day of Start of Adverse Event">
+    </ItemDef>
+    <ItemDef OID="ADAE.AESEVN"
+      Name="AESEVN"
+      DataType="integer"
+      Length="8"
+      SignificantDigitis="0"
+      def:DisplayFormat="1"
+      Comment="SOURCE: Derived"
+      def:Label="Severity/Intensity (N)">
+      <CodeListRef CodeListOID="CodeList.AESEVN"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.AEEDY"
+      Name="AEEDY"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Study Day of End of Adverse Event">
+    </ItemDef>
+    <ItemDef OID="ADAE.AESER"
+      Name="AESER"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: CRF page 6"
+      def:Label="Serious Event">
+    </ItemDef>
+    <ItemDef OID="ADAE.AEACN"
+      Name="AEACN"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: CRF page 6"
+      def:Label="Action Taken with Study Treatment">
+    </ItemDef>
+    <ItemDef OID="ADAE.AEREL"
+      Name="AEREL"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: CRF page 6"
+      def:Label="Causality">
+    </ItemDef>
+    <ItemDef OID="ADAE.AERELN"
+      Name="AERELN"
+      DataType="integer"
+      Length="8"
+      SignificantDigitis="0"
+      def:DisplayFormat="1"
+      Comment="SOURCE: Derived"
+      def:Label="Causality (N)">
+      <CodeListRef CodeListOID="CodeList.AERELN"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.CQ01NAM"
+      Name="CQ01NAM"
+      DataType="text"
+      Length="200"
+      Comment="SOURCE: Derived DERIVATION: if non-null then PAIN EVENT"
+      def:Label="CQ 01 Name">
+    </ItemDef>
+    <ItemDef OID="ADAE.RELGR1"
+      Name="RELGR1"
+      DataType="text"
+      Length="10"
+      Comment="SOURCE: Derived"
+      def:Label="Pooled Causality Group 1">
+      <CodeListRef CodeListOID="CodeList.RELGR1"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.RELGR1N"
+      Name="RELGR1N"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Pooled Causality Group 1 (N)">
+      <CodeListRef CodeListOID="CodeList.RELGR1N"/>
+    </ItemDef>
+    <ItemDef OID="ADAE.TRTEMFL"
+      Name="TRTEMFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: Derived"
+      def:Label="Treatment Emergent Flag">
+      <CodeListRef CodeListOID="CodeList.EVNTDESC"/>
+    </ItemDef>
+    <ItemDef OID="STUDYID"
+      Name="STUDYID"
+      DataType="text"
+      Length="15"
+      Comment="SOURCE: ADSL.STUDYID"
+      def:Label="Study Identifier">
+    </ItemDef>
+    <ItemDef OID="USUBJID"
+      Name="USUBJID"
+      DataType="text"
+      Length="25"
+      Comment="SOURCE: ADSL.USUBJID"
+      def:Label="Unique Subject Identifier">
+    </ItemDef>
+    <ItemDef OID="ADEF.AGE"
+      Name="AGE"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL.AGE"
+      def:Label="Age">
+    </ItemDef>
+    <ItemDef OID="ADEF.AGEGR1N"
+      Name="AGEGR1N"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL.AGEGR1N"
+      def:Label="Pooled Age Group 1 (N)">
+    </ItemDef>
+    <ItemDef OID="ADEF.RANDDT"
+      Name="RANDDT"
+      DataType="integer"
+      Length="8"
+      def:DisplayFormat="date9."
+      Comment="SOURCE: ADSL.RANDDT"
+      def:Label="Date of Randomization">
+    </ItemDef>
+    <ItemDef OID="ADEF.AGEGR1"
+      Name="AGEGR1"
+      DataType="text"
+      Length="20"
+      Comment="SOURCE: ADSL.AGEGR1"
+      def:Label="Pooled Age Group 1">
+    </ItemDef>
+    <ItemDef OID="ADEF.SEX"
+      Name="SEX"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: ADSL.SEX"
+      def:Label="Sex">
+    </ItemDef>
+    <ItemDef OID="ADEF.SITEID"
+      Name="SITEID"
+      DataType="text"
+      Length="7"
+      Comment="SOURCE: ADSL.SITEID"
+      def:Label="Study Site Identifier">
+    </ItemDef>
+    <ItemDef OID="ADEF.TRTPN"
+      Name="TRTPN"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL.TRTPN"
+      def:Label="Planned Treatment (N)">
+    </ItemDef>
+    <ItemDef OID="ADEF.TRTP"
+      Name="TRTP"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: ADSL.TRTP"
+      def:Label="Planned Treatment">
+    </ItemDef>
+    <ItemDef OID="ADEF.PARAMCD"
+      Name="PARAMCD"
+      DataType="text"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Parameter Code">
+    </ItemDef>
+    <ItemDef OID="ADEF.PARAM"
+      Name="PARAM"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: Derived"
+      def:Label="Parameter">
+    </ItemDef>
+    <ItemDef OID="ADEF.COUNTRY"
+      Name="COUNTRY"
+      DataType="text"
+      Length="3"
+      Comment="SOURCE: ADSL.COUNTRY"
+      def:Label="Country">
+      <CodeListRef CodeListOID="CodeList.COUNTRY"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.AVISIT"
+      Name="AVISIT"
+      DataType="text"
+      Length="16"
+      Comment="SOURCE: Derived"
+      def:Label="Analysis Visit">
+      <CodeListRef CodeListOID="CodeList.VISIT"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.AVISITN"
+      Name="AVISITN"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Analysis Visit (N)">
+      <CodeListRef CodeListOID="CodeList.AVISITN"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.ABLFL"
+      Name="ABLFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: Derived"
+      def:Label="Baseline Record Flag">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.XPSEQ"
+      Name="XPSEQ"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: XP.XPSEQ"
+      def:Label="Sequence Number">
+    </ItemDef>
+    <ItemDef OID="ADEF.VISITNUM"
+      Name="VISITNUM"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: XP.VISITNUM"
+      def:Label="Visit Number">
+      <CodeListRef CodeListOID="CodeList.VISIT"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.ADT"
+      Name="ADT"
+      DataType="integer"
+      Length="8"
+      def:DisplayFormat="date9."
+      Comment="SOURCE: Derived"
+      def:Label="Analysis Date">
+    </ItemDef>
+    <ItemDef OID="ADEF.ADY"
+      Name="ADY"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Analysis Relative Day">
+    </ItemDef>
+    <ItemDef OID="ADEF.AVAL"
+      Name="AVAL"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: XP.XPSTRESN"
+      def:Label="Analysis Value">
+      <def:ValueListRef ValueListOID="XPTESTCDVALUE"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.AVALC"
+      Name="AVALC"
+      DataType="text"
+      Length="12"
+      Comment="SOURCE: XP.XPSTRES"
+      def:Label="Analysis Value (C)">
+    </ItemDef>
+    <ItemDef OID="ADEF.BASE"
+      Name="BASE"
+      DataType="integer"
+      Length="8"
+      Comment="DERIVATION: Last non-missing valueof AVAL prior to first dose"
+      def:Label="Baseline Value">
+    </ItemDef>
+    <ItemDef OID="ADEF.CHG"
+      Name="CHG"
+      DataType="integer"
+      Length="8"
+      def:ComputationMethodOID="CHANGEFROMBASELINE"
+      Comment=" "
+      def:Label="Change from Baseline">
+    </ItemDef>
+    <ItemDef OID="ADEF.CRIT1FL"
+      Name="CRIT1FL"
+      DataType="text"
+      Length="1"
+      Comment="DERIVATION: Click variable link for analysis parameter value level metadata"
+      def:Label="Criterion 1 Evaluation Result Flag">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+      <def:ValueListRef ValueListOID="CRIT1FLVALUE"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.CRIT1"
+      Name="CRIT1"
+      DataType="text"
+      Length="40"
+      Comment="DERIVATION: Click variable link for analysis parameter value level metadata"
+      def:Label="Analysis Criterion 1">
+      <def:ValueListRef ValueListOID="CRIT1VALUE"/>
+    </ItemDef>
+    <ItemDef OID="ADEF.ITTFL"
+      Name="ITTFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: ADSL.ITTFL"
+      def:Label="Intent-to-Treat Flag">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+    </ItemDef>
+    <ItemDef OID="STUDYID"
+      Name="STUDYID"
+      DataType="text"
+      Length="15"
+      Comment="SOURCE: DM"
+      def:Label="Study Identifier">
+    </ItemDef>
+    <ItemDef OID="USUBJID"
+      Name="USUBJID"
+      DataType="text"
+      Length="25"
+      Comment="SOURCE: DM"
+      def:Label="Unique Subject Identifier">
+    </ItemDef>
+    <ItemDef OID="SUBJID"
+      Name="SUBJID"
+      DataType="text"
+      Length="7"
+      Comment="SOURCE: DM"
+      def:Label="Subject Identifier for the Study">
+    </ItemDef>
+    <ItemDef OID="ADSL.RANDDT"
+      Name="RANDDT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Date of Randomization">
+    </ItemDef>
+    <ItemDef OID="ADSL.TRTSDT"
+      Name="TRTSDT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Date of First Exposure to Treatment">
+    </ItemDef>
+    <ItemDef OID="ADSL.TRTEDT"
+      Name="TRTEDT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Date of Last Exposure to Treatment">
+    </ItemDef>
+    <ItemDef OID="ADSL.SITEID"
+      Name="SITEID"
+      DataType="text"
+      Length="7"
+      Comment="SOURCE: DM"
+      def:Label="Study Site Identifier">
+    </ItemDef>
+    <ItemDef OID="ADSL.BRTHDT"
+      Name="BRTHDT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Date of Birth">
+    </ItemDef>
+    <ItemDef OID="ADSL.AGE"
+      Name="AGE"
+      DataType="integer"
+      Length="8"
+      def:DisplayFormat="3.0"
+      Comment="SOURCE: DM"
+      def:Label="Age">
+    </ItemDef>
+    <ItemDef OID="ADSL.AGEU"
+      Name="AGEU"
+      DataType="text"
+      Length="5"
+      Comment="SOURCE: DM"
+      def:Label="Age Units">
+      <CodeListRef CodeListOID="CodeList.AGEU"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.AGEGR1"
+      Name="AGEGR1"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: Derived"
+      def:Label="Pooled Age Group 1">
+      <CodeListRef CodeListOID="CodeList.AGEGR1"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.AGEGR1N"
+      Name="AGEGR1N"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Pooled Age Group 1 (N)">
+      <CodeListRef CodeListOID="CodeList.AGEGR1N"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.SEX"
+      Name="SEX"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: DM"
+      def:Label="Sex">
+      <CodeListRef CodeListOID="CodeList.SEX"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.RACE"
+      Name="RACE"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: DM"
+      def:Label="Race">
+      <CodeListRef CodeListOID="CodeList.RACE"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.RACEOTH"
+      Name="RACEOTH"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: DM"
+      def:Label="Race, Other, Specify">
+    </ItemDef>
+    <ItemDef OID="ADSL.ARM"
+      Name="ARM"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: DM"
+      def:Label="Description of Planned Arm">
+      <CodeListRef CodeListOID="CodeList.ARM"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.TRT01P"
+      Name="TRT01P"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: Derived"
+      def:Label="Planned Treatment for Period 01">
+      <CodeListRef CodeListOID="CodeList.ARM"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.TRT01A"
+      Name="TRT01A"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: Derived"
+      def:Label="Actual Treatment for Period 01">
+      <CodeListRef CodeListOID="CodeList.ARM"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.TRT01PN"
+      Name="TRT01PN"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Planned Treatment for Period 01 (N)">
+      <CodeListRef CodeListOID="CodeList.ARMN"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.TRT01AN"
+      Name="TRT01AN"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Actual Treatment for Period 01 (N)">
+      <CodeListRef CodeListOID="CodeList.ARMN"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.COUNTRY"
+      Name="COUNTRY"
+      DataType="text"
+      Length="3"
+      Comment="SOURCE: Derived"
+      def:Label="Country">
+      <CodeListRef CodeListOID="CodeList.COUNTRY"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.ITTFL"
+      Name="ITTFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: Derived"
+      def:Label="Intent-To-Treat Population Flag">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.SAFFL"
+      Name="SAFFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: Derived"
+      def:Label="Safety Population Flag">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+    </ItemDef>
+    <ItemDef OID="ADSL.RESPFL"
+      Name="RESPFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: Derived"
+      def:Label="Efficacy Responder Flag">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+    </ItemDef>
+    <ItemDef OID="STUDYID"
+      Name="STUDYID"
+      DataType="text"
+      Length="15"
+      Comment="SOURCE: ADSL"
+      def:Label="Study Identifier">
+    </ItemDef>
+    <ItemDef OID="USUBJID"
+      Name="USUBJID"
+      DataType="text"
+      Length="25"
+      Comment="SOURCE: ADSL"
+      def:Label="Domain Abbreviation">
+    </ItemDef>
+    <ItemDef OID="ADTTE.AGE"
+      Name="AGE"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL"
+      def:Label="Unique Subject Identifier">
+    </ItemDef>
+    <ItemDef OID="ADTTE.AGEGR1N"
+      Name="AGEGR1N"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL"
+      def:Label="Pooled Age Group 1 (N)">
+    </ItemDef>
+    <ItemDef OID="ADTTE.AGEGR1"
+      Name="AGEGR1"
+      DataType="text"
+      Length="20"
+      Comment="SOURCE: ADSL"
+      def:Label="Pooled Age Group 1">
+    </ItemDef>
+    <ItemDef OID="ADTTE.SEX"
+      Name="SEX"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: ADSL"
+      def:Label="Sex">
+    </ItemDef>
+    <ItemDef OID="ADTTE.SITEID"
+      Name="SITEID"
+      DataType="text"
+      Length="7"
+      Comment="SOURCE: ADSL"
+      def:Label="Study Site Identifier">
+    </ItemDef>
+    <ItemDef OID="ADTTE.TRTPN"
+      Name="TRTPN"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL"
+      def:Label="Planned Treatment (N)">
+    </ItemDef>
+    <ItemDef OID="ADTTE.TRTP"
+      Name="TRTP"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: ADSL"
+      def:Label="Planned Treatment">
+    </ItemDef>
+    <ItemDef OID="ADTTE.PARAMCD"
+      Name="PARAMCD"
+      DataType="text"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Parameter Code">
+      <def:ValueListRef ValueListOID="XPTESTCD"/>
+    </ItemDef>
+    <ItemDef OID="ADTTE.PARAM"
+      Name="PARAM"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: Derived"
+      def:Label="Parameter">
+    </ItemDef>
+    <ItemDef OID="ADTTE.COUNTRY"
+      Name="COUNTRY"
+      DataType="text"
+      Length="3"
+      Comment="SOURCE: ADSL"
+      def:Label="Country">
+      <CodeListRef CodeListOID="CodeList.COUNTRY"/>
+    </ItemDef>
+    <ItemDef OID="ADTTE.ADT"
+      Name="ADT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Analysis Date">
+    </ItemDef>
+    <ItemDef OID="ADTTE.AVAL"
+      Name="AVAL"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Data From XP"
+      def:Label="Analysis Value">
+    </ItemDef>
+    <ItemDef OID="ADTTE.STARTDT"
+      Name="STARTDT"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: ADSL.RANDDT"
+      def:Label="Time to Event Origin Date for Subject">
+    </ItemDef>
+    <ItemDef OID="ADTTE.CNSR"
+      Name="CNSR"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Censor">
+      <CodeListRef CodeListOID="CodeList.CENSOR"/>
+    </ItemDef>
+    <ItemDef OID="ADTTE.EVNTDESC"
+      Name="EVNTDESC"
+      DataType="text"
+      Length="40"
+      Comment="SOURCE: Derived"
+      def:Label="Event or Censoring Description">
+      <CodeListRef CodeListOID="CodeList.EVNTDESC"/>
+    </ItemDef>
+    <ItemDef OID="ADTTE.SRCDOM"
+      Name="SRCDOM"
+      DataType="text"
+      Length="6"
+      Comment="SOURCE: Derived"
+      def:Label="Source Domain">
+    </ItemDef>
+    <ItemDef OID="ADTTE.SRCVAR"
+      Name="SRCVAR"
+      DataType="text"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Source Variable">
+    </ItemDef>
+    <ItemDef OID="ADTTE.SRCSEQ"
+      Name="SRCSEQ"
+      DataType="integer"
+      Length="8"
+      Comment="SOURCE: Derived"
+      def:Label="Source Sequence Number">
+    </ItemDef>
+    <ItemDef OID="ADTTE.ITTFL"
+      Name="ITTFL"
+      DataType="text"
+      Length="1"
+      Comment="SOURCE: ADSL.ITTFL"
+      def:Label="Intent-to-Treat Flag">
+    </ItemDef>
+    <!-- ************************************************************ -->
+    <!-- The details of value level items are here                    -->
+    <!-- ************************************************************ -->
+    <ItemDef OID="CRIT1FLVALUE.XPPAIN"
+      Name="XPPAIN"
+      DataType="char"
+      Length="1"
+      def:DisplayFormat="$1."
+      def:ComputationMethodOID="RESPONDER"
+      Comment=" "
+      def:Label="Pain Score">
+      <CodeListRef CodeListOID="CodeList._0N1Y"/>
+    </ItemDef>
+    <ItemDef OID="CRIT1VALUE.XPPAIN"
+      Name="XPPAIN"
+      DataType="char"
+      Length="51"
+      def:DisplayFormat="$52."
+      Comment="DERIVATION: Assignment per the codelist"
+      def:Label="Pain Score">
+      <CodeListRef CodeListOID="CodeList.CRIT1VALUES"/>
+    </ItemDef>
+    <ItemDef OID="XPTESTCDVALUE.XPPAIN"
+      Name="XPPAIN"
+      DataType="integer"
+      Length="8"
+      SignificantDigitis="1"
+      def:DisplayFormat="1."
+      Comment="SOURCE: XP.XPSTRESN"
+      def:Label="Pain Score">
+      <CodeListRef CodeListOID="CodeList.PAINSCORE"/>
+    </ItemDef>
+    <!-- ************************************************************ -->
+    <!-- Analysis Results MetaData are Presented Below                -->
+    <!-- ************************************************************ -->
+    <adamref:AnalysisResultDisplays>
+      <adamref:ResultDisplay DisplayIdentifier="Table_14.1.1" OID="Table_14.1.1" DisplayLabel="Summary of Demographics (ITT Population)" leafID="Table_14.1.1">
+        <adamref:AnalysisResults 
+        OID="Table_14.1.1"
+        ResultIdentifier="Summary of Demographics"
+        Reason="Comparisons of baseline characteristics by treatment group">
+        <!-- List the parameters and parameter codes -->
+        <adamref:ParameterList>
+        </adamref:ParameterList>
+          <adamref:AnalysisVariable ItemOID="ADSL.AGE"/>
+          <adamref:AnalysisVariable ItemOID="ADSL.AGEGR1"/>
+          <adamref:AnalysisVariable ItemOID="ADSL.SEX"/>
+          <adamref:AnalysisVariable ItemOID="ADSL.RACE"/>
+        <!-- AnalysisDatasets are  pairs of dataset references and selection criteria. Dataset references are ItemGroupRefs.  The label in the xsl is the def:label for the ItemGroup -->
+        <adamref:AnalysisDataset>
+          <ItemGroupRef ItemGroupOID="ADSL" Mandatory="No"/>
+          <adamref:SelectionCriteria>
+            <def:ComputationMethod OID="SC001" Name="Selection Criteria 001"> [Where ITTFL='Y'  ]</def:ComputationMethod> 
+          </adamref:SelectionCriteria> 
+        </adamref:AnalysisDataset> 
+        <adamref:Documentation leafID="SAP_Section_9.1.1">
+          <TranslatedText xml:lang="en"> 
+          </TranslatedText>
+        </adamref:Documentation>
+        <adamref:ProgrammingCode>
+        <def:ComputationMethod OID="Table_14.1.1">
+PROC FREQ DATA=ADSL; where ittfl=&quot;Y&quot;;  tables trt01pn * (agegr1 sex race) / cmh;
+        </def:ComputationMethod>
+        </adamref:ProgrammingCode>
+      </adamref:AnalysisResults>
+    </adamref:ResultDisplay>
+    </adamref:AnalysisResultDisplays>
+    <adamref:AnalysisResultDisplays>
+      <adamref:ResultDisplay DisplayIdentifier="Table_14.2.1" OID="Table_14.2.1" DisplayLabel="Responder Analysis by Visit" leafID="Table_14.2.1">
+        <adamref:AnalysisResults 
+        OID="Table_14.2.1"
+        ResultIdentifier="Responder Analysis by Visit"
+        Reason="Efficacy endpoint pre-specified in SAP">
+        <!-- List the parameters and parameter codes -->
+        <adamref:ParameterList>
+          <adamref:Parameter ParamCD="XPPAIN" Param="Pain Score
+"/>
+        </adamref:ParameterList>
+          <adamref:AnalysisVariable ItemOID="ADEF.CRIT1FL"/>
+        <!-- AnalysisDatasets are  pairs of dataset references and selection criteria. Dataset references are ItemGroupRefs.  The label in the xsl is the def:label for the ItemGroup -->
+        <adamref:AnalysisDataset>
+          <ItemGroupRef ItemGroupOID="ADEF" Mandatory="No"/>
+          <adamref:SelectionCriteria>
+            <def:ComputationMethod OID="SC002" Name="Selection Criteria 002"> [Where ITTFL='Y' and ABLFL ^= 'Y' and PARAMCD='XPPAIN'  ]</def:ComputationMethod> 
+          </adamref:SelectionCriteria> 
+        </adamref:AnalysisDataset> 
+        <adamref:Documentation leafID="SAP_Section_9.2.1">
+          <TranslatedText xml:lang="en"> 
+          </TranslatedText>
+        </adamref:Documentation>
+        <adamref:ProgrammingCode>
+        <def:ComputationMethod OID="Table_14.2.1">
+proc freq data = adef; by crit1 avisitn; where ittfl=&quot;y&quot;; tables trtpn * crit1fl / chisq; run;
+        </def:ComputationMethod>
+        </adamref:ProgrammingCode>
+      </adamref:AnalysisResults>
+    </adamref:ResultDisplay>
+    </adamref:AnalysisResultDisplays>
+    <adamref:AnalysisResultDisplays>
+      <adamref:ResultDisplay DisplayIdentifier="Table_14.2.2" OID="Table_14.2.2" DisplayLabel="Mean Pain Assessments and Changes from Baseline" leafID="Table_14.2.2">
+        <adamref:AnalysisResults 
+        OID="Table_14.2.2"
+        ResultIdentifier="Summary of Pain Relief"
+        Reason="Efficacy endpoint pre-specified in SAP">
+        <!-- List the parameters and parameter codes -->
+        <adamref:ParameterList>
+          <adamref:Parameter ParamCD="XPPAIN" Param="Pain Score
+"/>
+        </adamref:ParameterList>
+          <adamref:AnalysisVariable ItemOID="ADEF.AVAL"/>
+          <adamref:AnalysisVariable ItemOID="ADEF.CHG"/>
+        <!-- AnalysisDatasets are  pairs of dataset references and selection criteria. Dataset references are ItemGroupRefs.  The label in the xsl is the def:label for the ItemGroup -->
+        <adamref:AnalysisDataset>
+          <ItemGroupRef ItemGroupOID="ADEF" Mandatory="No"/>
+          <adamref:SelectionCriteria>
+            <def:ComputationMethod OID="SC003" Name="Selection Criteria 003"> [Where ITTFL='Y' and ABLFL ^= 'Y' and PARAMCD='XPPAIN'  ]</def:ComputationMethod> 
+          </adamref:SelectionCriteria> 
+        </adamref:AnalysisDataset> 
+        <adamref:Documentation leafID="SAP_Section_9.2.1">
+          <TranslatedText xml:lang="en"> 
+          </TranslatedText>
+        </adamref:Documentation>
+        <adamref:ProgrammingCode>
+        <def:ComputationMethod OID="Table_14.2.2">
+proc glm data = adef; by avisitn avisit; class trtpn; model aval = trtpn base; run;
+        </def:ComputationMethod>
+        </adamref:ProgrammingCode>
+      </adamref:AnalysisResults>
+    </adamref:ResultDisplay>
+    </adamref:AnalysisResultDisplays>
+    <adamref:AnalysisResultDisplays>
+      <adamref:ResultDisplay DisplayIdentifier="Figure_14.2.1" OID="Figure_14.2.1" DisplayLabel="Time to Pain Relief Analysis by Treatment Group" leafID="Figure_14.2.1">
+        <adamref:AnalysisResults 
+        OID="Figure_14.2.1.R.01"
+        ResultIdentifier="Time to Pain Relief Kaplan Meier Analysis"
+        Reason="Pre-specified in SAP">
+        <!-- List the parameters and parameter codes -->
+        <adamref:ParameterList>
+          <adamref:Parameter ParamCD="TTPNRELF" Param="Time to First Pain Relief (Days)"/>
+        </adamref:ParameterList>
+          <adamref:AnalysisVariable ItemOID="ADTTE.AVAL"/>
+        <!-- AnalysisDatasets are  pairs of dataset references and selection criteria. Dataset references are ItemGroupRefs.  The label in the xsl is the def:label for the ItemGroup -->
+        <adamref:AnalysisDataset>
+          <ItemGroupRef ItemGroupOID="ADTTE" Mandatory="No"/>
+          <adamref:SelectionCriteria>
+            <def:ComputationMethod OID="SC004" Name="Selection Criteria 004"> [Where ITTFL='Y'  ]</def:ComputationMethod> 
+          </adamref:SelectionCriteria> 
+        </adamref:AnalysisDataset> 
+        <adamref:Documentation leafID="SAP_Section_9.2.2">
+          <TranslatedText xml:lang="en"> 
+          </TranslatedText>
+        </adamref:Documentation>
+        <adamref:ProgrammingCode>
+        <def:ComputationMethod OID="Figure_14.2.1">
+proc lifetest  data = adtte plots=s;  where ittfl = &quot;Y&quot; and paramcd = &quot;TTPNRELF&quot;;  id usubjid;  strata trtpn;  time aval*cnsr (1 2 3);   test trtpn; run;
+        </def:ComputationMethod>
+        </adamref:ProgrammingCode>
+      </adamref:AnalysisResults>
+        <adamref:AnalysisResults 
+        OID="Figure_14.2.1.R.02"
+        ResultIdentifier="Time to Pain Relief Hazard Ratio Derivation"
+        Reason="Pre-specified in SAP">
+        <!-- List the parameters and parameter codes -->
+        <adamref:ParameterList>
+          <adamref:Parameter ParamCD="TTPNRELF" Param="Time to First Pain Relief (Days)"/>
+        </adamref:ParameterList>
+          <adamref:AnalysisVariable ItemOID="ADTTE.AVAL"/>
+        <!-- AnalysisDatasets are  pairs of dataset references and selection criteria. Dataset references are ItemGroupRefs.  The label in the xsl is the def:label for the ItemGroup -->
+        <adamref:AnalysisDataset>
+          <ItemGroupRef ItemGroupOID="ADTTE" Mandatory="No"/>
+          <adamref:SelectionCriteria>
+            <def:ComputationMethod OID="SC005" Name="Selection Criteria 005"> [Where ITTFL='Y'  ]</def:ComputationMethod> 
+          </adamref:SelectionCriteria> 
+        </adamref:AnalysisDataset> 
+        <adamref:Documentation leafID="SAP_Section_9.2.2">
+          <TranslatedText xml:lang="en"> 
+          </TranslatedText>
+        </adamref:Documentation>
+        <adamref:ProgrammingCode>
+        <def:ComputationMethod OID="Figure_14.2.1">
+proc phreg data = adtte; model aval*cnsr(1, 2, 3) = trtpn; run;
+        </def:ComputationMethod>
+        </adamref:ProgrammingCode>
+      </adamref:AnalysisResults>
+    </adamref:ResultDisplay>
+    </adamref:AnalysisResultDisplays>
+    <!-- ************************************************************ -->
+    <!-- Codelists are presented below                                -->
+    <!-- ************************************************************ -->
+    <CodeList OID="CodeList.ACN"
+      Name="ACN"
+      DataType="TEXT">
+      <CodeListItem CodedValue="DOSE INCREASED" def:Rank="1">
+        <Decode>
+          <TranslatedText>DOSE INCREASED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="DOSE NOT CHANGED" def:Rank="2">
+        <Decode>
+          <TranslatedText>DOSE NOT CHANGED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="DOSE REDUCED" def:Rank="3">
+        <Decode>
+          <TranslatedText>DOSE REDUCED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="DRUG INTERRUPTED" def:Rank="4">
+        <Decode>
+          <TranslatedText>DRUG INTERRUPTED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="DRUG WITHDRAWN" def:Rank="5">
+        <Decode>
+          <TranslatedText>DRUG WITHDRAWN</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="NOT APPLICABLE" def:Rank="6">
+        <Decode>
+          <TranslatedText>NA</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="UNKNOWN" def:Rank="7">
+        <Decode>
+          <TranslatedText>U; Unknown</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.AEBODSYS"
+      Name="AEBODSYS"
+      DataType="TEXT">
+      <ExternalCodeList Dictionary="MedDRA" Version="7.0"/>
+    </CodeList>
+    <CodeList OID="CodeList.AEDECOD"
+      Name="AEDECOD"
+      DataType="TEXT">
+      <ExternalCodeList Dictionary="MedDRA" Version="7.0"/>
+    </CodeList>
+    <CodeList OID="CodeList.AEREL"
+      Name="AEREL"
+      DataType="TEXT">
+      <CodeListItem CodedValue="NOT RELATED" def:Rank="1">
+        <Decode>
+          <TranslatedText>NOT RELATED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="POSSIBLY RELATED" def:Rank="2">
+        <Decode>
+          <TranslatedText>POSSIBLY RELATED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="PROBABLY RELATED" def:Rank="3">
+        <Decode>
+          <TranslatedText>PROBABLY RELATED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.AERELN"
+      Name="AERELN"
+      DataType="NUMERIC">
+      <CodeListItem CodedValue="0" def:Rank="1">
+        <Decode>
+          <TranslatedText>NOT RELATED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="1" def:Rank="2">
+        <Decode>
+          <TranslatedText>POSSIBLY RELATED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="2" def:Rank="3">
+        <Decode>
+          <TranslatedText>PROBABLY RELATED</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.AESEV"
+      Name="AESEV"
+      DataType="TEXT">
+      <CodeListItem CodedValue="MILD" def:Rank="1">
+        <Decode>
+          <TranslatedText>Grade 1; 1</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="MODERATE" def:Rank="2">
+        <Decode>
+          <TranslatedText>Grade 2; 2</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="SEVERE" def:Rank="3">
+        <Decode>
+          <TranslatedText>Grade 3; 3</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.AESEVN"
+      Name="AESEVN"
+      DataType="NUMERIC">
+      <CodeListItem CodedValue="1" def:Rank="1">
+        <Decode>
+          <TranslatedText>Mild</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="2" def:Rank="2">
+        <Decode>
+          <TranslatedText>Moderate</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="3" def:Rank="3">
+        <Decode>
+          <TranslatedText>Severe</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.AGEU"
+      Name="AGEU"
+      DataType="TEXT">
+      <CodeListItem CodedValue="YEARS" def:Rank="1">
+        <Decode>
+          <TranslatedText>YEARS</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.ARM"
+      Name="ARM"
+      DataType="TEXT">
+      <CodeListItem CodedValue="Analgezia HCL 30 mg" def:Rank="1">
+        <Decode>
+          <TranslatedText>Analgezia HCL 30 mg</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Placebo" def:Rank="2">
+        <Decode>
+          <TranslatedText>Placebo</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.ARMCD"
+      Name="ARMCD"
+      DataType="TEXT">
+      <CodeListItem CodedValue="ALG123" def:Rank="1">
+        <Decode>
+          <TranslatedText>Analgezia HCL 30 mg</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="PLACEBO" def:Rank="2">
+        <Decode>
+          <TranslatedText>Placebo</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.AVISITN"
+      Name="AVISITN"
+      DataType="NUMERIC">
+      <CodeListItem CodedValue="0" def:Rank="1">
+        <Decode>
+          <TranslatedText>Baseline</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="1" def:Rank="2">
+        <Decode>
+          <TranslatedText>Month 3</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="2" def:Rank="3">
+        <Decode>
+          <TranslatedText>Month 6</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.CENSOR"
+      Name="CENSOR"
+      DataType="NUMERIC">
+      <CodeListItem CodedValue="0" def:Rank="1">
+        <Decode>
+          <TranslatedText>Pain relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="1" def:Rank="2">
+        <Decode>
+          <TranslatedText>Pain worsening prior to relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="2" def:Rank="3">
+        <Decode>
+          <TranslatedText>Pain adverse event prior to relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="3" def:Rank="4">
+        <Decode>
+          <TranslatedText>Completed study prior to relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.COUNTRY"
+      Name="COUNTRY"
+      DataType="TEXT">
+      <CodeListItem CodedValue="USA" def:Rank="1">
+        <Decode>
+          <TranslatedText>UNITED STATES</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.CRIT1VALUES"
+      Name="CRIT1VALUES"
+      DataType="TEXT">
+      <CodeListItem CodedValue="Pain improvement from baseline of at least 2 points" def:Rank="1">
+        <Decode>
+          <TranslatedText>Pain improvement from baseline of at least 2 points</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.EVNTDESC"
+      Name="EVNTDESC"
+      DataType="TEXT">
+      <CodeListItem CodedValue="PAIN RELIEF" def:Rank="1">
+        <Decode>
+          <TranslatedText>Pain relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="PAIN WORSENING PRIOR TO RELIEF" def:Rank="2">
+        <Decode>
+          <TranslatedText>Pain worsening prior to relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="PAIN ADVERSE EVENT PRIOR TO RELIEF" def:Rank="3">
+        <Decode>
+          <TranslatedText>Pain adverse event prior to relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="COMPLETED STUDY PRIOR TO RELIEF" def:Rank="4">
+        <Decode>
+          <TranslatedText>Completed study prior to relief</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.PAINSCORE"
+      Name="PAINSCORE"
+      DataType="NUMERIC">
+      <CodeListItem CodedValue="1" def:Rank="1">
+        <Decode>
+          <TranslatedText>Mild</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="2" def:Rank="2">
+        <Decode>
+          <TranslatedText>Moderate</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="3" def:Rank="3">
+        <Decode>
+          <TranslatedText>Mild</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.RELGR1"
+      Name="RELGR1"
+      DataType="TEXT">
+      <CodeListItem CodedValue="Not related" def:Rank="1">
+        <Decode>
+          <TranslatedText>Not related</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Related" def:Rank="2">
+        <Decode>
+          <TranslatedText>Related</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.RELGR1N"
+      Name="RELGR1N"
+      DataType="NUMERIC">
+      <CodeListItem CodedValue="1" def:Rank="1">
+        <Decode>
+          <TranslatedText>Not related</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="2" def:Rank="1">
+        <Decode>
+          <TranslatedText>Related</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.ROLECODE"
+      Name="ROLECODE"
+      DataType="TEXT">
+      <CodeListItem CodedValue="Grouping Qualifier" def:Rank="1">
+        <Decode>
+          <TranslatedText>Grouping Qualifier</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Identifier" def:Rank="2">
+        <Decode>
+          <TranslatedText>Identifier</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Record Qualifier" def:Rank="3">
+        <Decode>
+          <TranslatedText>Record Qualifier</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Rule" def:Rank="4">
+        <Decode>
+          <TranslatedText>Rule</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Result Qualifier" def:Rank="5">
+        <Decode>
+          <TranslatedText>Result Qualifier</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Synonym Qualifier" def:Rank="6">
+        <Decode>
+          <TranslatedText>Synonym Qualifier</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Timing" def:Rank="7">
+        <Decode>
+          <TranslatedText>Timing</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Topic" def:Rank="8">
+        <Decode>
+          <TranslatedText>Topic</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.SEX"
+      Name="SEX"
+      DataType="TEXT">
+      <CodeListItem CodedValue="F" def:Rank="1">
+        <Decode>
+          <TranslatedText>FEMALE</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="M" def:Rank="2">
+        <Decode>
+          <TranslatedText>MALE</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="U" def:Rank="3">
+        <Decode>
+          <TranslatedText>UNKNOWN</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.TRT01PN"
+      Name="TRT01PN"
+      DataType="NUMERIC">
+      <CodeListItem CodedValue="0" def:Rank="1">
+        <Decode>
+          <TranslatedText>Placebo</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="1" def:Rank="2">
+        <Decode>
+          <TranslatedText>Analgezia HCL 30 mg</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList.VISIT"
+      Name="VISIT"
+      DataType="TEXT">
+      <CodeListItem CodedValue="Baseline" def:Rank="1">
+        <Decode>
+          <TranslatedText>Baseline</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="3 Months" def:Rank="2">
+        <Decode>
+          <TranslatedText>Month 3</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="6 Months" def:Rank="3">
+        <Decode>
+          <TranslatedText>Month 6</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+    <CodeList OID="CodeList._0N1Y"
+      Name="_0N1Y"
+      DataType="TEXT">
+      <CodeListItem CodedValue="N" def:Rank="1">
+        <Decode>
+          <TranslatedText>NO</TranslatedText>
+        </Decode>
+      </CodeListItem>
+      <CodeListItem CodedValue="Y" def:Rank="2">
+        <Decode>
+          <TranslatedText>YES</TranslatedText>
+        </Decode>
+      </CodeListItem>
+    </CodeList>
+  </MetaDataVersion>
+</Study>
+</ODM>

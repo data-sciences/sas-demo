@@ -1,0 +1,163 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	10_ReadWritePerformance.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the use of Tick Seconds() function to measure performance.
+
+
+//Get Performance Information
+/* 
+ The two most common performance statistics for software are time and memory.
+ This script will demonstrate the Tick Seconds() function.
+ Simple Examples will be used to introduce it and a few examples to
+ highlight alternative methods.
+*/
+
+// Tick Seconds() accuracy depends upon computer, typically to within 1/60th sec
+
+//---- Block #1 Simple example of input performance
+Clear Globals();
+Delete Symbols();
+t1 = Tick Seconds();
+Wait( 10 );
+t2 = Tick Seconds();
+Write( "Accuracy of Wait 10 ", Round( t2 - t1, 3 ), "\!r" );
+t1 = Tick Seconds();
+Open( "$SAMPLE_DATA/Big Class.jmp" );
+Wait( 0 );
+t2 = Tick Seconds();
+Open( "$SAMPLE_DATA/Semiconductor Capability.jmp" );
+Wait( 0 );
+t3 = Tick Seconds();
+Write(
+	"Seconds to open Big Class ",
+	Round( t2 - t1, 3 ),
+	"\!r",
+	"Seconds to open Semiconductor Capability ",
+	Round( t3 - t2, 3 ),
+	"\!r"
+);
+Close( Data Table( "Big Class" ), NoSave );
+Close( Data Table( "Semiconductor Capability" ), NoSave );
+ 
+//----Block #2 Another example of input performance text vs. xls   
+t1 = Tick Seconds();
+Open(
+	"C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\Bigclass_L.txt",
+	Import Settings(
+		End Of Line( CRLF ),
+		End Of Field( Tab, Comma ),
+		Strip Quotes( 1 ),
+		Use Apostrophe as Quotation Mark( 1 ),
+		Scan Whole File( 1 ),
+		Treat empty columns as numeric( 0 ),
+		Labels( 1 ),
+		Column Names Start( 1 ),
+		Data Starts( 2 ),
+		Lines To Read( All ),
+		Year Rule( "10-90" )
+	)
+);
+Wait( 0 );
+t2 = Tick Seconds();
+Close( Data Table( "Bigclass_L" ), No Save );
+Wait( 0 );
+t3 = Tick Seconds();
+Open(
+	"C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\Bigclass.xls"
+);
+Wait( 0 );
+t4 = Tick Seconds();
+Write(
+	"Seconds to open Big Class_L.txt ",
+	Round( t2 - t1, 3 ),
+	"\!r",
+	"Seconds to open Big Class.xls ",
+	Round( t4 - t3, 3 ),
+	"\!r"
+);
+Close( Data Table( "Bigclass" ), No Save );
+
+//-------------------------------------------------------------------------------------
+//----Block #3 - Large JMP Tables Tall vs Wide
+//create  table of 2 million rows 5 cols vs. 10,000 cols 1000 rows
+t1 = Tick Seconds();
+dt = New Table( "Tall",
+	New Column( "X1", numeric ),
+	New Column( "X2", Numeric ),
+	New Column( "X3", numeric ),
+	New Column( "X4", Numeric ),
+	New Column( "X5", numeric ),
+	Add Rows( 2000000 ),
+	Invisible
+);
+:X1 << Set Each Value( Random Integer( 1000, 1999 ) );
+:X2 << Set Each Value( Random Integer( 2000, 2999 ) );
+:X3 << Set Each Value( Random Integer( 3000, 3999 ) );
+:X4 << Set Each Value( Random Integer( 4000, 4999 ) );
+:X5 << Set Each Value( Random Integer( 5000, 5999 ) );
+dt << New Column( "Param", Character );
+dt:Param << set each value( "P" || Char( Floor( (Row() - 1) / 1000 ) + 1 ) );
+Wait( 0 );
+t2 = Tick Seconds();
+
+//----create wide
+t3 = Tick Seconds();
+Data Table( "Tall" ) << Split(
+	Split By( :Param ),
+	Split( :X1, :X2, :X3, :X4, :X5 ),
+	Output Table( "Wide" )
+);
+Wait( 0 );
+t4 = Tick Seconds();
+Write(
+	"Seconds to create Tall -- 10 million random integer calls ",
+	Round( t2 - t1, 3 ),
+	"\!r",
+	"Seconds to create Wide --split into 10,000 columns ",
+	Round( t4 - t3, 3 ),
+	"\!r"
+);
+
+
+//----Now get write and read performance numbers   
+t1 = Tick Seconds();
+Close( Data Table( "Tall" ), Save( "C:\temp\Tall.jmp" ) );
+t2 = Tick Seconds();
+t3 = Tick Seconds();
+Close( Data Table( "Wide" ), Save( "C:\temp\Wide.jmp" ) );
+t4 = Tick Seconds();
+Write(
+	"Seconds to save Tall ",
+	Round( t2 - t1, 3 ),
+	"\!r",
+	"Seconds to save Wide ",
+	Round( t4 - t3, 3 ),
+	"\!r"
+);
+t1 = Tick Seconds();
+Open( "c:\temp\Tall.jmp", Invisible );  //tall rows(2,000,000)  cols(5)
+Wait( 0 );
+t2 = Tick Seconds();
+Close( Data Table( "Tall" ), No Save );
+Wait( 0 );
+t3 = Tick Seconds();
+Open( "c:\temp\Wide.jmp", Invisible ); //wide cols(10,000) rows(1,000)
+Wait( 0 );
+t4 = Tick Seconds();
+Write(
+	"Seconds to open Tall ",
+	Round( t2 - t1, 3 ),
+	"\!r",
+	"Seconds to open Wide ",
+	Round( t4 - t3, 3 ),
+	"\!r"
+);
+Close( Data Table( "Wide" ), No Save );
+
+
+/*
+//----Run these commands to delete tables created by this program
+Delete File("C:\temp\Tall.jmp");
+Delete File("C:\temp\Wide.jmp");
+*/
+

@@ -1,0 +1,76 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_Gradient.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates modifying the background of a plot by applying the
+//          Gradient Function()to the FrameBox.  Uses the Capability platform.  
+
+
+Names Default to Here(1);
+
+dt=open("$sample_data\semiconductor capability.jmp");
+
+cpp = dt<<Capability(
+	Y( :NPN1, :PNP1, :PNP2, :NPN2, :PNP3 ),
+	Goal Plot(0));
+//----Arrange this script window and Capability Window
+//----Run line-by-line to watch the graph change
+rpt = cpp << report();
+rpt["Capability Box Plots"][ScaleBox(2)]
+     <<	{Min( -1.5 ), Max( 1.5 ), Inc( 0.5 ), Minor Ticks( 1 )};
+
+//----Change the Standardized spec limits lines to be 2 wide and dashed
+rpt["Capability Box Plots"][FrameBox(1)]
+     << {Line Width Scale( 2 ), Line Style Scale (1)}; 
+
+//----Add A Gradient background
+rpt["Capability Box Plots"][FrameBox(1)] << Add Graphics Script( 
+      Gradient Function( Abs( x ) / .5, x, y, [0 3],
+			Z Color( [4, 3] ),
+			Transparency( .4 ) );
+);  // end add graphics script
+
+//---- Customize BoxPlotSeg line widths
+//If the same format for all boxplots use a for loop 
+For(i = 1; nYvar = 5; , i<= nYvar, i++,
+rpt["Capability Box Plots"][FrameBox(1)]  
+  << { DispatchSeg( BoxPlotSeg( i ),
+	{Box Style( "Outlier" ), Shortest Half Bracket( 0 ), 
+	 Line Width( 2 )})
+	};
+  wait(2);  //added to watch the changes...unnecessary
+);  //end for i
+			
+//----Change the Outlier symbol to star
+rpt["Capability Box Plots"][FrameBox(1)] 
+    << {DispatchSeg( MarkerSeg( 1 ), {Marker( Star )} )	
+		};
+
+rpt["Capability Box Plots"][FrameBox(1)] 
+    << {Grid Line Order( 11 ), Reference Line Order( 12 )};
+ 
+
+//Recall commands from Chapter 6 to customize TableBox, NumberColBox formats
+
+cpp << Capability Indices Report(1); //display Cpk report
+
+rpt=Report(cpp);
+rpt["Capability Indices"][NumberColBox("LSL")] << {Set Format(8,3)};
+rpt["Capability Indices"][NumberColBox("Target")] << {Set Format(8,3)};
+rpt["Capability Indices"][NumberColBox("USL")] << {Set Format(8,3) } ;
+rpt["Capability Indices"][NumberColBox("Mean")] << {Set Format(8,2)};
+rpt["Capability Indices"][NumberColBox("Standard Deviation")] << {Set Format(8,2)};
+rpt["Capability Indices"][NumberColBox("CP")] << {Set Format(8,2)};
+rpt["Capability Indices"][NumberColBox("CP")] << {Set Format(8,2)};
+rpt["Capability Indices"][NumberColBox("CP")] << {Set Format(6,2)};
+
+//Recall  the synatx for the command to add a graphics script is
+//    Add Graphics Script(<order>, script) where order can be the 
+//    word BACK or a number
+// Modify the Add Graphics Script above that creates the gradient background by  
+// using Back for the order option and rerun this script.  Now the boxplots are
+// drawn in front of gradient.  Since the transparency is set at 0.4 the effect
+// is not stark.
+/*
+rpt["Capability Box Plots"][FrameBox(1)]
+    << Add Graphics Script( Back,  ... etc.
+*/

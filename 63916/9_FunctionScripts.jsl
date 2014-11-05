@@ -1,0 +1,30 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_FunctionScripts.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates a Function command.
+
+
+// iRoot returns characters of imaginary numbers for square roots of negative numbers.
+
+iRoot = Function( {x}, 
+  If( x > 0, 
+  char( Sqrt( x ) ), 
+  trim( char( sqrt( abs( x ) ) ) ) || "i" ) 
+);
+a = iRoot( 9 );   // result in a is "3"
+b = iRoot( -9 );  // result in b is "3i"
+
+// Demonstrates the use of local temporary variables within the Function command
+// by calculating a polar coordinate r in a 3D system
+
+polar3r = Function( {a, b, c}, {Default Local},
+	temp = a ^ 2 + b ^ 2;
+	Sqrt( temp + c ^ 2 );
+);
+r = polar3r( 3, 7, 31 );  //log returns 31.9217793990247
+
+// This classic example uses Recurse() to calculate factorials.
+
+myownfactorial=function({x},if (x==1, 1, x*recurse(x-1)));
+myownfactorial(31);  // log returns 8.22283865417792e+33
+

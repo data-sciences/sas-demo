@@ -1,0 +1,432 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_Extra_ControlChartInterface.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for making a control chart dialog box and retrieving information from them.
+// This script is not production ready. Read the comments at the end of this script.
+
+//*debug step*/
+//This code uses functions and expressions to reduce repetitive code
+//  ---lbAddTo function replaces code at each button box used to cast columns into roles, 
+//  ---removeExpr is used to replace code at the Remove button
+//  ---for loops and expressions replace repetitive explict code in okExpr and recallExpr
+//  ---added a check that a table is open, if not open one
+//  ---Button Box for Get Limits and CheckBox for Capability
+//  ---Parameters Panel Box with a RadioBox and NumberEditBox, so that a change in the radio triggers a new value in teh number box
+//  ---Two Buttons Specify Stats and Delete Stats that turn on and off a tabbed box to get 
+//  ---and inserts necessary HListBox and VListBox to achieve desired layout
+//Recommend starting near line 317, and reading the window layout, once you see the structure
+//find the functions and expression used in the display in lines 37-317
+
+Try(
+	If(N Table() == 0, 
+		lj_dt = Open(),
+		lj_dt = Current Data Table();
+	),
+	Throw()
+);
+
+lj_Listglobals = {::aa_lb1,::aa_lb2,::aa_lb3,::aa_lb4};
+lbList = {lb1, lb2, lb3, lb4};
+lj_Optglobals = {::aa_Opt, ::aa_Params, ::use_file};
+getStats=0;
+//::aa_lb* will be ordered lists and are used to make it easier to
+//translate JMP's mock dialog script.  ::aa_Opt will store capability and
+//alpha or k values
+
+//Globals are required to enable the recall button. After
+//each usage when Ok is pressed the globals are updated and 
+//when Recall is pressed each item in the global list is loaded
+//to the window dialog. For lists only names found in the current 
+//data table's column list (select-from-list) are loaded into the 
+//appropriate add-to-list 
+
+
+//-------------Function/Expression when Add button is selected --------------------------------------
+//This could be 1 JSL statement used itemsToAdd for debug purposess
+lbAddto = Function( { addTo_lb, addFrom_lb }, {Default Local},	
+	itemsToAdd = ( addFrom_lb << get selected );
+	addTo_lb << Append ( itemsToAdd )
+);
+
+//-------------Function/Expression when Remove button is selected --------------------------------------
+removeExpr = Expr(
+    Local({i},
+	For(i=1,i<=N Items(lbList),i++,
+		Eval(lbList[i]) << Remove Selected;
+	));	
+);
+
+//-------------Function/Expression for tasks when OK is is selected--------------------------
+//Tasks include:
+//    1: Unloading values in the display boxes and assigning values to globals. This enables
+//       recall and values will be accessible when this user dialog window is closed.
+//    2: Close this user made dialog window called lj_dlg.
+//This script does not include getting the limits from the table and rules
+//task 1
+okExpr = Expr(
+   Local( {i, tmpopt, plim}, 
+   For(i=1, i<=nitems(lbList), i++,
+	 Eval( 
+	   Substitute(Expr(
+		 Unlock Globals( gl_lb );
+		 gl_lb = ( ll_lb << Get Items );
+		 Lock Globals( gl_lb ); ),
+		 Expr(ll_lb), Name Expr(lbList[i]),
+		 Expr(gl_lb), Name Expr(lj_Listglobals[i])
+	 )) //end Eval
+   );   //End for i
+   tmpopt = Associative Array(); tmpopt << set default value({});
+   Insert into(tmpopt["calcCL"], Eval(Choose((prb<<get),"KSigma", "Alpha")	));
+   Insert into(tmpopt["calcCL"], Eval(ptb<<Get));
+   Insert into(tmpopt["Capability"], Eval(cb1<<get));
+   ::aa_Opt = tmpopt
+   );  // end Local   
+       
+//task 2             
+	Eval(cancelExpr);
+);
+//This program does nothing other than manage user selections.
+
+//-------------Function/Expression for tasks when Recall button is selected--------------------------
+//Tasks include:
+//    1: Uploading list values stored in the globals in the appropriate display boxes.  However, 
+//       just in case this is a new table, check that the column name stored in the global is
+//       in fact a valid name for the current data table
+//    2: Upload optional settings 
+//This will be a brute force (explicit)code note the repetition
+//task 1
+recallExpr = Expr(
+//get list of current data table columns and only use those in the lbCol
+//note:  The command current data table() << get column names("string"), will include
+//hidden and excluded columns - the interface decision was to honor the current
+//column settings so get the items that are currently in the list lbCol.
+//Note the Try is needed to handle the scenario when an Ok has not been used, a user asks for
+//Recall and there are no globallists defined
+   curCol = lbCol << get Items;
+Try(
+   Local({ i, j, tmpList,listVal },
+	For( i=1, i<=nitems(lbList), i++,
+	  tmpList = lj_Listglobals[i];
+	  For(j = 1, j<= nitems(tmpList), j++,
+		If(loc(curCol, tmpList[j])> 0 ,
+		  Eval( Substitute(
+			Expr( lb << Append (listVal)),
+			  Expr(lb), lbList[i],
+			  Expr(listVal), tmpList[j]
+		  )) //end Eval Substitute	
+		)    //end If
+	  )	     //end For j
+	);        //end For i
+//unload ::aa_Opt  note JMP's platform does not do this
+    If(::aa_Opt["calcCL"][1] == "KSigma", prb<<set(1), prb<<set(2));
+    ptb<<set(::aa_Opt["calcCL"][2]); 		
+	));       //end Local & Try
+);
+
+//-------------Function/Expression for tasks when Cancel is is selected--------------------------
+cancelExpr = Expr(lj_dlg << Close Window);
+
+
+//----------------------------------------------------------------------------
+//-----Added Functions & Expression to manage Specify Stats button box
+//JMP v9 StringColBox & StringColEditBox have no method to replace values.
+//The display box must be deleted and recreated and appended to the statsTbl.
+//Since there are 2 or more instances where this occurs, an expression is used
+//to eliminate duplication of code.  If there were more than 1 StringColBox
+//create a generic function UpdateStringColBox(boxref, boxName, boxval)   
+UpdateWecoBoxExpr=Expr(
+	::wecoBox <<delete;
+    wait(0);
+    ::wecoBox = StringColEditBox("Trend Rules",wecoVal);
+    ::statsTbl << Append(::wecoBox);
+
+);
+//pop-up handler for the statsTbl
+ySelAll = Function({opt}, {Default Local},
+  ytmpList = ::ySettings<<Get Items;
+   if(opt==1, 
+	  for(i=1, i<=nitems(ytmpList), i++,
+	  ::ySettings <<set selected (i)),
+	opt==0,
+	  ::ySettings << Clear Selection,
+	opt > 1,
+	ySelItems = ::ySettings << Get Selected Indices;  
+	stdVal = ::stdBox << Get As Matrix;
+	avgVal = ::avgBox <<  Get As Matrix;
+	wecoVal = ::wecoBox << get();
+	  for(i=1, i<=nitems(ySelItems), i++,
+	  Choose(opt-1, stdVal[ySelItems[i]]=empty(),  //opt 2
+	  	 avgVal[ySelItems[i]] = empty(),           //opt 3
+	  	 wecoVal[ySelItems[i]] = "",               //opt 4
+	  	 stdVal[ySelItems[i]] = empty();           //opt 5
+	  	   avgVal[ySelItems[i]] = empty(); 
+	  	   wecoVal[ySelItems[i]] = "";
+	  ));                                          //end choose
+	::stdBox<< set values(stdVal);
+	::avgBox<< set Values (avgVal);
+    UpdateWecoBoxExpr;
+	
+) );
+
+statsExpr= Expr(
+	Local({tmpList, i, n, clExpr, cl2, pp, psd, pxb, _xx, _yy, _ljsize},
+	Try(lup << delete);
+	wait(0);
+	tmpList = (lb1<<get Items);
+	If(NItems(tmpList)==0,
+	 stats_pb_tb << set Text("No Process parameters selected"),
+ //else
+     stats_pb_tb <<set text("Known Statistics for Levey Jennings Chart");
+     psd={}; pxb={}; prules={}; 
+ 	For (i=1, i<=nitems(tmpList), i++,
+	  Insert Into( psd, Empty() );
+	  Insert Into( pxb, Empty() );
+	  Insert Into( prules, "" );
+	  v = column(lj_dt,tmpList[i]);
+	  psd[i]=v<<get property("Sigma");
+	  pp = v<<get property("Control Limits");
+	  if(Type(pp)=="List", 
+		  Try(
+		     for(j=1, j<=N Arg(pp[1]), j++,
+		       If(Head Name Expr(Arg(pp[1],j))=="Avg",
+		          pxb[i] = Arg(Arg(pp[1], j), 1))  	    	
+		)));  //end For j, Try, if
+    );
+//now we have values for mean and sigma if they exist
+//create table
+    makeTableExpr = Expr( lup=lineupbox(3,
+       VlistBox( HListBox( 
+         ypub=PopUpBox({"Select All",  ySelAll(1),
+         "Unselect All", ySelAll(0),
+         "---Apply to Selected----",
+         "",
+         "Clear Sigma", ySelAll(2),
+         "Clear Mean", ySelAll(3),
+         "Clear Trend Rules", ySelAll(4),
+         "Clear All Settings", ySelAll(5) 
+          }),   
+    textBox("   Y")),
+	::ySettings = List Box(_yvar,
+		nlines( _nl )
+	)),
+       statsTbl = TableBox(
+		 stdBox = NumberColEditBox("Sigma",_sig),
+		 avgBox = NumberColEditBox("Mean", _avg),
+		 wecoBox = StringColEditBox("Trend Rules", _tru)
+		)));
+	eval(substitute(NameExpr(makeTableExpr), Expr(_yvar), tmpList,
+		Expr(_sig), psd, Expr(_avg), pxb, Expr(_tru), prules, Expr(_nl),
+			nitems(tmplist))
+		);
+	sb << Append(lup);
+	);	 //end If
+	_ljsize = ::lj_dlg <<get window size();
+	_ljsize[1]=max(1091, _ljsize[1]);
+	_ljsize[2]=max(740, _ljsize[2]);
+	::lj_dlg <<size window(_ljsize[1], _ljsize[2]);
+    );  //end Local          	
+);  //end statsExpr
+
+//-------------Create Display for Trend rules
+
+//Use expressions and a fixed list of names to create tRule display
+Local( {i, tmpExpr},
+//Use tr as an associative array, if it doesn't exist create it
+tr=[=>0];  //initialize trend rule check boxes
+wrName ={ "Rule 1 2S", "Rule 1 3S","Rule 2 2S","Rule R 4S","Rule 4 1S",
+           "Rule 10 X" };
+::trName={}; 
+for(i=1, i<=8, i++, InsertInto(::trName, "Test " || Char(i)));
+for(i=1, i<=nItems(wrName), i++, InsertInto(::trName, wrName[i]));
+
+trDescr = {	"One point beyond Zone A",
+		"Nine points in a row in a single (upper or lower) side of Zone C or beyond",
+		"Six points in a row steadily increasing or decreasing",
+		"Fourteen points in a row alternating up and down",
+		"Two out of three points in a row in Zone A or beyond",
+		"Four out of five points in Zone B or beyond",
+		"Fifteen points in a row in Zone C, above and below the center line",
+		"Eight points in a row on both sides of the center line with none in Zones C",
+		"One point beyond 2 sigma",
+		"One point beyond 3 sigma",
+		"Two points beyond 2 sigma",
+		"One point of four exceeds -2 sigma, while another exceeds +2 sigma",
+		"Four points in a row on the same side of the mean beyond 1 sigma",
+		"Ten points in a row on one side of the mean",
+		"One point beyond the control limits"
+};
+ruleExpr=Expr(LineUpBox(ncol(2), Spacing(8,2)));
+trExpr = Expr(tb=CheckBox(trName[_xx], tr[_xx]=(tb<<get)));
+tdExpr = Expr(TextBox(trDescr[_xx], <<Set Wrap(400)));
+for(i=1, i<=14, i++,
+  tmpExpr=Substitute(NameExpr(trExpr), Expr(_xx), i, Expr(tb), Parse("tb"||Char(i)));
+  insert into (ruleExpr, NameExpr(tmpExpr));
+  tmpExpr=Substitute(NameExpr(tdExpr), Expr(_xx), i);
+  insert into (ruleExpr, NameExpr(tmpExpr)); 	
+);  // end For
+);  // end Local
+
+//Create function to select or unselect all
+//check box script does not run unless user selects so tr[] must be assigned
+SelAllOpt = Function({opt},{Default Local}, 
+    for(i=1, i<=14, i++,
+	tmpExpr = Substitute(Name Expr(_xx<<set(1,k); ::tr[i]=k), 
+	     Expr(_xx), Parse("tb" ||char(i)),
+	     Expr(k), opt);
+	tmpExpr
+));
+
+//--tr is a global vector of 0|1 represnting the check box settings
+//--trName and trDescr are globals, when apply is selected a list of 
+//--trnames will be created and C or A will be set to be used by the 
+//--display when integrated Here a caption will display the options
+ApplyRules = Function({opt},{Default Local},
+	rList = {};
+	For(i=1, i<=14, i++, 
+//	if (::tr[i], insertInto(rList, Parse(::trName[i]))));
+    if (::tr[i], insertInto(rList, Char(i)));  
+    ); 
+   	wecoVal = ::wecoBox << get();
+	if(opt==1,  //"Selected Y's"
+      ySelItems = ::ySettings << Get Selected Indices,
+      ySelItems = As List(Transpose(Index(1,nitems(::ySettings << Get Items)))) );
+    rstr = ConcatItems(rList, " ");
+    for(i=1, i<=nitems(ySelItems), i++,
+    	wecoVal[yselItems[i]] =rstr;
+    );
+    UpdateWecoBoxExpr;
+//    eval(substitute(NameExpr(wecoBox <<set values(_rrr)),
+//       Expr(_rrr), wecoval));
+);  //end Apply Rules
+
+//makerulesExpr= Expr(
+ rules_PB = PanelBox("Select and Apply Trend Rules",
+    HListBox( pub=PopUpBox({"Select All",  SelAllOpt(1),
+         "Unselect All", SelAllOpt(0),
+         "Apply to Selected Parameters", ApplyRules(1),
+         "Apply to All Parameters", ApplyRules(2) }), ruleExpr;));
+         	
+// );
+ /*  test rules control
+ makerulesExpr;
+ new window("rules", rules_PB)
+ */
+///---------------------------------------------------------------------------------
+
+//-------------Function/Expression for Get Limits Button ----------------------------------------
+
+getLimExpr = Expr(
+  Try(Open(); lj_lim = Current Data Table(); ::use_file=1; , 
+        lj_lim=empty(); ::use_file=0);
+  Current Data Table(lj_dt);
+);
+
+
+// Note this replicates the behavior of JMP to prompt each time the get limits button is selected
+//--------------------DIALOG BOX CREATION BELOW-----------------------------------------------
+lj_dlg = New Window(
+	"Control Chart",
+	BorderBox(
+		Top(1),
+		Bottom(4),
+		Left(3),
+		Text Box("Levey Jennings Control Chart")
+	),
+	BorderBox( Bottom(9), Left(3),
+	  HListBox(
+//Wrap a VListBox around this PanelBox to create a Parameters PanelBox and a TabPanelBox
+      VListBox(
+	    PanelBox("Select Columns",
+		  lbCol = Col List Box(ALL)),
+		PanelBox("Parameters", 
+		  VListBox( 
+		    prb = RadioBox({"KSigma", "Alpha"}, 
+		        Choose((prb<<Get), ptb<<set(3), ptb<<set(0.0027))),
+		    ptb = NumberEditBox(3)	
+		  )),   //end Parameters PanelBox
+	   ),
+		PanelBox("Cast Selected Columns into Roles",
+		  LineUpBox(N Col(2),
+			bb1=ButtonBox("Process", lbAddto(lb1, lbCol) ),
+			  lb1 = Col List Box({},Width(180),Max Selected(99),NLines(6),MinItems(1),"Numeric"),
+
+			bb2=ButtonBox("Sample Label", lbAddto(lb2, lbCol) ),
+			  lb2 = Col List Box({},Width(180),Max Selected(1),NLines(1),Max Items(1),MinItems(0),"All"),
+
+			bb3=ButtonBox("Phase",lbAddto(lb3, lbCol) ),
+			  lb3 = Col List Box({},Width(180),Max Selected(1),NLines(1),Max Items(1),MinItems(0),"All"),
+
+			bb4=ButtonBox("By", lbAddto(lb4, lbCol) ),
+			  lb4 = Col List Box({},Width(180),Max Selected(1),NLines(2),Max Items(1),MinItems(0),"All"),
+           ),  //end LineUpBox
+// new Button Boxes below lineup box within panel box	
+	       HListBox( bb5 =ButtonBox("Specify Stats",  statsExpr; getStats=1; StatsIf <<set(getStats)),	       
+	          bb6 = ButtonBox("Delete Stats", getStats=0; StatsIf << set(getStats) )
+	        )  //end HListBox	  					
+		  ),   //end Panel Box
+//Wrap a VListBox around the PanelBox, so Get Limits button and Capability CheckBox lineup
+       VListBox(
+		PanelBox( "Action",
+		  VListBox( Border Box(
+			VListBox(
+			  ButtonBox("OK", Eval( okExpr ) ),
+			  ButtonBox("Cancel", Eval( cancelExpr ) ) 
+			)),
+		   BorderBox( Top(25),
+			  VListBox(
+				ButtonBox("Remove", Eval( removeExpr ) ),
+				ButtonBox("Recall", Eval( recallExpr ) ),
+				ButtonBox("Help", 
+					web("mk:@MSITStore:C:\Program%20Files\SAS\JMP\9\Support%20Files%20English\Help\JMP.chm::/QRM_12_Shewart_Control3.html#713048",
+					   JMPWindow);					
+				)
+			  ))   //end Border box
+		  )),   //end Action PanelBox
+		  bb7 = ButtonBox("Get Limits", getLimExpr),  //set global reference for the table
+		  cb1 = CheckBox("Capability",)  //get value when OK is selected
+	   )  //end VListWrapper
+	  )  //end HList
+	  ),  //end select columns border
+//IfBox, TableBox and getStats=1|0  determines if this interface is visible, see NOTES below for more info
+        statsIf = IfBox(getStats, 
+          stats_pb=PanelBox("", stats_pb_tb = TextBox(""),
+           HListBox(
+            sb=Scroll Box( size(350,275),flexible(1), lup=LineUpBox(2)),
+            rules_PB)	
+        ))  //end IfBox	  		
+);   //end Dialog
+
+
+
+/*---Notes & Next Steps-------------------------------------------------------------------
+//The final goal of the custom interface was to get the current column property for stats and
+flagging rules, and write and add new scripts based upon user selections. That was not
+implemented at the time the book and the associated scripts were published. 
+
+This prototype was included as an example of the rich set of controls available when building
+an application.  The upper part of the display emulates the JMP Levey-Jennings control chart 
+interface.  It deviates somewhat at Specify Stats.
+
+JMP's interface for Specify Stats makes sense given the platform is non-modal. The JMP
+interface uses a tabbed window. It only populates and updates the tabbed field when a user 
+requests Specify Stats. It does not open or update that field with Recall.  
+
+This alternate interface was built because the tabbed display for many variables is not 
+user friendly.  It is provided here to demonstrate numerous display box features, ScrollBox,
+IfBox, PopUpBox and more. 
+
+Most of JMP's Control Chart Interfaces work better if avg and sigma control charts and alarm 
+scripts are embedded as a column property. So the next steps for this script is:
+1:  If the column has control limit properties or sigma, populate Specify Stats display
+2:  After performance testing decide when to update the column information, on PopUp Apply to All or on OK
+3:  Define the format for Get Limits file to include rules. Add functionality to Get Limits.
+4:  Add item to Specify Stats popup box to save limits to a file, or create an application
+    custom platform, pulldown. 
+5:  Call up Levey-Jennings chart.
+6:  Potential enhancements: Create output options, indicators for control limits too wide or being off center, etc.  
+
+Final note, it is great to create fully non-modal, multiple instance applications.  However, managing names 
+and even using name spaces can be an overwhelming task. If completing this script, you may want to make 
+the window modal or do not allow another instance if one window is already open.
+
+//

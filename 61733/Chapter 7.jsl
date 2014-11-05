@@ -1,0 +1,295 @@
+/*-------------------------------------------------------------------*/
+/*       Jump into JMP(r) Scripting                                  */
+/*          by Wendy Murphrey and Rosemary Lucas                     */
+/*       Copyright(c) 2009 by SAS Institute Inc., Cary, NC, USA      */
+/*                   SAS Publications order                          */
+/*                   ISBN 978-1-59994-658-0                          */
+/*-------------------------------------------------------------------*/
+/*                                                                   */
+/* This material is provided "as is" by SAS Institute Inc.  There    */
+/* are no warranties, expressed or implied, as to merchantability or */
+/* fitness for a particular purpose regarding the materials or code  */
+/* contained herein. The Institute is not responsible for errors     */
+/* in this material as it now exists or will exist, nor does the     */
+/* Institute provide technical support for it.                       */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+/* Date Last Updated: 19MAY2014                                      */
+/*-------------------------------------------------------------------*/
+/* Questions or problem reports concerning this material may be      */
+/* addressed to the author:                                          */
+/*                                                                   */
+/* SAS Institute Inc.                                                */
+/* SAS Press                                                         */
+/* Attn: Wendy Murphrey and Rosemary Lucas                           */
+/* SAS Campus Drive                                                  */
+/* Cary, NC   27513                                                  */
+/*                                                                   */
+/*                                                                   */
+/* If you prefer, you can send email to:  saspress@sas.com           */
+/* Use this for subject field:                                       */
+/*     Comments for Wendy Murphrey and Rosemary Lucas                */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+
+/* Chapter 7 */
+
+/* Solution 7.1 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Generate the Bivariate analysis. */
+biv = Bivariate( Y( :height ), X( :weight ), Fit Line );
+
+/* Create the new data table from the Parameter Estimates. */
+Report( biv )["Parameter Estimates"][Table Box( 1 )] << Make Into Data Table;
+
+/* Solution 7.2 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Generate the Bivariate using Age as the By variable. */
+biv = Bivariate( Y( :height ), X( :weight ), Fit Line, By( :age ) );
+
+/* Create the combined data table of Parameter Estimates. */
+Report( biv[1] )["Parameter Estimates"][Table Box( 1 )] << Make Combined Data Table;
+
+/* Solution 7.3 */
+
+/* Open the Mushroom sample data table. */
+dt = Open( "$SAMPLE_DATA/Mushroom.jmp" );
+
+/* Generate the Partition output. */
+par = dt << Partition(
+    Y( :Edibility ),
+    X( :cap shape ),
+    Split Best( 1 ),
+    Criterion( Maximize Significance )
+);
+
+/* Click the Split button. */
+Report( par )[Button Box( 1 )] << Click( 1 );
+
+
+/* Solution 7.4 */
+
+/* Open the sample data table, Pickles.jmp. */
+dt = Open( "$SAMPLE_DATA/Quality Control/Pickles.jmp" );
+
+/* Assign values to the limits global variables. */
+upper = 14;
+lower = 7;
+average = 11;
+
+/* Create Control Chart using the variable values. */
+cc = dt << Control Chart(
+    Sample Label( :Date ),
+    K Sigma( 3 ),
+    Chart Col( :Acid, Individual Measurement( UCL( upper ), AVG( average ), LCL( lower ) ) )
+);
+
+/* Solution 7.5 */
+
+/* Open the Pickles sample data table. */
+dt = Open( "$SAMPLE_DATA/Quality Control/Pickles.jmp" );
+
+/* Generate the Control Chart using the Get Limits option with the file path as the argument. */
+cc = dt << Control Chart(
+    Sample Label( :Date ),
+    K Sigma( 3 ),
+    Get Limits( "C:\LimitsTable.jmp" ),
+    Chart Col( :Acid, Individual Measurement, Moving Range )
+);
+
+/* Solution 7.6 */
+
+/* Option 1: */
+
+/* Open the Pickles sample data table. */
+dt = Open( "$SAMPLE_DATA/Quality Control/Pickles.jmp" );
+
+/* Generate the Control Chart. */
+cc = dt << Control Chart(
+    Sample Label( :Date ),
+    K Sigma( 3 ),
+    Chart Col( :Acid, Individual Measurement, Moving Range )
+);
+
+/* Save the limits in a new column. */
+cc << In Column;
+
+/* Option 2: */
+
+/* Open the Pickles sample data table. */
+dt = Open( "$SAMPLE_DATA/Quality Control/Pickles.jmp" );
+
+/* Generate the Control Chart using the Save Limits platform option with In Column as the argument. */
+cc = dt << Control Chart(
+    Sample Label( :Date ),
+    K Sigma( 3 ),
+    Save Limits( In Column ),
+    Chart Col( :Acid, Individual Measurement, Moving Range )
+);
+
+/* Solution 7.7 */
+
+/* Open the Pickles sample data table. */
+dt1 = Open( "$SAMPLE_DATA/Quality Control/Pickles.jmp" );
+
+/* Generate the Control Chart. */
+cc = dt1 << Control Chart(
+    Sample Label( :Date ),
+    Group Size( 1 ),
+    KSigma( 3 ),
+    Chart Col( :Acid, Individual Measurement, Moving Range )
+);
+
+/* Send Save Limits message to platform object. */
+cc << In New Table;
+
+/* Establish a reference to the new table. */
+dt2 = Data Table( 1 );
+
+/* Save the new table. */
+dt2 << Save( "C:\LimitsTable.jmp" );
+
+/* Solution 7.8 */
+
+/* Create a limits table for demonstration purposes. */
+limitsDt = New Table( "Limits Table",
+    Add Rows( 3 ),
+    New Column( "Values", Numeric, Continuous, Format( "Best", 10 ), Set Values( [65, 50, 57] ) ),
+    New Column( "Spec Limit", Character, Nominal, Set Values( {"Upper", "Lower", "Target"} ) )
+);
+
+/* Store the limits in global variables. */
+lowerSpec = Column( limitsDt, "Values" )[2];
+upperSpec = Column( limitsDt, "Values" )[1];
+targetSpec = Column( limitsDt, "Values" )[3];
+
+/* Open table where limits will be placed as a column property. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Create an expression within an expression. */
+specExpr = Expr(
+    Column( dt, "height" ) << Set Property(
+        "Spec Limits",
+        {LSL( Expr( lowerSpec ) ), USL( Expr( upperSpec ) ), Target( Expr( targetSpec ) )}
+    )
+);
+
+/* Resolve the global variable then evaluate the main expression. */
+Eval( Eval Expr( specExpr ) );
+
+/* Perform a distribution that demonstrates that the desired spec limits were used. */
+dt << Distribution( Continuous Distribution( Column( :height ) ) );
+
+/* Solution 7.9 */
+
+/* Open a sample data table for demonstration purposes. */
+dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+/* Launch the Fit Model platform. */
+fit = dt << Fit Model(
+    Y( :Oxy ),
+    Effects( :Weight, :Runtime, :RunPulse, :RstPulse, :MaxPulse ),
+    Personality( Stepwise ),
+    Run Model( Prob to Enter( 0.2 ), Direction( Mixed ), Prob to Leave( 0.2 ) )
+);
+
+/* Force the stepwise to finish. */
+fit << Finish;
+
+/* Create the stepped model dialog. */
+sm = fit << Make Model;
+
+/* Execute the stepped model. */
+sm << Run Model;
+
+
+/* Solution 7.10 */
+
+Model Dialog[1] << Close Window;
+
+/* Solution 7.11 */
+
+/* Open the Big Class sample data table. */
+dt = Open( "$SAMPLE_DATA/Big Class.JMP" );
+
+/* Create the main expression with the response argument. */
+myExpr = Expr( Fit Model( Y( :weight ) ) );
+
+/* Build the effects expression. */
+effectExpr = Expr( Effects() );
+
+/* Assign a global variable to represent the list. */
+myCols = {:age, :sex, :height};
+For( i = 1, i <= N Items( myCols ), i++,
+    Insert Into( effectExpr, myCols[i] )
+);
+
+/* Place the effectExpr into myExpr. */
+Insert Into( myExpr, Name Expr( effectExpr ) );
+Insert Into( myExpr, Expr( Personality( Standard Least Squares ) ) );
+
+/* Insert the Run Model options into myExpr. */
+Insert Into(
+    myExpr,
+    Expr(
+        Run Model(
+            :weight << {Plot Actual by Predicted( 1 ), Plot Residual by Predicted( 1 ),
+            Plot Effect Leverage( 1 )}
+        )
+    )
+);
+
+/* Print expression to the log, for demonstration purposes. */
+Show( Name Expr( myExpr ) );
+
+/* Evaluate the expression. */
+myExpr;
+
+
+/* Solution 7.12 */
+
+/* Open the Solubility sample data table. */
+dt = Open( "$SAMPLE_DATA/Solubility.jmp" );
+
+/* Create multivariate analysis with Principal Components Arguments. */
+mult = Multivariate(
+    Y( :Name( "1-Octanol" ), :Ether, :Chloroform, :Benzene, :Carbon Tetrachloride, :Hexane ),
+    Correlations Multivariate( 0 ),
+    Principal Components( on Correlations, Save Principal Components( 3 ), Eigenvectors )
+);
+
+/* Send message to EigenVectors table to create a data table */
+newDt = Report( mult )["Eigenvectors"][Table Box( 1 )] << Make Into Data Table;
+
+/* Name the new table. */
+newDt << Set Name( "Eigenvectors" );
+
+/* Solution 7.13 */
+
+/* Open the sample data table, Solubility.jmp. */
+dt = Open( "$SAMPLE_DATA/Solubility.jmp" );
+
+/* Create multivariate analysis. */
+mult = dt << Multivariate(
+    Y( :Ether, :Name( "1-Octanol" ), :Carbon Tetrachloride, :Benzene, :Hexane, :Chloroform ),
+    Estimation Method( "REML" ),
+    Scatterplot Matrix( Density Ellipses( 1 ), Shaded Ellipses( 0 ), Ellipse Color( 3 ) ), 
+
+/* Set option for Mahalanobis and save values to table. */
+    Mahalanobis Distances( 1, Save Outlier Distances( 1 ) ), 
+
+/* Set option for Jackknife and save values to table. */
+    Jackknife Distances( 1, Save Jackknife Distances( 1 ) ), 
+
+/* Set option for T square and save values to table. */
+    Tsquare( 1, Save Tsquare( 1 ) )
+);
+
+/* End Chapter 7 solutions */
+

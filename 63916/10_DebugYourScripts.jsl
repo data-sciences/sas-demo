@@ -1,0 +1,130 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	10_DebugYourScripts.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates several semantic errors (usage errors)and the 
+//          use of conditional Show() statements to debug
+//          
+
+//----------Example 1---------------------------------------------------
+// No errors but no data 
+//--- Step 1: Create a table of 8 columns and 100 rows of data
+sum_dt = new Table("Empty Value Demo");
+sum_dt << Add Multiple Columns("_x", 8, after last, numeric );
+sum_dt << Add rows(100);
+nc = ncol(sum_dt); 
+nr = nrow(sum_dt); 
+for( i =1, i<=nc, i++,
+  column(sum_dt,i)<< set values(J(nr,1,Random Integer(1,20)));	
+);
+
+//--- Step 2: Create a New Column ("Sum") to hold the suum of the previous 8 columns
+sumcol = sum_dt << newcolumn("Sum", numeric); 
+
+//---- Using the Addto syntax sum across the columns 
+For Each Row(
+ For(i=1, i<=nc, i++,
+  sumcol[] += column(sum_dt, i)[]; 
+)); 
+//--- Run to here check the data table and check the Log window.
+//     Data values are all empty and there are no errors in the Log.
+
+//--- Usage error: Unintialized empty values! Using AddTo, if the starting value is empty
+//     the resulting Sum is empty.  
+//--- Step 3: Initialize sumcol with zeroes and rerun the same code
+sumcol << set each value(0);  //initialize
+For Each Row(
+ For(i=1, i<=nc, i++,
+  sumcol[] += column(sum_dt, i)[]; 
+)); 
+//--- The table now has values.
+
+// Notes: Syntax review for example 1:
+// Add Multiple Columns(), For Each Value(), AddTo (+=), J(k,m,values)
+// A column formula using variable references requires the [] syntax
+// Algorithm: For a large table it is likely more efficient to create an expression
+//--- Step 4: Using expressions and conditional Show() statements
+//    example of a "good" Scriptable[] Log window output.
+sum_dt << delete Columns("Sum");  //start over
+colids = sum_dt << get column names();
+
+//--- Build an expression using a conditional Show() statement;.
+//--- Run this segment of code.  There are no errors, hover over sumExpr to see
+//    the final value.   Then in the Log or another script window
+//    run the command ::debug=1, then rerun this block again.
+//    When ::debug has a value of 1 the show commands will be run.
+//---------- run twice-------------------------------------
+sumExpr = Expr(Sum());
+ For(i=1, i<=nc, i++,
+   insert into(sumExpr, colids[i]);
+   Try( ::debug==1; Show(i,  Name Expr( sumExpr ) ) );
+ );
+  Try( ::debug==1; Show( Name Expr( sumExpr ) ) );
+//---------------------------------------------------------
+
+//Recreate the new column
+ sumcol = sum_dt << newcolumn("Sum", numeric); 
+//Create the full expression and evaluate  
+Eval(Substitute(Expr(Sum << set each value(__sumExpr)), Expr(__sumExpr), NameExpr(sumExpr)));
+//JMP Log states Scriptable[], Check the table the values are correct
+//--- Recommend the colon scoping for :Sum, in fact if possible use strong names
+//    with no potential to have :Sum collide with function Sum().     
+//Eval(Substitute(Expr(:Sum << set each value(__sumExpr)), Expr(__sumExpr), NameExpr(sumExpr)));
+
+ 
+//---- Example 2 ----------------------------------------------------------------------------------
+bc_dt = Open( "$SAMPLE_DATA/Big Class.JMP" );
+
+mkspace=Repeat(" ",8);
+
+rsp = Column Dialog(
+	_trtId = ColList( "X, Treatment", Max Col( 1 ) ),
+	_grpId = ColList( "Group Factors" ),
+	_respId = ColList( "Y, Response" ),
+	_wtId = ColList( "Weight" ),
+   Lineup(5,
+		Lineup(2, "Alpha", _xalpha = EditNumber( .05 ),
+			   "Beta", _xbeta = EditNumber(.10 )  ),
+		mkspace,
+		V List(       
+		"Select interval type. ","Only 1 allowed",
+		HList( _xintv = Radio Buttons("Confidence", "Prediction", "Tolerance"))
+		),
+		mkspace,
+		VList( "Select plots.", "No limit.",
+		  VList( plot_raw = CheckBox("Raw Data Plot",0), 
+		   plot_circ=CheckBox("Comparison Circles",0))
+        ) //end select plots
+    )// end lineup
+);  //end Column Dialog
+
+
+//Same code/logic as above
+If(rsp["Button"]== -1, Caption("Aborting..."); Wait(3); Caption(Remove); Throw());
+StatusMsg("Processing next steps");
+RemoveFrom(rsp, NItems(rsp));   //Remove the last item "Button(1)"
+Eval List(rsp);                      //Assignments are run
+Show( rsp, _trtId, _grpId, _respId, _wtId, _xalpha, _xbeta, _xintv, 
+    plot_raw, plot_circ);
+    
+/*Notes:
+//  Show() is important for debugging your script.  However, it will not help if
+//  you do not assign a variable to show the result of the statement being evaluated.
+  
+//  For Example #2, consider creating a variable for the sum expression. 
+//  Replacing the single command Eval( Substitute()) with the next 3 statements might save
+//  hours of chasing down errors.
+  
+sumExpr = Substitute(Expr(Sum << set each value(__sumExpr)), Expr(__sumExpr), NameExpr(sumExpr));
+If( ::debug, Show( NameExpr( sumExpr ) ) );
+sumExpr; //or Eval( sumExpr);
+  
+//  Alternate method using Eval Insert --provided here as an alternate method
+
+sum_dt << delete Columns("Sum");  //start over
+colids = sum_dt << get column names(string);
+sumcol = sum_dt << newcolumn("Sum", numeric); 
+sumStr = Eval Insert("\[:Sum <<Set Each Value( Sum(^ConcatItems(colids,",")^) )]\") ;
+If( ::debug, Show( Parse( sumStr ) ) );
+Eval( Parse( sumStr) ) );
+
+//  Creating a viewable string or an expression that can be viewed helps debug a Scriptable[] error.

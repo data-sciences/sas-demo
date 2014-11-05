@@ -1,0 +1,168 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_NavigateReportwithByVariables.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax for navigating reports with By variables.   
+
+//Demonstrate navigation annd customization of By Group Reports 
+//for both Format "A" and Format "B" platforms.
+
+//The script includes additional commands often requested by users
+//scripting By group reports, for example, "How do I maintain the
+//same scaling across all By groups?"
+
+//------Example for Text Discussion-----------------------------------------------
+
+
+body_dt = Open( "$Sample_Data\Body Measurements.jmp" );
+body_dt << New Column( "Group",
+	Character,
+	Nominal,
+	Set Property(
+		"Value Ordering",
+		{"S", "M", "B"}
+	),
+	Set Values( 
+	{"M", "S", "B", "M", "M", "S", "B", "B", "M", "B", "S", "M", "M", "B", "S", 
+	  "B", "B", "B", "S", "B", "S", "S"}	
+	 )
+);
+
+
+//---Generate Analysis---------------------
+
+::yList = {"Fore", "Bicep", "Chest", "Waist", "Thigh"};
+
+A_body_biv = body_dt << Bivariate( Y( eval(yList) ), 
+   X( :Mass ), By(:Group));
+
+B_body_dist = body_dt << Distribution( Y( eval(yList) ),
+   By(:Group), Horizontal(0) );
+
+show (A_body_biv, B_body_dist);
+
+//--------end of Text Discussion Example------------------------------------------
+//------Example discussed in Notes------------------------------------------------
+//--The easiest method to maintain the same scaling for all 
+//--By groups is to create the Axis Column Property
+//--create a function to work on current data table and specified columns
+AxisProp = Function({pList={},meth="ALL"}, {Default Local},
+   cTbl=current data table(); 
+   if(Try(Type(pList) == "List";1,0) & NItems(pList)>0 ,
+      cList={};
+      for(i=1, i<=nItems(pList), i++,
+        if( Try((column(cTbl, pList[i]) <<get data type) =="Numeric"),
+           insert into (cList, pList[i]),
+           Show("Column " || pList[i] ||"is not numeric, will not be scaled")
+        )),
+//else         
+      cList =cTbl << Get Column Names(Numeric, String)
+    );
+ pExpr= Expr(column(cTbl, cList[i]) << Set Property("Axis", {Min(_lo), Max(_hi)}));       	
+
+//for each column in cList, if 1st char of meth =="A" get Max, Min 
+//if n > 50 and the 1st char of meth == "R" , screen for outliers, then get Max Min   	 
+    if (nItems(cList)==0, show("No Scaling done"); Throw());
+    meth = uppercase(substr(trim(meth),1,1));
+    useRows = (cTbl<< get rows where( !Excluded() )); 
+    if( meth=="R" & nrow(useRows) > 50, meth="R", meth="A");
+    for (i=1, i<=nitems(cList), i++,
+      mval = column(cTbl, cList[i] )[useRows];
+      if(meth=="A",
+        xmax = Maximum(mval); 
+        xmin = Minimum(mval),
+    //else
+        xq3 = quantile(.75, mval);
+        xq1 = quantile(.25, mval);
+        xq2 = quantile(.50, mval);
+        xmax = Maximum (mval[loc(mval <= xq2 + 4.5 * (xq3 - xq1)/1.649)]);
+        xmin = Minimum(mval[loc(mval >= xq2 - 4.5 * (xq3 - xq1)/1.649)]);
+      );  //end if
+      xfuzz= (xmax-xmin)*.1;
+      xmax = xmax + xfuzz;
+      xmin = xmin - xfuzz;
+//      show(cList[i], xmin, xmax);
+      cmd=Substitute(Name Expr(pExpr), Expr(_lo), xmin, 
+          Expr(_hi), xmax);
+      cmd; 
+    )  // end for	
+ );  //end function
+ 
+ 
+iris_dt = Open("$Sample_data\Iris.jmp");
+//AxisProp();
+
+//Format "A" : 2Y, 2X, 1By with 3 unique values
+iris_biv = iris_dt << Bivariate( Y( :Sepal length, :Sepal width ),
+	   X( :Petal length, Petal width ), By( :Species ) );
+//Format "B" : 4Y, 0X, 1By with 3 unique values
+iris_dist = iris_dt << Distribution(	 Y( :Sepal length, :Sepal width, 
+	      :Petal length, Petal width ), By( :Species ) );
+Show( iris_biv, iris_dist);
+
+//-------------Format "A"  Bivariate-----------------------------------------
+//--send a platform message to all 12 bivariates
+iris_biv << Density Ellipse( .95, {Shaded Contour( 1 ), 
+     Line Color( "Medium Dark Gray" )} );
+//--change axis label fonts, uses relative reference to text box
+For( i = 1, i <= N Items( iris_biv ), i++,
+	rpt = Report( iris_biv[i] );
+	rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font size( 11 ) 
+	   << Set Font style( "Bold" );
+	rpt[AxisBox( 2 )][Text Edit Box( 1 )] << Set Font size( 11 ) 
+	    << Set Font style( "Bold" ); 
+//remove "Bivariate Fit Of"" from titles
+    ttl = substr( (rpt[OutlineBox(1)] << Get Title), 18);
+    rpt[OutlineBox(1)] << Set Title (ttl)
+);
+
+//Customize the Outline boxes
+//Create a list of By variables
+byList = {"Species"};
+//Step 1 Get the parent of the parent of the 1st object
+brpt = (iris_biv[1] << parent) << parent;
+//Show( brpt << Class Name );
+While( Type( brpt ) == "DisplayBox" & (brpt << Class Name) == "OutlineBox",
+	ttl = ((brpt << child) << child) << get title;
+	byttl = Trim( Substr( ttl, Contains( ttl, byList[1] ) ) );
+	brpt << Set Title( "Iris data bivariate " || byttl );
+	brpt << Close( 1 );
+	brpt = brpt << sib;
+);
+
+//-------------Format "B"  Distribution-----------------------------------------
+/*
+* Format "A" By group reports require Parent/Child/Sib relationships to get to the 
+* outline boxes, yet each bivariate can be addressed directly. 
+ 
+* Format "B" By group reports, the outline boxes can be addressed directly and the 
+* distribution segments require Parent/Child/Sib relationships to find all (or a 
+* list if Y variable names).  Within the While() loop Sib acts as Next. Above
+* the While() loop was on By Group outline boxes (Format "A")  and below the While() loop
+* is applied to Histogram segments within the By Group outline boxes (Format "B") 
+*/
+
+//Send a message to main reference and it is applied to all segments and by groups
+iris_dist << Shadowgram(1);
+//Send a message to each By group distribution, for group customizations
+colorList={ "Red" , "Blue", "Purple", "Orange", "Green", "Cyan" };
+For( i=1, i<=NItems(iris_dist), i++,
+  k= i - 6*Floor((i-1)/6) ;
+  iris_dist[i] << Histogram Color(colorList[k])
+);
+//For each segment get N Mean & Stdev, put in title, remove moments.
+For( i=1, i<=NItems(iris_dist), i++,
+  drpt = report(iris_dist[i])[1][OutlineBox(1)] ;
+  While( Type(drpt) == "DisplayBox",
+	  tmpMat= drpt["Moments"][NumberColBox(1)]<<get;
+	  ttl = drpt<< get title;
+	  drpt[Outline Box( 1 )] << set title(
+		ttl || ": [N,μ,σ] = [" || Char( tmpMat[6] ) 
+		|| ", " || Char( tmpMat[1], 5, 2 ) 
+		|| ", " || Char( tmpMat[2], 6, 3 ) || "]");
+	  drpt = (drpt << sib)
+  );  // end while
+  iris_dist[i] <<Moments (0);
+  report(iris_dist[i]) << Close(1);
+);
+
+

@@ -1,0 +1,318 @@
+
+   /********************************************************************/
+   /********** Calling R Functions from IMLPlus **********/
+
+   /* call R functions */
+   submit / R;
+      n <- 100                  # 100 obs
+      set.seed(1)               # seed for pseudorandom number generation
+      x <- runif(n)             # x is pseudorandom uniform of length n
+      y <- 3*x + 2 + rnorm(n)   # y is linearly related to x
+      model <- lm(y~x)          # model y as a function of x
+      summary(model)            # print summary of linear model
+   endsubmit;
+ 
+
+   /********************************************************************/
+   /********** Data Frames and Matrices: Passing Data to R **********/
+
+   /* transfer data from SAS data set to R data frame */
+   run ExportDataSetToR("Sasuser.Movies", "MovieFrame");
+   submit / R;
+      names(MovieFrame)
+      summary(MovieFrame$Budget)
+   endsubmit;
+
+
+   /* transfer data from data object to R data frame */
+   declare DataObject dobj; 
+   Dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies"); 
+   dobj.ExportToR("MovieFrame");                /* write all variables */
+   submit / R;
+      summary(MovieFrame$ReleaseDate)
+   endsubmit;
+
+
+   /* transfer data from SAS/IML matrix to R matrix */
+   dobj.GetVarData("World_Gross", w);        /* get data into vector w */
+   run ExportMatrixToR(w, "WorldG");         /* send matrix to R       */
+   submit / R;
+      summary(WorldG)
+   endsubmit;
+
+
+   /* show that data transfer preserves some variable properties */
+   declare DataObject dobj; 
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies"); 
+   dobj.ExportToR("MovieFrame");                /* write all variables */
+   submit / R;
+      class(MovieFrame$ReleaseDate)
+      class(MovieFrame$NumAANomin)
+   endsubmit;
+
+
+   /* transfer data from R data frame to data object */
+   declare DataObject dobjR;
+   dobjR = DataObject.CreateFromR("Old Faithful Data", "faithful");
+   dobjR.GetVarNames(VarNames);
+   dobjR.GetDimensions(NumVar, NumObs);
+   print VarNames NumVar NumObs;
+
+   run ImportDataSetFromR("Work.OldFaithful", "faithful");
+
+
+   /* transfer data from R matrix to SAS/IML matrix */
+   run ImportMatrixFromR(w, "faithful$waiting");
+   q = quartile(w);
+   print q[rowname={"Min" "Q1" "Median" "Q3" "Max"}];
+
+
+   dobjR.AddVarFromR("wait70", "faithful$waiting>70");
+
+
+   /********************************************************************/
+   /********** Importing Complicated R Objects **********/
+
+   /* create R object */
+   submit / R;
+      lm.obj <- lm(waiting~eruptions, data=faithful)
+      str(lm.obj)
+   endsubmit;
+
+   /* access coefficients of R object. First technique. */
+   submit / R;
+      coef <- lm.obj$coefficients       # direct access of coefficients
+   endsubmit;
+   run ImportMatrixFromR(c, "coef");   
+
+   /* access coefficients of R object. Second technique. */
+   run ImportMatrixFromR(c, "lm.obj$coefficients");   
+
+   /* access coefficients of R object. Third technique. */
+   run ImportMatrixFromR(c, "coef(lm.obj)");   
+
+
+   /********************************************************************/
+   /********** Handling Missing Values **********/
+
+
+   /* compute a mean in SAS/IML and in R */
+   x = {.,2,1,4,3};
+   meanIML = x[:];
+   print meanIML;
+   run ExportMatrixToR(x, "x");
+   submit / R;
+      mean(x)            # compute mean in R; this also prints the result
+   endsubmit;
+
+   /* compute mean in R; omit missing values */
+   submit / R;
+      mean(x, na.rm=TRUE)
+   endsubmit;
+
+   /* compute predicted values in R when the data contain missing values */
+   x = {.,2,1,4,3};
+   y = {1,2,2,4,3};
+   run ExportMatrixToR(x, "x");
+   run ExportMatrixToR(y, "y");
+   
+   submit / R;
+      lm.obj <- lm(y~x)        # default behavior: omit obs with NA
+      pred <- fitted(lm.obj)   # predicted values from linear model
+      print(pred)
+   endsubmit;
+
+
+   /* adjust for missing values */
+   run ImportMatrixFromR(p0, "pred");
+   run ImportMatrixFromR(nonMissing, "as.numeric(names(pred))");
+   p = j(nrow(x),1,.);          /* allocate vector with missing values */
+   p[nonMissing] = p0;          /* plug in nonmissing values           */
+   print p;
+
+   /* tell R to pad results with missing values (global option) */
+   submit / R;
+   options(na.action="na.exclude")
+   # continue with other R statements...
+   endsubmit;
+
+
+   /* tell R to pad results with missing values (each function) */
+   submit / R;
+      lm.obj <- lm(y~x, na.action="na.exclude")   # pad obs with NA
+      pred <- fitted(lm.obj)                      # predicted values
+   endsubmit;
+
+   run ImportMatrixFromR(p, "pred");
+   print p;
+
+
+   /********************************************************************/
+   /********** Calling R Packages **********/
+
+
+   /* remove format on ReleaseDate variable since some R 
+      functions cannot handle dates for explanatory variables */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+
+   oldFormat = dobj.GetVarFormat("ReleaseDate");      /* save format   */
+   dobj.SetVarFormat("ReleaseDate", "");              /* remove format */
+   dobj.ExportToR("df");           /* export data to R as a data frame */
+
+
+   /* compute kernel regression by calling an R package */
+   YVar = "Budget";
+   XVar = "ReleaseDate";
+   
+   /* note: KernSmooth does not handle missing values */
+   submit XVar YVar / R;
+      library(KernSmooth)                  # load package
+      attach(df)                           # make names of vars available 
+      h <- dpill(&XVar, &YVar)             # compute plug-in bandwidth
+      model <- locpoly(&XVar, &YVar, bandwidth=h)  # fit smoother
+      detach(df);
+   endsubmit;
+
+
+   /* read simple R structure and overlay results */
+   run ImportMatrixFromR(m, "model");          /* x=m[,1]; pred=m[,2]; */
+   dobj.SetVarFormat("ReleaseDate", oldFormat);/* replace format       */
+   
+   declare ScatterPlot p1;
+   p1 = ScatterPlot.Create(dobj, XVar, YVar);
+   p1.DrawUseDataCoordinates();
+   p1.DrawSetPenColor(BLUE);
+   p1.DrawLine(m[,1], m[,2]);
+
+
+   /********************************************************************/
+   /********** Case Study: Optimizing a Smoothing Parameter **********/
+
+   /* fit loess model in R */
+   XVar = "ReleaseDate";
+   YVar = "Budget";
+   
+   submit XVar YVar / R;
+      loess.obj <- loess(&YVar ~ &XVar, data=df, span=0.15,
+                        na.action="na.exclude", degree=1, normalize=FALSE,
+                        control=loess.control(iterations=1));
+      summary(loess.obj)
+   endsubmit;
+
+
+   /* display structure of an R object */
+   submit / R;
+      str(loess.obj)
+   endsubmit;
+
+
+   /* create an R function that computes AICC for a loess model */
+   submit / R;
+      aicc <- function(loess.obj) 
+      {
+         n <- loess.obj$n
+         r <- loess.obj$residuals;
+         TraceL <- loess.obj$trace.hat
+         sigma.hat2 <- sum(r^2, na.rm=TRUE) / n
+         aicc <- log(sigma.hat2) + 1 + (2*(TraceL+1)) / (n-TraceL-2)
+         return(aicc)
+      }
+   endsubmit;
+
+
+   submit / R;
+      aicc(loess.obj) 
+   endsubmit;
+
+
+   /* module that calls R to compute a model and statistic */
+   start Func(alpha) global (XVar, YVar);
+      /* Fits a loess model in R for a value of the smoothing parameter, alpha.
+       * Returns the AICC statistic. 
+       */
+      submit alpha XVar YVar / R;
+         loess.obj <- loess(&YVar ~ &XVar, data=df, span=&alpha,
+                        na.action="na.exclude", degree=1, normalize=FALSE,
+                        control=loess.control(iterations=1));
+         crit <- aicc(loess.obj);
+      endsubmit;
+      run ImportMatrixFromR(aicc, "crit");
+      return ( aicc );
+   finish;
+
+   AICC = Func(0.15);
+   print AICC;
+
+   Alpha = GoldenSection(0, 0.9, 1e-3);
+   minimumAICC = Func(Alpha);
+   print Alpha minimumAICC;
+
+   /* graph AICC statistic as a function of the smoothing parameter    */
+   x = do(0.1, 0.9, 0.02);          /* row vector of sequential values */
+   x = t(x);                        /* transpose to column vector      */
+   y = j(nrow(x),1);
+   do i = 1 to nrow(x);
+      y[i] = Func(x[i]);
+   end;
+   declare ScatterPlot p2;
+   p2 = ScatterPlot.Create("AICC", x, y);
+   p2.SetAxisLabel(XAXIS, "Loess Smoothing Parameter");
+   p2.SetAxisLabel(YAXIS, "AICC");  
+
+   /********************************************************************/
+   /********** Creating Graphics in R **********/
+
+   /* create an R graph */
+   run ExportDataSetToR("Sasuser.Movies", "MovieFrame");
+   submit / R;
+      plot(Budget ~ ReleaseDate, data=MovieFrame)
+   endsubmit;
+
+
+   submit / R;
+      coplot(Budget ~ ReleaseDate | MPAARating, data=MovieFrame)
+   endsubmit;
+
+
+   /* show coplot functionality in IMLPlus */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   declare ScatterPlot cp;
+   cp = ScatterPlot.Create(dobj, "ReleaseDate", "Budget");
+   cp.ShowObs(false);           /* show observations only when selected */
+   declare BarChart bar;
+   bar = BarChart.Create(dobj, "MPAARating");   
+
+
+   /* define module that creates a graph in R */
+   start CallRCoplot(DataObject dobj, XVar, YVar, CoVar);
+      DSName = dobj.GetServerDataSetName();
+      dobj.ExportToR(DSName);
+      submit XVar YVar CoVar DSName / R;
+      	coplot(&YVar ~ &XVar | &CoVar, data = &DSName)
+      endsubmit;
+   finish;
+   
+   run CallRCoplot(dobj, "ReleaseDate", "Budget", "MPAARating");
+
+
+   /* paste R graphic into the SAS/IML Studio output window */
+   start CallRCoplot2(DataObject dobj, XVar, YVar, CoVar);
+      DSName = dobj.GetServerDataSetName();
+      dobj.ExportToR(DSName);
+      submit XVar YVar CoVar DSName / R;
+        win.metafile(); # 1. write graphics to Windows clipboard
+        coplot(&YVar ~ &XVar | &CoVar, data = &DSName)
+        rc <- dev.off() # 2. close graphics device (the metafile)
+      endsubmit;
+      /* 3. paste graphics from clipboard to output document */
+      OutputDocument.GetDefault().PasteGraphic(GRAPHICTYPE_WMF);
+      /*
+      declare OutputDocument doc;
+      doc = OutputDocument.GetDefault();
+      doc.PasteGraphic(GRAPHICTYPE_WMF);
+      */
+   finish;
+   
+   run CallRCoplot2(dobj, "ReleaseDate", "Budget", "MPAARating");

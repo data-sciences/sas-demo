@@ -1,0 +1,58 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_ModifyColumnInfo.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates changing and setting column properties
+
+
+//Reference the Failuressize data table.
+Failsize_dt = Open("$SAMPLE_DATA/Quality Control/Failuressize.jmp");
+
+//Make a list named Colnames_lst that contains all the column names
+Colnames_lst = Failsize_dt << Get Column Names();
+
+//Make a list named Num_lst that contains all the Numeric column names
+Num_lst = Failsize_dt << Get Column Names( Numeric );
+//Make a list named Nom_lst that contains all the Nominal column names
+Nom_lst = Failsize_dt << Get Column Names( Nominal );
+
+//List contains elements in double quotes
+Numstr_lst = Failsize_dt << Get Column Names( Numeric, String );
+//returns {"Day", "Count", "IProcess"}
+
+//Perform a Distribution analysis on all numeric variables
+Failsize_dt << Distribution( Y( Eval( Num_lst ) ) );
+
+//-- Run one line at a time. Check for results in the Log or data table.
+//Rename a column
+Date_col = Column(Failsize_dt, 2 );
+Date_col << Set Name( "Date" );
+
+//Get and Set Data Type
+Count_col = Column( Failsize_dt, 4 );
+Count_col << Get Data Type;     
+//see Log window; "Numeric"
+Count_col << Data Type( "Character" );
+Count_col << Data Type( "Numeric" );
+
+//Delete formula and set data type
+IProc_col = Column( Failsize_dt, 5 );
+IProc_col << Delete Formula;
+IProc_col << Data Type( "Character" );
+
+//Get and Set Modeling Type
+IProc_col << Get Modeling Type;
+IProc_col << Set Modeling Type( "Nominal" );
+
+//Change formats
+Column( Failsize_dt, "Count" ) << Format( "Best", 5 );
+
+//Change Fieldwidth
+Column( Failsize_dt, "Causes" ) << Set Fieldwidth( 30 );
+
+//Get a format
+Column( Failsize_dt, 2 ) << Get Format;
+
+//Change a format
+Column( Failsize_dt, 2 ) << Format( "ddMonyyyy", 10, "m/d/y" );
+
+//Close( Failsize_dt, NoSave );

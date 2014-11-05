@@ -1,0 +1,234 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_MessagesDialogs.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax and statements for messages and dialogs and  
+//     retrieving user input.
+
+//Run in segments all code betweeen //----- lines
+//For Dialogs, rerun with Cancel or different options to view results
+//We recommend you arrange this script window with the Log window and watch.
+//Wait statements are used here so you can see changes
+
+Clear Log();
+xList = {15, 150, 1500, 15000, 150000};
+y = Expr( Log10( x ) );
+
+//-------------Write--See Log for Results--------------------------------------------
+//Usage Write("text");
+//Concat Items({list}, delimiter); if no delimiter default(" ")is used
+For(i=1, i<=Nitems(xList), i++,
+x=xList[i];
+Write(Concat Items({"For x =", char(x), ",", Char(Name Expr(y)),
+	"=", Char(y), "\!r"})        //\!r is a Carriage Return
+    );  //end write
+);  //end for
+
+
+//-------------Print--See Log for Results--------------------------------------------
+//Usage: Print(expr1, expr2, ... );
+For( i = 1, i <= N Items( xList ), i++,
+	x = xList[i];
+	z = Substitute( Name Expr( y ), Expr( x ), x );  //replaces "x" with its value
+	Print( i, x, Name Expr( y ), Eval( y ), Name Expr( z ), Eval( z ) );
+);  //end for
+
+//-------------Show--See Log for Results--------------------------------------------
+//Usage: Show(v1, v2, ... );
+For( i = 1, i <= N Items( xList ), i++,
+	x = xList[i];
+	z = Substitute( Name Expr( y ), Expr( x ), x );  //replaces "x" with its value
+	Show(
+		i,
+		x,
+		Name Expr( y ),
+		Eval( y ),
+		Name Expr( z ),
+		Eval( z ),
+		"this is a test"
+	);
+);  //end for
+
+
+//-------------Status Msg--Watch Bottm Left Corner Of Script-----------------------
+//Usage: StatusMsg("text");
+//Watch the bottom left corner of this script window, wait(5) used to
+//give you time to watch the status message change
+Clear Log();
+Status Msg("Pending"); wait(5);
+Status Msg("Dreaming"); wait(5);
+Status Msg("Waiting 5"); wait(5);
+Status Msg("Playing you"); wait(5);
+Status Msg("");
+
+//-------------Beep/Speak/Caption----------------------------------------------
+//Usage: Beep()
+for(i=1, i<=3, i++,
+ Beep(); Wait(.5);  //remove the wait and you get only 1 beep
+);
+// Usage: Speak("text", Wait(sec)); //needed for long strings
+for(i=1, i<=3, i++,
+ Speak( "booya!"); wait(.5);
+);
+
+//Usage: Caption({h, v}, text, <Delayed(n)>, <Spoken(Boolean))
+//System decides
+Caption("Pending"); wait(5);
+Caption("Dreaming", Spoken(1) ); wait(5);
+Caption("Waiting 5"); wait(5);
+Caption("Playing you", Spoken(0) ); wait(5);
+Caption(Remove); wait(5);
+//note once Spoken is turned on, it needs to be turned off
+
+//User defined Placement
+For(i=1, i<=Nitems(xList), i++,
+x=xList[i];
+Caption({(i-1)*100+1,i*100}, Concat Items({"For x =", char(x), ",", Char(Name Expr(y)),
+	"=", Char(y, 8,3), "\!r"})        //\!r is a Carriage Return
+    );  //end caption
+wait(5);
+);  //end for
+Beep();wait(2);
+txt="You haven't closed the caption box, so I will do it for you!";
+Caption({150,150}, txt); Speak(txt);
+wait(5);
+Caption(remove);
+
+//-------------Watch----------------------------------------------
+//Usage: Watch(All| global1, global2, global3, global4)
+//waits are used to visualize changes
+Watch(i, x, y, z, w);  
+wait(2);
+For(i=1, i<=Nitems(xList), i++,
+x=xList[i];
+z=Substitute(Name Expr(y), Expr(x), x);  //replaces "x" with its value
+w=z;    // assigning and expression triggers an evaluation
+wait(3);
+);  //end for
+Window("Watch")<<close window;
+
+//-------------JMP Built-in Modal Dialogs----------------------------------------------
+//What is modal vs. non-model?  Open() is modal, Summary is not
+//Run the next 3 commands
+dt=Open();
+Caption({1000,200},"This caption did not show until a file was chosen");
+wait(2);
+dt<<Summary();
+Beep();
+Caption({1000,100},
+  "This caption will appear before you get a chance to fill out the Summary Dialog ");
+
+
+//-------------Pick Directory & Pick File----------------------------------------------
+//Usage: pathvar = Pick Directory("Prompt String");
+
+mypath= Pick Directory("Pick a directory that stores your music");
+//myPath="C:\Documents and Settings\All Users\Documents\My Music\Sample Music\";  //example
+
+//Usage: Pick File(<"caption">, <"initial directory">, <{filter list}>,
+//                   <first filter>, <save flag>, <"default file">)
+//Note: All <arg> are optional, but they are also positional. See, JSL Function Index Utility
+//Pick File and Pick Directory are modal so statements wait for the modal command to be completed
+xx=Files in Directory(mypath, recursive);
+caption(char(nitems(xx)));
+myfid = Pick File( "Pick your favorite song", myPath, {"WMA File|wma;mp3","AllFiles|*"},1,0 );
+Status Msg("Pending"); wait(5);
+Status Msg("Dreaming"); wait(5);
+Status Msg("Pending"); wait(5);
+Status Msg("Playing you"); wait(5);
+Status Msg("");
+Caption(remove);
+
+//For communicating with users Web() can open an extensive help page, play a human voice recording,
+//or play a video. The examples below open a JMP video on scripting. The second will play the song you selected
+//Usage:  Web(path);  Note previous versions had the option to open a JMP Window inside JMP.
+//Using  Web(path, JMP Window) will cause JMP9 to error out and lock up, needing a hard kill
+web("http://www.jmp.com/software/jmp8/demos/sall_scripting.shtml");
+web(Convert File Path(myfid, Windows));
+//web(mypath||"Beethoven's Symphony No. 9 (Scherzo).wma");
+//open(myfid);
+
+
+//------------------------- Simple Dialog----------------------------------------------
+//Reminder JMP's built-in Dialog() function is deprecated by JMP:
+//in future versions it may not be available.  The alternative is build your own dialog
+//using New Window.  In JMP8 and JMP9 you do not have control of the OK and Cancel Buttons
+//in Dialog().  JMP7 allowed user specified layout.
+
+//Usage: dlg_ref = Dialog("prompt", dialog controls and layout controls);
+//--- Recommended, assign a reference for each dialog control  
+//Dialog Controls:  Edit Number(), Edit Text(), Radio Buttons(), Check Box(), "text"
+//                  ComboBox(), List Box(), Button ("OK", "Cancel")
+//Alignment Controls: H List(), V List(), Lineup(n,item1, item2, item3,...)
+
+//Run several times with different values or Cancel.  See the Log window or 
+//hover over usr_info for results. Note you can enter a string for a 
+//number and vice versa. There's no built in error checking. It's your job.
+usr_info = Dialog("Select the query filters ",
+	HList(
+		Lineup(2, 
+			"Number of days, 30 day maximum", ndays = edit number(7),
+			"Parameter name, wildcard=* ", param = edit text(),
+			"Manufacturing Step Id", step_id = edit number()
+		),   //end of Buitton alignment
+	Lineup(1, Button ("OK"), Button ("Cancel")   
+	 
+//Dialog button alignment ignored by JMP since v8
+	) //end of hlist
+)); //end of Dialog
+
+show(usr_info, usr_info[ "ndays" ], usr_info["param"], 
+      usr_info["step_id"], usr_info["Button"] );
+
+//Review chapter on Lists and Assignment Lists, the output is an assignment list
+//Usage: usr_info["ndays"] contains user repsonse or Check for OK , remove button and Eval List
+If(usr_info["Button"]== -1, 
+   Caption("Aborting..."); Wait(3); Caption(Remove); Throw());
+StatusMsg("Processing next steps");
+RemoveFrom(usr_info, NItems(usr_info));   //Remove the last item "Button(1)"
+Eval List(usr_info);                      //Assignments are run
+Show( usr_info, ndays, param, step_id);
+
+//------------------Same Example as Above with ComboBox------------------------------------
+pList = {"NLN1","PLN1", "NLN2","PLN2","NLN3","PLN3", "NLN4","PLN4"};
+usr_info = Dialog("Select the query filters ",
+	HList(
+		Lineup(2, 
+			"Number of days, 30 day maximum", ndays = edit number(7),
+			"Parameter name, choose 1", param = ComboBox(eval(pList)),
+			"Manufacturing Step Id", step_id = edit number()
+		),   //end of lineup
+	Lineup(1, Button ("OK"), Button ("Cancel")    //Dialog button alignment ignored by JMP
+	) //end of hlist
+)); //
+//  
+If(usr_info["Button"]== -1, 
+   Caption("Aborting..."); Wait(3); Caption(Remove); Throw());
+StatusMsg("Processing next steps");
+RemoveFrom(usr_info, NItems(usr_info));   //Remove the last item "Button(1)"
+Eval List(usr_info);                      //Assignments are run
+Show( usr_info, ndays, param, step_id);   //usr_info = {ndays = 7, param = 1, step_id = 4583};
+
+//------------------Same Example as Above with ListBox------------------------------------
+usr_info = Dialog("Select the query filters ",
+	HList(
+		Lineup(2, 
+			"Number of days, 30 day maximum", ndays = edit number(7),
+			"Parameter name, choose 1 or all", param = ListBox(eval(pList)),
+			"Manufacturing Step Id", step_id = edit number()
+		),   //end of lineup
+	Lineup(1, Button ("OK"), Button ("Cancel")    //Dialog button alignment ignored by JMP
+	) //end of hlist
+)); //
+show(usr_info);
+//Review chapter on Lists and Assignment Lists, the output is an assignment list
+//Usage: usr_info["ndays"] contains user repsonse or Check for Ok , remove button and Eval List
+If(usr_info["Button"]== -1, Caption("Aborting..."); Wait(3); Caption(Remove); Throw());
+StatusMsg("Processing next steps");
+RemoveFrom(usr_info, NItems(usr_info));   //Remove the last item "Button(1)""
+Eval List(usr_info);                      //Assignments are run
+Show( usr_info, ndays, param, step_id);   //
+
+
+//Note New Window and the Window report layer uses display box functions: V List Box(), H List Box(), 
+//LineupBox(ncol(), item1, item2, ..), Check Box(), Combo Box()
+

@@ -1,0 +1,103 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_FrameBoxRevised.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates using values instead of globals for FrameBox customizations.
+
+
+// A 3-level variability plot is created.
+fc_dt = Open("$Sample_data\Animals.jmp");
+
+//--make season value order to be fall, winter, spring, summer
+:season << Set Property( "Value Ordering", 
+     {"fall", "winter", "spring", "summer"} );
+ 
+vc = fc_dt << Variability Chart(
+	Y( :miles ),
+	X( :species, :subject, :season ),
+	Process Variation( 0 ),	Connect Cell Means( 1 ),
+	Show Group Means( 1 ), Std Dev Chart( 0 )
+);
+
+vc_fb = report(vc)[FrameBox(1)];
+Show Properties( vc_fb );  //see Log
+vc_fb << FrameSize(499,180);
+vc_fb << MarkerSize( 5 );
+vc_fb << Marker Selection Mode( "Unselected Faded" );
+
+//Show Properties - the first 53-54 lines are FrameBox specific messages   
+
+fc_dt << Select Where(:species=="COYOTE");  //fc_dt<<Markers(21);
+vc_fb << RowMarkers( 21 );
+vc_fb << RowColors ( HLS Color( 360 / 360, 0.5, 1 ) );
+fc_dt << select where(:species=="FOX");  //fc_dt<<Markers(22);
+vc_fb << RowMarkers( 20 );
+vc_fb << RowColors ( HLS Color( 240 / 360, 0.5, 1 ) );
+fc_dt << Clear Select;
+
+//--Add Row legend to maintain table customizations
+vc_fb << Row Legend(
+				species,
+				Color( 0 ),
+				Color Theme( "" ),
+				Marker( 0 ),
+				Marker Theme( "" ),
+				Continuous Scale( 0 ),
+				Reverse Scale( 0 ),
+				Excluded Rows( 0 )
+			);
+
+//Right click on FrameBox or run the command below
+//vc_fb << Customize;
+
+//Make connected lines dark gray
+vc_fb << DispatchSeg (CustomStreamSeg(8), {Line Color( {187, 187, 187} )} );
+//Turn off Group Means by command
+vc << Show Group Means(0);  
+
+//----------Same as script8_FrameBox.jsl up to here--------------------------------------------
+//easier use summarize;
+summarize(grpName= By(:species), grp_xb=mean(:miles));    
+//find how many subgroups (12 in each)
+summarize(tt= By(:species, :subject, :season), grp_cc=Count(:miles));    
+grp_cnt=J(nitems(grpName),1,empty());
+Local({i}, For(i=1, i<=nitems(grpName), i++, 
+    grp_cnt[i] = nrow(loc(tt[1], grpName[i]));
+));
+Show(grpName, grp_xb, grp_cnt);
+
+//Based upon chapter 7 syntax for Windows, 
+//this next set of code should be readable
+vcList = {"PenSize(2)"};
+Local({i, k, xBeg, xEnd, tmpExpr, fnExpr}, 
+  tmpExpr = Expr(
+  	pencolor(HLS Color( _hue/ 360, 0.5, 1 ) );
+	yFunction(If(( _xxLo <= x <= _xxHi ), _xb ), x);	
+  );
+  for(i =1 , i<=nitems(grpName), i++,
+    If (i==1, xBeg=0; xEnd=grp_cnt[i], 
+      xBeg=xEnd; xEnd=xBeg + grp_cnt[i]);
+      fnExpr = Substitute(NameExpr(tmpExpr),
+            Expr(_hue), 360 - (i-1)*120,
+            Expr(_xxLo), xBeg, Expr(_xxHi), xEnd,
+            Expr(_xb), grp_xb[i]);  
+	 InsertInto(vcList, Char(NameExpr(fnExpr)));
+);
+fnExpr = Parse(ConcatItems(vcList, ";"));
+tmpExpr=Substitute(NameExpr(vc_fb << Add Graphics Script(_x);),
+   Expr(_x), NameExpr(fnExpr));
+show (vcList, NameExpr(fnExpr), NameExpr(tmpExpr));  //see list
+tmpExpr
+);
+
+//---------watch the lines will not disappear--------------------------------------------------
+wait(3);
+clear globals(grp_cnt, grp_cnt); 
+//click on the framebox or resize
+vc_fb << FrameSize(500,180);
+
+//Look at the attached script or uncomment the next line & run
+//vc_fb <<Edit Graphics Script;
+//The script contains actual values not variable references.
+//Recall  the synatx for the command to add a graphics script is
+//    Add Graphics Script(<order>, script) where order can be the word BACK or a number
+//Use 2 or Back if you want the species reference lines to be drawn behind the connector lines.

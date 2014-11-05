@@ -1,0 +1,125 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	10_AlgoPerformance.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the use of Tick Seconds() function and examples
+//          of more efficient algorithms.
+
+
+//----Create the data table with blank columns.
+Clear Globals();
+Delete Symbols();
+dt = New Table( "Tall_10K",
+	New Column( "X1", numeric ),
+	New Column( "X2", Numeric ),
+	New Column( "X3", numeric ),
+	New Column( "X4", Numeric ),
+	New Column( "X5", numeric ),
+	Add Rows( 50000 )
+);
+:X1 << Set Each Value( Random Integer( 1000, 1999 ) );
+:X2 << Set Each Value( Random Integer( 2000, 2999 ) );
+:X3 << Set Each Value( Random Integer( 3000, 3999 ) );
+:X4 << Set Each Value( Random Integer( 4000, 4999 ) );
+:X5 << Set Each Value( Random Integer( 5000, 5999 ) );
+dt << New Column( "Param", Character );
+dt:Param << set each value( "P" || Char( Floor( (Row() - 1) / 1000 ) + 1 ) );
+Wait( 0 );
+dt << New Column( "Calc1", numeric, continuous );
+dt << New Column( "Calc2", numeric, continuous );
+dt << New Column( "Calc3", numeric, continuous );
+dt << New Column( "Calc4", numeric, continuous );
+dt << Bring Window to Front;
+Wait( 2 );
+
+//----Segment #1
+/*
+ This segment may take several minutes to complete. It is computing the same 
+ column mean 50,000 times.  This method is not recommended.
+*/
+t0 = Tick Seconds();
+For( i = 1, i <= N Row( dt ), i++,
+	:Calc1[i] = :X1[i] - Col Mean( :X1 )
+);
+Wait( 0 );
+t1 = Tick Seconds();
+Write( "For Loop with Col Mean(:X1) ", t1 - t0, "\!r" );
+
+//----Segment #2
+/*
+ Create a reference to the constant column mean, computed once and used
+ many times, this typically runs in less than a second
+*/
+t0 = Tick Seconds();
+xb2 = Col Mean( :X2 );
+For( i = 1, i <= N Row( dt ), i++,
+	:Calc2[i] = :X1[i] - xb2
+);
+Wait( 0 );
+t1 = Tick Seconds();
+
+Write( "Compute Col Mean(:X2) once For Loop ", Round( t1 - t0, 3 ), "\!r" );
+
+//----Segment #3
+/* 
+ For some calculations, Set Each Value may be faster than a For loop 
+*/ 
+t0 = Tick Seconds();
+xb3 = Col Mean( :X3 );   //to be fair recompute
+:Calc3 << Set Each Value( :X3 - xb3 );
+Wait( 0 );
+t1 = Tick Seconds();
+
+Write( "Compute Col Mean(:X3) once, Set Each Value ", Round( t1 - t0, 3 ), "\!r" );
+
+//----Segment #4
+/*
+ JMP9 has done more optimization with updating a table.  However,
+ Begin Data Update and End Data Update, especially for many writes to a data
+ table can save significant time. 
+*/
+t0 = Tick Seconds();
+dt << Begin Data Update;
+xb4 = Col Mean( :X4 );   //to be fair recompute
+:Calc4 << Set Each Value( :X4 - xb4 );
+dt << End Data Update;
+Wait( 0 );
+t1 = Tick Seconds();
+Write(
+	"Compute Col Mean(:X4) once, Set Each Value, Begin Data Update ",
+	Round( t1 - t0, 3 ),
+	"\!r"
+); 
+
+
+/*
+Note: 
+A common performance issue occurs when new scripters are cleansing their data. 
+The data may have many row (observations) and many columns (variables). Often data are 
+cleansed one variable at a time. Deleting each time an unwanted condition is found.
+
+Instead of doing many deletes, create a list of rows to be deleted and delete once.
+First create an empty list.  For each condition using Get Rows Where, insert the found 
+rows into the list.  Once all columns/conditions have been tested, send the delete
+rows message using your list.  JMP optimizes the list so you do not need to find unique
+values etc.  However, if you want to find unique rows, use the Associative Array method.
+
+The code below is a simple test of this technique. 
+
+Just recently, a user had a script that took 10 to 20 minutes to complete the cleansing.
+After deploying these methods, the cleansing took less than 30 seconds!
+*/
+
+ 
+dt = open("$Sample_Data\Big Class.jmp");
+
+//-- demonstrate the Associative Array method to create a unique (sorted) list
+//   from an unsorted list with many duplicates (dupes).
+ 
+uniq_list = Associative Array( {40, 29, 3, 1, 40, 2, 1} ) << get keys;
+Show( uniq_list );  //uniq_list = {1, 2, 3, 29, 40};
+
+//--demonstrate that JMP can handle an unsorted non-inique list of row numbers to delete
+dt << delete rows ({40, 29,3,1, 40, 2, 1});
+//-- only 5 rows are removed and no errors are encountered 
+
+// Close(dt, NoSave);

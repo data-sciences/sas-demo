@@ -1,0 +1,61 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_DeployingScripts.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates how to add a script to a data table and run it.
+
+
+//Create script to create a map of the U.S. colored by auto theft
+automess_dt = Open( "$SAMPLE_DATA\automess.jmp" );
+
+//Auto Theft is not correctly aligned with the state so fix table
+fixdt_note = automess_dt << Get Table Variable("Notes");
+Print(fixdt_note);
+
+sort_am_dt = automess_dt << Sort(
+	By( :Auto theft ),
+	Order( Ascending ),
+	Output Table( "Sorted by auto theft" )
+);
+
+autocorrected_dt = sort_am_dt << Join(
+	With( automess_dt ),
+	By Row Number,
+	Preserve main table order( 1 ),
+	Output Table( "Corrected Auto Theft" )
+);
+
+//Delete extra columns and rename columns
+autocorrected_dt << Delete Columns(4, 1);
+Column(autocorrected_dt,1) << Set Name("Auto theft");
+Column(autocorrected_dt,2) << Set Name("State");
+
+//Delete extra table properties and variables
+autocorrected_dt << Delete Table Variable("Notes");
+autocorrected_dt << Delete Table Variable("Notes");
+autocorrected_dt << Delete Table Property("Source");
+
+
+//Add script to the data table
+autocorrected_dt << New Table Property( "Auto Theft by State",
+	Graph Builder(
+		Variables( Color( :Auto theft ), Shape( :State ) ),
+		Elements(
+			Map Shapes(
+				Legend( 2 ),
+				Summary Statistic( "Mean" ),
+				Show Missing Shapes( 0 )
+			)
+		)
+	)
+);
+
+//Assign script to a variable and show variable
+auto_theft = autocorrected_dt << Get Property( "Auto Theft by State" );
+Show( auto_theft );
+
+//Execute script
+auto_theft;
+
+//--- Alternately the script can be run by sending the Run Script message to 
+//    the data table.
+autocorrected_dt << Run Script("Auto Theft by State");

@@ -1,0 +1,151 @@
+
+   /********************************************************************/
+   /********** Creating a Data Object from a SAS Data Set **********/
+
+   /* create a data object from a SAS data set */
+   declare DataObject dobj;                   
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies"); 
+
+
+   /********************************************************************/
+   /********** Creating  Linked Graphs from a Data Object **********/
+
+   /* create plots from a common data object */
+   declare ScatterPlot plot;
+   plot = ScatterPlot.Create(dobj, "ReleaseDate", "Budget");
+
+   declare BarChart bar;
+   bar = BarChart.Create(dobj, "MPAARating");
+
+   dobj.SetRoleVar(ROLE_LABEL, "Title");
+
+
+   declare BarChart bar1;
+   bar1 = BarChart.Create(dobj, "Profanity");
+
+
+   /********************************************************************/
+   /********** Creating a Data Object from a Matrix **********/
+
+
+   /* create a data object from data in a matrix */
+   x = j(100, 3);                     /* 100 observations, 3 variables */
+   call randgen(x, "Normal");                                     /* 1 */
+   varNames = 'x1':'x3';                                          /* 2 */
+   declare DataObject dobj;                             
+   dobj = DataObject.Create("Normal Data", varNames, x);          /* 3 */
+
+   DataTable.Create(dobj);
+
+   /********************************************************************/
+   /********** Creating a SAS Data Set from a Data Object **********/
+
+
+   /* define a module that computes the skewness of variables in a
+    * data object 
+    */
+   start Skewness(DataObject dobj, VarNames);              /* 1 */
+      dobj.WriteVarsToServerDataSet(VarNames, 
+                            "Work", "Temp", true);         /* 2 */
+      submit VarNames;
+         proc means data=Temp noprint;                     /* 3 */
+            var &VarNames;
+            output out=Skew skewness= ;                    /* 4 */
+         run;
+      endsubmit;
+      
+      use Skew;
+      read all var VarNames into x;                        /* 5 */
+      close Skew;
+ 
+      call delete("Work", "Temp");                         /* 6 */
+      call delete("Work", "Skew");
+      
+      return ( x );
+   finish;
+   
+   /* begin the main program */
+   declare DataObject dobj;                        
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Vehicles");
+   
+   vars = {"MPG_Hwy" "MPG_City" "Engine_Liters"};
+   s = Skewness(dobj, vars);                        /* call the module */
+   print s[colname=vars label="Skewness"];
+
+
+   /* extract values from a variable into a vector */
+   declare DataObject dobj;                        
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Vehicles");
+   dobj.GetVarData("Hybrid", h);
+
+   /********************************************************************/
+   /********** Creating a Matrix from a Data Object **********/
+
+   /* extract certain observations into a matrix */
+   idx = loc(h=0);                       /* find conventional vehicles */
+   VarNames = {"MPG_Hwy" "MPG_City" "Engine_Liters"};
+   /* extract data for specified vars and specified obs into matrix x  */
+   dobj.GetVarData(VarNames, idx, x);  
+   corr = corr(x);                       /* correlation between vars   */
+   print corr[r=VarNames c=VarNames];
+
+
+   /********************************************************************/
+   /********** Adding New Variables to a Data Object **********/
+
+
+   /* transform data, add new variable, and create histogram */
+   declare DataObject dobj;                        
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   dobj.GetVarData("Budget", b);                            /* 1 */
+
+   /* apply log transform */
+   log_b = log(b);                                          /* 2 */
+   dobj.AddVar("LogBudget", "log(Budget)", log_b);          /* 3 */
+   Histogram.Create(dobj,"LogBudget");                      /* 4 */
+
+
+   /* assign y=log(x), but assign missing values for any x[i]<=0 */
+   y = j(nrow(x),ncol(x),.);  /* initialize result with missing values */
+   idx = loc(x>0);            /* find positive values of x             */
+   if ncol(idx)>0 then        /* transform only those values...        */
+      y[idx] = log(x[idx]);   /* leaving missing values in y for x<=0  */
+
+
+   /* call a SAS procedure to create predicted and residual values */
+   declare DataObject dobj;                        
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Vehicles");
+   dobj.SetRoleVar(ROLE_LABEL, "Model");     /* label for selected obs */
+
+   declare ScatterPlot p;
+   p = ScatterPlot.Create(dobj, "Engine_Liters", "Mpg_Hwy");
+
+   submit;
+   proc glm data=Sasuser.Vehicles;
+      model Mpg_Hwy = Engine_Liters | Engine_Liters;
+      output out=GLMOut P=Pred R=Resid;
+   quit;
+   endsubmit;
+
+   /* add predicted and residual values to a data object */
+   use GLMOut;
+   read all var {"Pred" "Resid"};
+   close GLMOut;
+
+   dobj.AddVars( {"Pred" "Resid"},                 
+                 {"Predicted Values" "Residual Values"},
+                 pred || resid );
+   ScatterPlot.Create(dobj, "Engine_Liters", "Resid");
+
+   /* add predicted and residual values to a data object */
+   VarNamesInDataSet    = {"Pred" "Resid"};
+   VarNamesInDataObject = {"Pred" "Resid"}; /* same for this example */
+   Labels = {"Predicted Values" "Residual Values"};
+   ok = CopyServerDataToDataObject("work", "GLMOut", dobj,
+        VarNamesInDataSet, VarNamesInDataObject, Labels, 
+        1 /* replace variable if it already exists */ );
+
+
+   ok = CopyServerDataToDataObject("work", "GLMOut", dobj,
+        VarNamesInDataSet, VarNamesInDataObject, _NULL_, 1 );
+

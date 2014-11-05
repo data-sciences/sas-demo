@@ -1,0 +1,19 @@
+CHAPTER 6: Comparing the Measured Performance of Several Materials, Processes, or Products
+
+In this section you will find 3 files that contain the JMP data tables and statistical computations or analyses that are used in this chapter. Each file name begins with the acronym AICDUJ, which stands for 'Analyzing and Interpreting Continuous Data Using JMP', followed by 'Chapter 6' and the name of the data or statistical techniques illustrated in the book. The file names and their content are provided below.  The script for the Graphical ANOVA is also included.
+
+1. AICDUJ-Chapter 6 OEE Data.JMP
+
+This file has 36 rows of data for the OEE (Overall Equipment Efficiency) of 3 machines. The 6 attached JMP scripts create Figures 6.2, 6.6, 6.7, 6.9, 6.10, and 6.11 found in Section 6.3 "Overview of One-way ANOVA".
+
+
+2. AICDUJ-Chapter 6 OEE Transformed Data.JMP
+
+This data file is similar to the one above, but includes additional columns needed to illustrate how the Brown-Forsythe test for unequal variances works. The 2 scripts produce Figures 6.12c and 6.14 in Section 6.3 "Overview of One-way ANOVA".     
+
+
+3. AICDUJ-Chapter 6 Cement Data.JMP
+
+This file contains the data used in the Compressive Strength case study in this chapter. There are 12 JMP scripts included in this table. The first two scripts create Figures 6.22 and 6.25 shown in Step 4 of the instructions in Section 6.4 "Step-by-Step JMP Analysis Instructions". The next 7 scripts produce Figures 6.27, 6.30, 6.31, 6.33, 6.35a, 6.35b, and 6.35c discussed in Step 5 of the instructions. The next 2 scripts reproduce Figures 6.37 and 6.40 in Step 6 and, the last script is for Figure 6.42 in Section 6.5 "Testing Equivalence of Three or More Populations".  
+
+

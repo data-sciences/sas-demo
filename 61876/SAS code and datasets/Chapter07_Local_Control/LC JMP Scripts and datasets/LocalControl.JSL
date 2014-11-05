@@ -1,0 +1,415 @@
+/* Bob Obenchain's "Local Control" script, ver 2009-04-13, for JMP 8.0 */
+ClearGlobals();
+
+// If showCaps is nonzero, show captions
+showCaps = 0;
+// If isSpoken is nonzero, shown captions will also be spoken on systems that support audio
+isSpoken = 1;
+if( showCaps,
+    Caption({20,40}, "Welcome to the Local Control platform!", spoken(isSpoken));
+    Wait(5)
+);
+if( showCaps, Caption("Start by Opening a Data Table.") );
+
+ErrorLC = 0;
+dt=CurrentDataTable();
+if( Char(dt) == ".",
+    Try( dt=Open(), ErrorLC = 1 )
+);
+if( NRow(dt) == 0, ErrorLC = 1 );
+if( showCaps, Caption("Select all X Predictors, the Treatment Factor plus 1 or 2 Outcomes, Y.") );
+lcvars = ColumnDialog(
+           yv = ColList("y, Outcomes", MaxCol(2),MinCol(1)),
+           tv = ColList("t, Treatment Factor", MaxCol(1),MinCol(1)),
+           xv = ColList("x, Predictors",MinCol(1)),
+           Vlist("Variability Assumption:", varas = RadioButtons("Homoskedastic", "Heteroskedastic"))
+);
+If( lcvars["Button"] == -1, ErrorLC = 1);
+yv = lcvars["yv"];
+numy = NItems(yv);
+tv = lcvars["tv"];
+xv = lcvars["xv"];
+numx = NItems(xv);
+varas = lcvars["varas"];
+LCsetup = New Window( " ",
+    LCinfo = vlistbox(
+        TextBox(" "),
+        TextBox("    Local Control: Analysis Specification..."),
+        TextBox(" "),
+        TextBox("    Outcome y-Variable(s) ="||Char(yv)),
+        TextBox(" "),
+        TextBox("    Treatment t-Indicator ="||Char(tv)),
+        TextBox(" "),
+        TextBox("    Baseline x-Covariate(s) ="||Char(xv)),
+        TextBox(" "),
+        if( varas == 1,
+             TextBox("    Variability Assumption: Homoskedacity"),
+             TextBox("    Variability Assumption: Heteroskedacity")
+        ),
+        TextBox(" ")
+    )
+);
+if( (numy >= 1) & ( (Column(yv[1])<<GetDataType != "Numeric") | 
+                    (Column(yv[1])<<GetModelingType != "Continuous") ),
+    ErrorLC = 1;
+    LCinfo << Append( TextBox("    First y-Outcome is not Numeric and Continuous.") );
+    LCinfo << Append( TextBox(" ") )
+);
+if( (numy == 2) & ( (Column(yv[2])<<GetDataType != "Numeric") | 
+                    (Column(yv[2])<<GetModelingType != "Continuous") ),
+    ErrorLC = 1;
+    LCinfo << Append( TextBox("    Second y-Outcome is not Numeric and Continuous.") );
+    LCinfo << Append( TextBox(" ") )
+);
+if( ErrorLC == 1 ,
+    LCinfo << Append( TextBox("    Abnormal EXIT from LocalControl script...") );
+    LCinfo << Append( TextBox(" ") )
+);
+If( ErrorLC == 1, Throw() );
+if( showCaps, Caption("Hierarchically Cluster Patients in x-Space."));
+hclus = HierarchicalCluster(Y(Eval(xv)), Method(FastWard), Standardize(1));
+
+dtname = dt<<GetName;
+dtsum = NewTable(Eval(dtname||"_UT"));
+dtsum<<NewColumn("NCreq", Numeric, Continuous);
+dtsum<<NewColumn("NCinf", Numeric, Continuous);
+dtsum<<NewColumn("Y1ltd", Numeric, Continuous);
+dtsum<<NewColumn("Y1lse", Numeric, Continuous);
+dtsum<<NewColumn("Y1lol", Numeric, Continuous);
+dtsum<<NewColumn("Y1upl", Numeric, Continuous);
+dtsum<<NewColumn("HomSD", Numeric, Continuous);
+if( numy == 2,
+    dtsum<<NewColumn("Y2ltd", Numeric, Continuous);
+    dtsum<<NewColumn("Y2lse", Numeric, Continuous);
+    dtsum<<NewColumn("Y2lol", Numeric, Continuous);
+    dtsum<<NewColumn("Y2upl", Numeric, Continuous)
+);
+
+maxc = Floor(NRow(dt)/11);
+NCnow = Min(50, maxc);
+step = 0;
+ubtopen = 0;
+if( showCaps, Caption("Select a NEW Number of Clusters and Press Calculate or Press End."));
+
+ncwind = NewWindow("Next Number of Clusters",
+  VListBox(
+    TextBox(Eval(" Specify a New Number of Clusters between 1 and at most "||char(maxc)||".");),
+    TextBox(" "),
+    ncshow = GlobalBox(NCnow),
+    TextBox(" "),
+    SliderBox(1,maxc,NCnow,
+		if( NCnow > 100,
+			NCnow = 100*Floor(NCnow/100),
+			NCnow > 10,
+			NCnow = 10*Floor(NCnow/10),
+			NCnow = Floor(NCnow)	
+		);
+		ncshow<<reshow
+	),
+    TextBox(" "),  
+    HListBox(ButtonBox("Calculate",
+    	// Start of Calc Button Box Script...
+    	step += 1;    
+        hclus<<Number of Clusters(NCnow);
+        hclus<<SaveClusters;
+        if( ubtopen == 1,
+            if( Char(ubt1)!=".", ubt1<<CloseWindow);
+            if( numy == 2 & Char(ubt2)!=".", ubt2<<CloseWindow);
+            ubtopen = 0	
+        );      
+        CurrentDataTable(dt);
+        yw = Expr( Y() );
+        InsertInto( yw, Column(yv[1]) );
+        tw = Expr( Effects( :Cluster, :trtm[:Cluster]) );
+        SubstituteInto( tw, Expr( trtm ), Eval(tv) );
+        Eval(
+            Substitute(
+                Expr( nestFit = FitModel( arg1, arg2, Personality(Standard Least Squares),
+                    Emphasis(Minimal Report), Run Model, Close Window ) ),
+                Expr( arg1 ),
+                Name Expr( yw ),
+                Expr( arg2 ),
+                Name Expr( tw )
+            )   
+        );
+        result = nestFit << Report;
+        result["Summary of Fit"]<<close(0)<<select;
+        homsig1 = result[NumberColBox(1)][3];
+        result<<deselect<<CloseWindow;
+        if( numy==2,
+            CurrentDataTable(dt);
+            yw = Expr( Y() );
+            InsertInto( yw, Column(yv[2]) );
+            Eval(
+                Substitute(
+                    Expr( nestFit = FitModel( arg1, arg2, Personality(Standard Least Squares),
+                        Emphasis(Minimal Report), Run Model, Close Window ) ),
+                    Expr( arg1 ),
+                    Name Expr( yw ),
+                    Expr( arg2 ),
+                    Name Expr( tw )
+                )   
+            );
+            result = nestFit << Report;
+            result["Summary of Fit"]<<close(0)<<select;
+            homsig2 = result[NumberColBox(1)][3];
+            result<<deselect<<CloseWindow;
+        );
+        
+        dt2 = dt<<Summary(Group(Cluster), N(Eval(tv)),
+                     Mean(Eval(yv)), StdDev(Eval(yv)), Subgroup(Eval(tv)));
+
+        dt2<<SetName(Eval("LC_"||char(NCnow)));
+        Column(2)<<SetName("Csize");
+        Column(3)<<SetName("Csiz0");
+        Column(4)<<SetName("Csiz1");
+
+        CurrentDataTable(dt);
+        Column("Cluster")<<SetName(Eval("C_"||char(NCnow)));
+
+        CurrentDataTable(dt2);
+        cf = Expr( Formula(If( c1>0 & c2>0, Root( 1/c1 + 1/c2 ), Empty())));
+        SubstituteInto( cf, Expr( c1 ), ColumnName(3),
+                            Expr( c2 ), ColumnName(4)
+        );
+        Eval(
+            Substitute(
+                Expr( dt2<<NewColumn("Homo", Numeric, Continuous, Format("Best", 10),
+                      formula, Eval Formula ) ),
+                Expr( formula ),
+                Name Expr( cf )
+            )   
+        );
+
+        cf = Expr( Formula( c2 - c1 ) );
+        SubstituteInto( cf, Expr( c1 ), ColumnName(5),
+                            Expr( c2 ), ColumnName(6) );
+        Eval(
+            Substitute(
+                Expr( dt2<<NewColumn("Y1ltd", Numeric, Continuous, Format("Best", 10),
+                      formula, Eval Formula ) ),
+                Expr( formula ),
+                Name Expr( cf )
+            )   
+        );
+
+        if( numy == 2,
+            // then
+            cf = Expr( Formula( c2 - c1 ) );
+            SubstituteInto( cf, Expr( c1 ), ColumnName(7),
+                                Expr( c2 ), ColumnName(8) );
+            Eval(
+                Substitute(
+                    Expr( dt2<<NewColumn("Y2ltd", Numeric, Continuous, Format("Best", 10),
+                          formula, Eval Formula ) ),
+                    Expr( formula ),
+                    Name Expr( cf )
+                )   
+            );
+
+            cf = Expr( Formula(If( c1>0 & c2>0, Root( c3^2/c1 + c4^2/c2 ), Empty())));
+            SubstituteInto( cf, Expr( c1 ), ColumnName(3),
+                                Expr( c2 ), ColumnName(4),
+                                Expr( c3 ), ColumnName(9),
+                                Expr( c4 ), ColumnName(10) );
+            Eval(
+                Substitute(
+                    Expr( dt2<<NewColumn("Hets1", Numeric, Continuous, Format("Best", 10),
+                          formula, Eval Formula ) ),
+                    Expr( formula ),
+                    Name Expr( cf )
+                )   
+            );
+
+            cf = Expr( Formula(If( c1>0 & c2>0, Root( c3^2/c1 + c4^2/c2 ), Empty())));
+            SubstituteInto( cf, Expr( c1 ), ColumnName(3),
+                                Expr( c2 ), ColumnName(4),
+                                Expr( c3 ), ColumnName(11),
+                                Expr( c4 ), ColumnName(12) );
+            Eval(
+                Substitute(
+                    Expr( dt2<<NewColumn("Hets2", Numeric, Continuous, Format("Best", 10),
+                          formula, Eval Formula ) ),
+                    Expr( formula ),
+                    Name Expr( cf )
+                )   
+            ),
+
+            // else
+            cf = Expr( Formula(If( c1>0 & c2>0, Root( c3^2/c1 + c4^2/c2 ), Empty())));
+            SubstituteInto( cf, Expr( c1 ), ColumnName(3),
+                                Expr( c2 ), ColumnName(4),
+                                Expr( c3 ), ColumnName(7),
+                                Expr( c4 ), ColumnName(8) );
+            Eval(
+                Substitute(
+                    Expr( dt2<<NewColumn("Hets1", Numeric, Continuous, Format("Best", 10),
+                          formula, Eval Formula ) ),
+                    Expr( formula ),
+                    Name Expr( cf )
+                )   
+            )
+        );
+        
+        dt2<<NewColumn("LTDwgt", Numeric, Continuous, Format("Best",10),
+            Formula( (Homo^-2)/Csize ), Eval Formula );
+        dt2<<RunFormulas;
+        last = 9;
+        if( numy == 2,
+            last = 13 );
+        for(i=5,i<=last,i++,
+            Column(i) << Hide(1);
+        );
+        
+        dt2<<NewTableProperty("LTDdist1",
+            Distribution(Y(Y1ltd), Freq(Csize), Stack, NormalQuantilePlot, FitDistribution(Normal),
+                FitDistribution(SmoothCurve)));
+
+        dt2<<SelectWhere(Number(Y1ltd));
+        if( varas==1,
+            dt3 = dt2<<Subset(Columns(Y1ltd,Homo,Csize)),
+            dt3 = dt2<<Subset(Columns(Y1ltd,Hets1,Csize))
+        );
+        ldif = dt3<<GetAsMatrix;
+        ninf = nrow(ldif);
+        close(dt3, NoSave);
+        dt2<<SelectWhere(0);
+        ltdif1 = 0;
+        sigma1 = 0;
+        ninfs1 = 0;
+        for(i=1, i<=ninf, i++,
+            if( IsMissing(ldif[i,2]) == 0,
+                ltdif1 +=  ldif[i,3]*ldif[i,1];
+                sigma1 += (ldif[i,3]*ldif[i,2])^2;
+                ninfs1 +=  ldif[i,3]
+            )
+        );
+        ltdif1 /= ninfs1;
+        sigma1 = Sqrt(sigma1/ninfs1^2);
+        if( varas==1, sigma1 *= homsig1 );
+        ltddn1 = ltdif1 - 2 * sigma1;
+        ltdup1 = ltdif1 + 2 * sigma1;
+
+        Eval(
+          Substitute(
+            Expr(
+              dt2<<NewTableProperty("LTDjoin",         
+                dt = arg1;
+                dt2 = arg2;
+                NCnow = arg3;
+                dt<<Join(With(dt2), By Matching Columns(Eval("C_"||char(NCnow))),
+                    Drop Multiples(0, 0), Include Non Matches(1, 1), output table name("joinDt")
+                )
+              )
+            ),
+            Expr( arg1 ),
+            Eval( dt ),
+            Expr( arg2 ),
+            Eval( dt2 ),
+            Expr( arg3 ),
+            Eval( NCnow )             
+          )
+        );
+        
+        if( numy == 1,
+            dtsum<<AddRow({:NCreq=NCnow, :NCinf=ninf, :Y1ltd=ltdif1, :Y1lse=sigma1, :Y1lol=ltddn1, :Y1upl=ltdup1, :HomSD=homsig1}),
+         
+            Ysum2 = dt2<<Distribution(Y(Y2ltd), Freq(Csize), Invisible);
+            // ms = Eval("Examine Second LTD Distribution for "||char(NCnow)||" Clusters.");
+            // Wait(0);
+            // Caption( ms );
+            result = Ysum2 << Report;
+            ltdif2 = result[NumberColBox(2)][1];
+            betwn2 = result[NumberColBox(2)][2];
+            result << CloseWindow;
+            dt2<<NewTableProperty("LTDdist2",
+                Distribution(Y(Y2ltd), Freq(Csize), Stack, NormalQuantilePlot, FitDistribution(Normal),
+                    FitDistribution(SmoothCurve)));
+        
+            dt2<<SelectWhere(Number(Y2ltd));
+            dt3 = dt2<<Subset(Columns(Y2ltd));
+            ldif = dt3<<GetAsMatrix;
+            ninf = nrow(ldif);
+            close(dt3, NoSave);
+            dt2<<SelectWhere(0);
+
+            dt2<<SelectWhere(Number(Y2ltd));
+            if( varas==1,
+                dt3 = dt2<<Subset(Columns(Y2ltd,Homo,Csize)),
+                dt3 = dt2<<Subset(Columns(Y2ltd,Hets2,Csize))
+            );
+            ldif = dt3<<GetAsMatrix;
+            ninf = nrow(ldif);
+            close(dt3, NoSave);
+            dt2<<SelectWhere(0);
+            ltdif2 = 0;
+            sigma2 = 0;
+            ninfs2 = 0;
+            for(i=1, i<=ninf, i++,
+                if( IsMissing(ldif[i,2]) == 0,
+                    ltdif2 +=  ldif[i,3]*ldif[i,1];
+                    sigma2 += (ldif[i,3]*ldif[i,2])^2;
+                    ninfs2 +=  ldif[i,3]
+                )
+            );
+            ltdif2 /= ninfs2;
+            sigma2 = Sqrt(sigma2*ninfs2^-2);
+            if( varas==1, sigma2 *= homsig2 );
+            ltddn2 = ltdif2 - 2 * sigma2;
+            ltdup2 = ltdif2 + 2 * sigma2;
+        
+            dt2<<NewTableProperty("Y12dist", OverlayPlot(X(:Y1ltd), Y(:Y2ltd), Separate Axes(1)));
+
+            dtsum<<AddRow({:NCreq=NCnow, :NCinf=ninf, :Y1ltd=ltdif1, :Y1lse=sigma1, :Y1lol=ltddn1, :Y1upl=ltdup1, :HomSD=homsig1,
+                :Y2ltd=ltdif2, :Y2lse=sigma2, :Y2lol=ltddn2, :Y2upl=ltdup2})
+        );
+        dt2 << MinimizeWindow;
+        if( step > 2,
+            dtsum<<Sort( By(:NCreq), ReplaceTable);
+            if( numy == 2,
+                ubt2 = dtsum<<OverlayPlot(Y(:Y2ltd, :Y2lol, :Y2upl), X(:NCreq), Range Plot(1), Connect Points(1),
+                    OverlayAxis << Add Ref Line(0, Dashed, Black),
+                    X Axis << {Scale(Log), Format(Best), Min(0.9), Inc(1), Minor Ticks(4), Rotated Labels(1)})
+            );
+            ubt1 = dtsum<<OverlayPlot(Y(:Y1ltd, :Y1lol, :Y1upl), X(:NCreq), Range Plot(1), Connect Points(1),
+                OverlayAxis << Add Ref Line(0, Dashed, Black),
+                X Axis << {Scale(Log), Format(Best), Min(0.9), Inc(1), Minor Ticks(4), Rotated Labels(1)}
+            );
+            ubtopen = 1
+        );
+        ncwind << BringWindowToFront;
+    ), //End of Calc Button Box...
+    ButtonBox("End",
+        // Start of END Button Box Script...
+        ncwind<<CloseWindow;
+        LCsetup<<JournalWindow;
+        LCsetup<<CloseWindow;
+        hclus<<JournalWindow;
+        hclus<<CloseWindow;
+        dtsum << NewTableProperty("UTsumy1", 
+            out1 = New Window( "LC Unbiasing TRACE",
+                OverlayPlot(Y(:Y1ltd, :Y1lol, :Y1upl), X(:NCreq), Range Plot(1), Connect Points(1),
+                    OverlayAxis << Add Ref Line(0, Dashed, Black),
+                    X Axis << {Scale(Log), Format(Best), Min(0.9), Inc(1), Minor Ticks(4), Rotated Labels(1)}
+                )
+            );
+            out1<<JournalWindow
+        );
+        if( numy == 2,
+            dtsum << NewTableProperty("UTsumy2",
+                out2 = New Window( "Second Outcome Unbiasing TRACE",
+                    OverlayPlot(Y(:Y2ltd, :Y2lol, :Y2upl), X(:NCreq), Range Plot(1), Connect Points(1),
+                        OverlayAxis << Add Ref Line(0, Dashed, Black),
+                        X Axis << {Scale(Log), Format(Best), Min(0.9), Inc(1), Minor Ticks(4), Rotated Labels(1)}
+                    )
+                );
+                out2<<JournalWindow
+             )
+         );
+         CurrentDataTable(dtsum);
+         dtsum << BringWindowToFront;
+         dtsum << JournalWindow;
+         if( showCaps, Caption("End of Local Control Script.") ) 
+    )  //End of END Button Box...
+  )) //End of HListBox and VListBox...
+);

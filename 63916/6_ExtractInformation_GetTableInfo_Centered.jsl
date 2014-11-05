@@ -1,0 +1,134 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_ExtractInformation_GetTableInfo_Centered.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for getting Table Box information from the Centered Fit.
+
+
+//Uses Rate of Rise Data Set with stacked (Model) format
+//Tasks
+//   Fit quadratic models and create a table of coefficients and fit metrics.
+//   The results table should include coefficients for b0 + b1*Time + b2*Time^2 
+//   for each By (Tool, Lot) and Group (Wfr) combination. 
+//   Each plot represents a single By (Tool, Lot) with separate curves for 
+//   each wafer.
+//There are 3 other scripts to achieve the same results.
+//6_ExtractInformation_GetTableInfo_Centered.jsl and 
+//6_ExtractInformation_GetTableInfo_unCentered.jsl create tables of the analyses results
+//and modify and join them.
+//6_ExtractInformation_TableInfo_Traverse_Centered.jsl and
+//6_ExtractInformation_TableInfo_Traverse_unCentered.jsl traverses the display and gets 
+//information. 
+//Uncentered coeeficients are important when modeling interactions, which is not the model
+//used for this application.  
+
+ror_stk_dt = Open( "$JSL_Companion\ROR Model Format.jmp" );
+
+ror_biv = ror_stk_dt << Bivariate( Y( :Temperature ), X( :Time ), 
+    By( :Tool, :Lot ), Group By( :Wfr ), Fit Polynomial( 2 ) );
+
+tmp = Report( ror_biv[1] )[Outline Box( 1 )]["Summary of Fit"]
+        [Table Box( 1 )] << Make Combined Data Table;
+       
+// split tmp 
+// where each fitted model is a row/observation and assign a reference
+fit_sum = tmp << Split( 
+   Split By( :Column 1 ), 
+   Split( :Column 2 ), 
+   Group( :Tool, :Lot, :Wfr ), 
+   Remaining Columns( Drop All ) );
+Wait( 0 );
+Close( tmp, NoSave );
+
+//do the same for the model coefficients a.k.a. Parameter Estimates
+
+tmp = Report( ror_biv[1] )[Outline Box( 1 )]["Parameter Estimates"]
+        [Table Box( 1 )] << Make Combined Data Table;
+       
+//------Retrieve information from a Centered Fit------------------------------------
+// JMP offers both a centered and uncentered option.  Most people use
+// uncentered and then get the comparable coefficients.
+// This script was included as another example of creating columns and parsing strings.
+// The output will be the current data table split it to a simpler format
+// where each fitted model is a row/observation.
+//-- This has added complexity because the center value for the quadratic term is
+//-- important to keep.  So here is a little trick, create a column called offset
+//-- only the quadratic term will have it.  Use JMP's Column Mean using Lot, Wafer as By variables
+//-- watch what it does for the split
+tmpCol = tmp << New Column( "Offset", numeric, Continuous );
+tmpCol << set each value( Num( Word( 2, :Term, "-)" ) ) );
+//yes this is cool, but this date the midpoint will not be negative an alternative here is
+//tmpCol << set each value(If(contains(:Term, "-"),num(substr(:Term,7,length(:Term)-10)) ) );
+//note this is why I would probably use method #2 Fit Model
+
+//Now the 2nd half of the trick to fill-in 
+tmpCol = tmp << New Column( "Midpoint", numeric, Continuous, Formula( Col Max( :Offset, :Lot, :Wfr ) ) );
+//one last step get rid of the offset in the :Term column
+Column( tmp, "Term" ) << set each value( If( Contains( :Term, "^2" ), "Time^2", :Term ) );
+
+//Now we are finally ready to split
+fit_val = tmp << Split( Split By( :Term ), Split( :Estimate ), Group( :Tool, :Lot, :Wfr ), Remaining Columns( Keep( :Midpoint ) ) );
+
+Wait( 0 );
+Close( tmp, NoSave );
+
+//Finally, combine fit_sum and fit_val into a single table
+//since we are pulling this information from the same report a row join 
+//will work if we were careful in maintaining the Group Order
+//If not an enormous table, a match merge join is always safest for accuracy
+
+Current Data Table( fit_Sum );
+ror_fit_dt = fit_sum << Join(
+	With( fit_val ),
+	Merge Same Name Columns,
+	By Row Number,
+	Preserve main table order( 1 ),
+	Output Table Name( "Temperature ROR Profiles Wafer" )
+);
+//clean-up a few items
+Close( fit_sum, NoSave );
+Close( fit_val, NoSave );
+//adjust the coefficients for the Midpoint
+//since the 2nd order term is c*(Time - mp)^2 = c*Time^2 -2*c*mp*Time + c*mp^2
+//so add (-2*c*mp) to the linear term and c*mp^2 to the intercept
+//simplify the names first
+
+Column( ror_fit_dt, "Intercept" ) << set name( "b0" ) << Format( "Fixed Dec", 6, 2 );
+Column( ror_fit_dt, "Time" ) << set name( "b1" ) << Format( "Fixed Dec", 6, 2 );
+Column( ror_fit_dt, "Time^2" ) << set name( "b2" ) << Format( "Fixed Dec", 6, 3 );
+
+Column( ror_fit_dt, "b0" ) << set each value( :b0 + :b2 * :Midpoint ^ 2 );
+Column( ror_fit_dt, "b1" ) << set each value( :b1 + (-2) * :b2 * :Midpoint );
+
+//change the table to the desired format
+ror_fit_dt << delete column( "Midpoint" );
+ror_fit_dt << delete column( "RSquare Adj" );
+Column( ror_fit_dt, "Mean of Response" ) << set name( "Mean" ) << Format( "Fixed Dec", 7, 2 );
+Column( ror_fit_dt, "Observations (or Sum Wgts)" ) << set name( "N" );
+Column( ror_fit_dt, "Root Mean Square Error" ) << set name( "RMSE" ) << Format( "Fixed Dec", 5, 3 );
+Column( ror_fit_dt, "RSquare" ) << Format( "Fixed Dec", 5, 3 );
+Column( ror_fit_dt, "RSquare" ) << set selected;
+ror_fit_dt << Move Selected Columns( To Last );
+ror_fit_dt << Clear Column Selection;
+Column( ror_fit_dt, "RMSE" ) << set selected;
+ror_fit_dt << Move Selected Columns( To Last );
+ror_fit_dt << Clear Column Selection;
+Column( ror_fit_dt, "Mean" ) << set selected;
+ror_fit_dt << Move Selected Columns( After( "N" ) );
+ror_fit_dt << Clear Column Selection;
+
+//Add the DateTime Column -- eliminate adding then moving
+ror_fit_dt << add multiple columns( "DateTime", 1, before first, numeric, continuous );
+dtCol = Column( ror_fit_dt, "DateTime" );
+dtCol << Format( "m/d/y h:m" );
+//The last table report task is to get the datetime. This could have been added
+//to the By variable and pulled out from each bivariate's outline box title
+//However, this would have changed the structure since time for wafers 2-3 are 
+//offset from wafer 1, so use a join or summary here.  Below is summarize
+Current Data Table( ror_stk_dt );
+Summarize( tgrps = By( :Tool, :Lot, :Wfr ), ttime = Min( :DateTime ) ); //keep same order as Bivariate
+//check of the number of times match the number of rows in the report
+If( N Row( ttime ) != N Row( ror_fit_dt ),
+	Throw( "Unexpected mismatch while joining datetime!" )
+);
+dtCol << set values( ttime );
+

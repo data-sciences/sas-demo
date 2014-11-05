@@ -1,0 +1,67 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_ListManipulation.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for manipulating lists.
+
+
+// Open a data table
+Semi_dt = Open( "$SAMPLE_DATA/Semiconductor Capability.jmp" );
+
+//Create empty list - only needed if concerned about a list existing
+//with the same name
+cont_lst = {};
+
+//Create a list of the variables of interest
+For( i = 1, i <= N Col( Semi_dt ), i++,
+	tmp_col = Column( Semi_dt, i ) << Get Name();
+	If(
+		Starts With( tmp_col, "VTN" ) | Starts With( tmp_col, "VTP" ) | Contains( tmp_col, "5" )
+		 | Starts With( tmp_col, "PLY" ),
+		Insert Into( cont_lst, tmp_col )
+	);
+);
+//Create a sorted list
+Sort List Into( cont_lst );
+
+//Create distribution plots with histogram and normal quantile plot
+Distribution(
+	Column( Eval( cont_lst ) ),
+	Stack( 1 ),
+	Quantiles( 0 ),
+	Moments( 0 ),
+	Normal Quantile Plot( 1 ),
+	Horizontal Layout( 1 ),
+	Vertical( 0 ),
+	Capability Analysis( 1 )
+);
+
+//Create a list of nominal variables for the x-axis
+nom_lst = Semi_dt << Get Column Names( Nominal, String );
+Remove From( nom_lst, Loc( nom_lst, "wafer" )[1] );
+Remove From( nom_lst, Loc( nom_lst, "Wafer ID in lot ID" )[1] );
+
+//Create overlay plot of continuous variables vs. nominal variables
+Oneway(
+	Y( Eval( cont_lst ) ),
+	X( Eval( nom_lst ) ),
+	Means and Std Dev( 1 ),
+	Box Plots( 1 ),
+	Grand Mean( 0 ),
+	Mean Lines( 0 ),
+	Std Dev Lines( 0 ),
+	Mean Error Bars( 0 )
+);
+
+//Algebra and Special Assignments
+a = {2, 4, 6, {1, 2}};
+b = {1, 2, 3, {10, 20}};
+c = a + b;  //{3, 6, 9, {11, 22}}
+d = a - b;  //{1, 2, 3, {-9, -18}}
+f = a / b;  //{2, 2, 2, {0.1, 0.1}}
+
+{x, y, z} = {10, 20, 30};
+{x, y, z} += 5;  //adds 5 to each variable
+Show( x, y, z );  //x = 15; y = 25; z = 35;
+{x, y, z}++;  //adds 1 to each element
+Show( x, y, z );  //x = 16; y = 26; z = 36;
+{x, y, z} - 5;  //subtracts 5 from each element

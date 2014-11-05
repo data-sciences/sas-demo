@@ -1,0 +1,84 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_BetaSliders.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates interactive graphics using the SliderBox 
+
+
+Clear Globals();
+Names Default To Here(1);
+
+// User-defined inputs for Generalized Beta distribution
+limspec = Dialog(
+	Vlist(
+		Vlist( "Enter the upper and lower bounds of the Beta distribution:" ),
+		Vlist( " " ),
+		Vlist( "Lower limit  ", lo = EditNumber( 0 ) ),
+		Vlist( " " ),
+		Vlist( "Upper limit  ", hi = EditNumber( 50 ) ),
+		Vlist( " " ),
+		Vlist( " " ),
+		HList( Button( "OK" ), Button( "Cancel" ) )
+	)
+);
+
+If( limspec["Button"] == -1,
+	Caption( "Beta elicitation cancelled" );
+	Wait( 2 );
+	Caption( remove );
+	Throw();
+);
+
+low = limspec["lo"];
+high = limspec["hi"];
+
+//Initial values for two SliderBox globals alpha and beta for the Beta distribution
+
+alpha1=3; 		
+beta1=2;
+
+/*
+Syntax: SliderBox(min, max, global, script, <set width(n)>, <rescale slider(min, max)> 
+*/
+
+NewWindow("Beta Density",	
+	VListBox(
+		gr=GraphBox(Pen Color("red"), Pen Size(3), FrameSize(486,300),XScale(low,high), yScale(0,0.1),
+			Double Buffer, XAxis(Show Major Grid), YAxis(Show Major Grid),
+			YFunction(Beta Density(q, alpha1, beta1, low, high-low), q);
+			
+			T1=Round(Beta Quantile(0.33, alpha1, beta1, low, high-low),2);
+			Q2=Round(Beta Quantile(0.50, alpha1, beta1, low, high-low),2);
+			mode=Round(((((alpha1-1)*high)+((beta1-1)*low))/(alpha1+beta1-2)),2);
+			Ex=Round(low+(high-low)*(alpha1/(alpha1+beta1)),2);
+			T2=Round(Beta Quantile(0.67, alpha1, beta1, low, high-low),2);
+			
+			Pen Color("purple");
+			Pen Size(1);
+			XFunction(T1, q);
+			XFunction(T2, q);			
+			
+			Pen Color("blue");
+			Text Color(3);text({low+(0.15*(high-low)),0.085},"alpha =  ",alpha1,";   beta =  ",beta1),
+			Text Color(3);text({low+(0.15*(high-low)),0.075},"mode    =  ",mode),
+			Text Color(3);text({low+(0.15*(high-low)),0.070},"mean    =  ",Ex),			
+			Text Color(3);text({low+(0.15*(high-low)),0.060},"33 %ile =  ",T1),
+			Text Color(3);text({low+(0.15*(high-low)),0.055},"50 %ile =  ",Q2),
+			Text Color(3);text({low+(0.15*(high-low)),0.050},"67 %ile =  ",T2)
+			),
+		HListBox(VListBox(HListBox(SliderBox(1,10,alpha1,gr<<reshow),TextBox("alpha")),
+		           HListBox(SliderBox(1,10,beta1,gr<<reshow),TextBox("beta")),
+		           GlobalBox(alpha1),
+		           GlobalBox(beta1)
+		           ),
+		)),
+		
+		betaout = expr(New Table( "Generalized Beta Data",
+	      Add Rows( 5000 ),
+	      New Column( "Beta Data", numeric, continuous,
+	      Formula( Random Beta( alpha1, beta1, low, high-low ) ),
+	      Eval Formula)));
+		
+			buttonbox("Output Data Set", betaout));
+show(gr);
+gr<<reshow;
+

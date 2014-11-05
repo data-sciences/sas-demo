@@ -1,0 +1,24 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_DesigningADialogWindow_Step1.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates DisplayBox objects used to layout a dialog window (Step 1).
+
+
+//dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+_win_info = "Distribution of Y for each X.  Modeling types "
+      ||" determine analysis." ;
+
+//-- step 1  create the layout - framing
+New Window("Fit Y by X - Contextual - Step 1",
+VListBox(
+  TextBox(_win_info),
+  SpacerBox(Size(0,5)),
+  HListBox(
+	PanelBox("Select Columns", ),
+	Panel Box("Cast Columns into Roles",),
+	PanelBox("Action")	
+  ) // end HListBox
+ )  //end VListBox
+);  //end New Window
+

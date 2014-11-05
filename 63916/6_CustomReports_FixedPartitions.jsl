@@ -1,0 +1,107 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_CustomReports_FixedPartitions.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for customizing reports, using fixed partitions.
+
+//Organizes Tool Lot plots by Tool (entity)
+//The fixed partion is Tool = {"ent01", "ent21", "ent32", "ent44" }
+//This script in fitting with this chapter is using top-down customization.
+//Chapter 8 presents a bottom-up method for building reports.
+//The 8_CustomByUsingWhere.jsl script creates an alternate partitioned view
+//of this data analysis, which shows its flexibility to aggregate and partition.
+//
+  
+ror_stk_dt = Open( "$JSL_Companion\ROR Model Format.jmp" );
+
+ror_nw1 = New Window( "Temperature Rate of Rise",
+	lub = Lineup Box( N Col( 4 ),
+		ror_biv = ror_stk_dt << Bivariate(
+			Y( :Temperature ),
+			X( :Time ),
+			By( :Tool, :Lot ),
+			Group By( :Wfr ),
+			Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )
+		)
+	)
+);  //end lineupbox and new window 
+Wait( 3 );
+//ror_nw1[LineUpBox(1)]
+lub << N Col( 2 );  //a lineup box may be modified later
+Wait( 5 );
+ror_nw1 << Close Window();
+
+//-------------------------------------------------
+Summarize( toolList = By( :Tool ) );
+//flyover toolList to recall the 4 values
+ror_Tool_nw = New Window( "Temperature Rate of Rise --- By Tool Layout",
+	ob1 = Outline Box( toolList[1],
+		lub1 = Lineup Box( N Col( 4 ),
+			ror_biv1 = ror_stk_dt << Bivariate(
+				Y( :Temperature ),
+				X( :Time ),
+				By( :Tool, :Lot ),
+				Where( :Tool == toolList[1] ),
+				Group By( :Wfr ),
+				Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )
+			)
+		)
+	),  //end ob1, note a comma separates objects in New Window
+	ob2 = Outline Box( toolList[2],
+		lub2 = Lineup Box( N Col( 4 ),
+			ror_biv2 = ror_stk_dt << Bivariate(
+				Y( :Temperature ),
+				X( :Time ),
+				By( :Tool, :Lot ),
+				Where( :Tool == toolList[2] ),
+				Group By( :Wfr ),
+				Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )
+			)
+		)
+	),  //end ob2, note a comma separates objects in New Window
+	ob3 = Outline Box( toolList[3],
+		lub3 = Lineup Box( N Col( 4 ),
+			ror_biv3 = ror_stk_dt << Bivariate(
+				Y( :Temperature ),
+				X( :Time ),
+				By( :Tool, :Lot ),
+				Where( :Tool == toolList[3] ),
+				Group By( :Wfr ),
+				Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )
+			)
+		)
+	),  //end ob3, note a comma separates objects in New Window
+	ob4 = Outline Box( toolList[4],
+		lub4 = Lineup Box( N Col( 4 ),
+			ror_biv4 = ror_stk_dt << Bivariate(
+				Y( :Temperature ),
+				X( :Time ),
+				By( :Tool, :Lot ),
+				Where( :Tool == toolList[4] ),
+				Group By( :Wfr ),
+				Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )
+			)
+		)
+	)  //end ob4, no comma end of Display boxes
+);    // end of new window
+
+//clean up this Tool report, repeat for each of 4 Tools
+// clean up the graphic, use the same Y-axis settings, title, add a summary  
+For( j = 1, j <= N Items( toolList ), j++,
+	currBiv = Choose( j, ror_biv1, ror_biv2, ror_biv3, ror_biv4 );
+	For( i = 1, i <= N Items( currBiv ), i++,
+		rpt_biv = Report( currBiv[i] );
+// Simplify the title            
+		ttl = rpt_biv[Outline Box( 1 )] << get title;
+		ttl = Substr( ttl, Contains( ttl, "Tool" ), Length( ttl ) );
+		rpt_biv[Outline Box( 1 )] << set title( ttl ); 	
+//just close the reports for now, do it for each of 3 curves
+		For( k = 1, k <= 3, k++,
+			currBiv << (Curve[k] << Report( 0 ))
+		);
+	);
+	ror_Tool_nw[Outline Box( toolList[j] )] << Close( 1 );
+);
+
+//Note: The special feature that added highlighted tool lot wafer summaries
+// is not included here.  See 6_CustomReport_Trends.jsl ----Special Feature---
+// Logically the code would appearafter line 99, within the  For(k = 1...) loop.

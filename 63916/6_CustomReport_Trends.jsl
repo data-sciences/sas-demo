@@ -1,0 +1,468 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_CustomReport_Trends.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for generating customized trends.
+
+
+//Uses Rate of Rise Data Set with stacked (Model) format
+//CustomReport_Trends.jsl extends TableInfo_Traverse.jsl
+//Summary information about each lot and wafer is found before
+//creating the Bivariate report, so it is available to append
+//a small table of information to each report.
+//Tasks
+//   Fit quadratic models and traverse the report gathering the desired nuggets into a table.
+//   The results table should include coefficients for b0 + b1*Time + b2*Time^2 
+//   for each By (Tool, Lot) and Group (Wfr) combination. 
+//   Each plot represents a single By group (Tool, Lot) with separate curves for 
+//   each wafer.  Therms is a metric of Theraml Budget, Temperature-Minutes and is
+//   found using Anti-derivative (b0*Time + b1*(Time^2)/2 + b2*(Time^3)/3 evaluated at 
+//   EndPoint Time - value at zero which is zero.  This is a contrived calculation. 
+//
+ror_stk_dt = open("$JSL_Companion\ROR Model Format.jmp");
+
+T0_limits = [17, 25, 33];
+EP_limits = [13, 20, 27];
+THM_limits = [1600, 2500, 3400];
+
+//get information that will be applied to each bivariate report
+summarize(tgrps=By(:Tool, :Lot, :Wfr), ttime=Min(:DateTime),
+	ep=Min(:Time 240 degrees C), temp0=Min(:Temperature)
+); //keep same order of groups as Bivariate
+
+ror_nw  =New Window("Temperature Rate of Rise",
+  tlp_ob1 = Outline Box("Tool Lot Plots",     //added to partition plots
+    lub=LineupBox(ncol(4), 
+      ror_biv = ror_stk_dt << Bivariate(Y(:Temperature), X(:Time),
+        By(:Tool, :Lot), Group By(:Wfr), 
+        Fit Special( Degree( 2 ), Centered Polynomial( 0 ) )  )
+)));  //end lineupbox and new window 
+lub << ncol(3);  //lineup box can be modified later
+
+rpt_dt = New Table("Temperature ROR Profiles Wafer",
+	New Column("DateTime", numeric, continuous, Format("m/d/y h:m"))
+);
+
+dtCol=column(rpt_dt, "DateTime");
+entCol = rpt_dt << New Column( "Tool", character, nominal);
+lotCol = rpt_dt << New Column( "Lot", character, nominal );
+wfrCol = rpt_dt << New Column( "Wfr", numeric, nominal );
+obsCol = rpt_dt << New Column( "N", numeric, continuous );
+xbCol = rpt_dt <<  New Column( "Mean", numeric, continuous );
+b0Col = rpt_dt << New Column( "b0", numeric, continuous );
+b1Col = rpt_dt << New Column( "b1", numeric, continuous );
+b2Col = rpt_dt << New Column( "b2", numeric, continuous );	  
+r2Col = rpt_dt << New Column( "RSquare", numeric, continuous );	
+errCol = rpt_dt << New Column( "RMSE", numeric, continuous );	
+degCol = rpt_dt << New Column( "Temperature at T0", numeric, continuous );	
+epCol  = rpt_dt << New Column( "EndPoint Time", numeric, continuous );	
+thmCol  = rpt_dt << New Column( "Therms", numeric, continuous );	
+thmcol << set formula(Round(:b0* :EndPoint Time 
+    + :b1/2*(:EndPoint Time)^2 +
+      :b2/3*(:endPoint Time)^3, 1)
+    );
+
+//Bivariate is Format "A" so loop thru the series of bivariate analyses
+//Note each nItems(ror_biv) = # unique combinations of Ent Lot
+crow=0;
+for (i=1, i<=Nitems(ror_biv), i++,
+  rpt = Report(ror_biv[i]);   // work on each Bivariate
+  ttl = rpt[Outline Box(1)] << get title;
+
+//--since a list of groups was created by summarize, change the method
+//  from extracting a pattern to checking if the expected Tool and Lot 
+//  are contained in the title  
+    k = crow + 1;   //k = *i-1)*3 + 1
+    if(contains(ttl, tgrps[1][k]) * contains(ttl, tgrps[1][k]) == 0,
+   throw("Mismatch for Tool "||tgrps[1][k]) ||" and Lot " || tgrps[2][k] );
+   rpt_dt << add rows(3);
+   for(j=1, j<=3, j++,
+      k = crow + j;
+      dtCol[k]  = ttime[k];
+      entCol[k] = tgrps[1][k];
+      lotCol[k] = tgrps[2][k];
+      wfrCol[k] = j;
+      degCol[k] = temp0[k];
+      epCol[k] = ep[k];
+//see Notes below on Structure and Robust code
+      newobj=rpt[Outline Box("?Wfr=="||char(j)||"??")];
+      sum_fit = newobj["Summary of Fit"][TableBox(1)][2] ;       
+      obsCol[k] = sum_fit[5];
+      xbCol[k] = sum_fit[4];
+      r2Col[k] = sum_fit[1];
+      errCol[k] = sum_fit[3];
+//the desired coefficients are for b0 + b1*Time + b2*Time^2 
+      coef_fit =  newobj["Parameter Estimates"][NumberColBox("Estimate")];
+      b0Col[k] = coef_fit[1] ;
+      b1Col[k] = coef_fit[2] ;
+      b2Col[k] = coef_fit[3] ;
+//If desired, clean up the display by turning off each curve's report
+//Commented out if you want to check the newly created report values with JMP's report
+      ror_biv[i]<< (Curve[j] << Report(0));
+      report(ror_biv[i])[PictureBox(2)][TextBox(j)] << Set Text("Wfr=="||char(j));
+       report(ror_biv[i])[PictureBox(2)][ListBox(j+1)]
+           << append(Border Box(Left(10), Right(10), Top(0), Bottom(0), sides(0),
+               LineupBox(ncol(4))));
+  );
+// clean up the graphic, use the same Y-axis settings, title, add a summary  
+      rpt_biv =  report(ror_biv[i]);
+      rpt_biv[AxisBox(1)] << Axis Settings({Min( 0 ), 
+            Max( 250 ), Inc( 50 ), Minor Ticks( 1 ), Show Major Grid( 1 ), 
+            Show Minor Grid( 1 )});
+// Simplify the title            
+      ttl = rpt_biv[Outline Box(1)] << get title;
+      ttl = substr(ttl, contains(ttl, "Tool"), length(ttl));
+      rpt_biv[Outline Box(1)] << set title(ttl);
+  crow = nrow(rpt_dt);
+);
+rpt_dt << Run Formulas;
+wait(0);
+
+//----Special Feature---- This loop creates a custom summary report
+// displaying the calculated values, T0, EP and Therms, for each wafer.
+// It creates a border box for each wafer's results and highlights 
+// unusual values. 
+for(i=1, i<=nitems(ror_biv), i++,
+  rpt_biv = report(ror_biv[i]);
+  for(j=1, j<=3, j++,
+    k=(i-1)*3 +j;	
+    rpt_biv[PictureBox(2)][LineupBox(j)]<< Append(Text Box("  T0/EP/Therms  ")); 
+    rpt_biv[PictureBox(2)][LineupBox(j)]<< Append(bb1= BorderBox(Sides(0), Left(5), Right(5), 
+      tb1=TextBox( char(degCol[k], 5,1))));
+    rpt_biv[PictureBox(2)][LineupBox(j)]<< Append(bb2= BorderBox(Sides(0),Left(5), Right(5), 
+      tb2=Text Box( char(epCol[k], 5, 1))));
+    rpt_biv[PictureBox(2)][LineupBox(j)]<< Append(bb3= BorderBox(Sides(0),Left(5), Right(5), 
+      tb3=Text Box( char(thmCol[k], 7,1))));
+    if(degCol[k] > T0_limits[3] | degCol[k] < T0_limits[1], 
+       bb1<< set background color( light yellow );
+       tb1<<font color(dark red)<<set font size(10);
+    );
+     if(epCol[k] > EP_limits[3] | epCol[k] < EP_limits[1], 
+       bb2<< set background color( light yellow );
+       tb2<<font color(dark red)<<set font size(10);
+    );
+       if(thmCol[k] > THM_limits[3] | thmCol[k] < THM_limits[1], 
+       bb3<< set background color( light yellow );
+       tb3<<font color(dark red)<<set font size(10);
+    );	 
+  )
+);
+//----End of EXTRA
+//--------------------------
+tlp_ob1 << Sib Prepend(  //Load 3 outline boxes >>before<< tlp_ob1
+	lub2 = LineupBox(ncol(1),
+		t0_ob1 = OutlineBox("T0, Temperature (C) at Start",
+		      t0_HL=HListBox()),
+		ep_ob1 = OutlineBox("EP, Minutes to Reach 240 C", 
+		      ep_HL=HListBox()),
+		thm_ob1 = OutlineBox("Therms, Total Temperature/Time", 
+		      thm_HL=HListBox())
+	)
+);
+current data table(rpt_dt);
+//---------------Notes--------------------------------------------------------
+// This next block of code creates 3 side-by-side trends using GraphBuilder
+// for a different platform.  This is cookie cutter code that was created
+// by creating one chart via point & click (GUI) saving the script and 
+// modifying it. And the author admits it was fraught with cookie-cutter
+// problems.  Everything below is explicit for readability.  The next
+// level of coding would be to create a template string with variable names 
+// and use Eval Insert  (see Chapter 5&9) or create functions or expressions
+// see Chapters 5 & 9.
+// The variables would the be the analysis columns, the scaling values and 
+// the limits values.
+
+//NOTE: For scaling trend charts there is always a trade-off: (1) use a small
+// extension of the limits scaling that allows white space outside of the 
+// limits and making the data within the limits visible but potentially 
+// cuts off extreme points versus (2)use max and min points that 
+// potentially diminish instrinsic trends.  
+// We recommend using limits based scaling. If limits represent +/-3 sigma
+// then scale for +/- k sigma, 4, 5, or 6.  Since JMP allows rescaling and the
+// grabber even on journaled files, this first method ensures that intrinsic
+// variability is visible (if most data are within specified limits).
+// For increment (inc) we recommend using approx 1 sigma inc with a tick at
+// 0.5 sigma.  As stated earlier, develop standards and best methods and be
+// consistent...your users and consumers of your reports will appreciate it. 
+
+//---------------Therms Trend------------------------------------------------
+//By wrapping this in a VListbox the GraphBuilder report window is still live.
+//When you dock it in the outline box it will still be live
+//JMP only allows one append for live report windows
+thm_vv = VListBox(thm_gb=rpt_dt<<Graph Builder(
+	Size( 1010, 546 ),
+	Show Control Panel( 0 ),
+	Variables(
+		X( :DateTime, Size( 124 ) ),
+		Y( :Therms ),
+		Group X( :Tool ),
+		Overlay( :Wfr )
+	),
+	Elements(
+		Points( X, Y, Legend( 2 ) ),
+		Line( X, Y, Legend( 6 ), Row order( 0 ), Summary Statistic( "Mean" ) )
+	),
+	SendToReport(
+		Dispatch( {}, "DateTime", ScaleBox, {Rotated Labels( "Automatic" )} ),
+		Dispatch(
+			{},
+			"Therms",
+			ScaleBox,
+			{Min( 900 ), Max( 4000 ), Inc( 300 ), Minor Ticks( 1 ),
+			Add Ref Line( 2500, Solid, "Black" ), Show Major Grid( 1 ),
+			Show Minor Grid( 1 ), Rotated Labels( "Automatic" )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox,
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 2500, x );
+				Pen Color( "Red" );
+				Y Function( 3400, x );
+				Y Function( 1600, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 2 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 2500, x );
+				Pen Color( "Red" );
+				Y Function( 3400, x );
+				Y Function( 1600, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 3 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 2500, x );
+				Pen Color( "Red" );
+				Y Function( 3400, x );
+				Y Function( 1600, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 4 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 2500, x );
+				Pen Color( "Red" );
+				Y Function( 3400, x );
+				Y Function( 1600, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		)
+	)
+));
+//Recommend the use of list boxes and outline boxes to append
+thm_HL << Append( thm_vv );
+
+//---------------EP Trend------------------------------------------------
+//By wrapping this in a VListbox the Graph Builder report window is still live.
+//When you dock it in the outline box it will still be live
+//JMP only allows one append for live report windows
+ep_vv = VListBox(ep_gb=rpt_dt<<Graph Builder(
+	Size( 1010, 546 ),
+	Show Control Panel( 0 ),
+	Variables(
+		X( :DateTime, Size( 124 ) ),
+		Y( :End Point Time ),
+		Group X( :Tool ),
+		Overlay( :Wfr )
+	),
+	Elements(
+		Points( X, Y, Legend( 2 ) ),
+		Line( X, Y, Legend( 6 ), Row order( 0 ), Summary Statistic( "Mean" ) )
+	),
+	SendToReport(
+		Dispatch( {}, "DateTime", ScaleBox, {Rotated Labels( "Automatic" )} ),
+		Dispatch(
+			{},
+			"End Point Time",
+			ScaleBox,
+			{Min( 8 ), Max( 32 ), Inc( 3 ), Minor Ticks( 1 ),
+			Add Ref Line( 20, Solid, "Black" ), Show Major Grid( 1 ),
+			Show Minor Grid( 1 ), Rotated Labels( "Automatic" )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox,
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 20, x );
+				Pen Color( "Red" );
+				Y Function( 27, x );
+				Y Function( 13, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 2 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 20, x );
+				Pen Color( "Red" );
+				Y Function( 27, x );
+				Y Function( 13, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 3 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 20, x );
+				Pen Color( "Red" );
+				Y Function( 27, x );
+				Y Function( 13, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 4 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 20, x );
+				Pen Color( "Red" );
+				Y Function( 27, x );
+				Y Function( 13, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		)
+	)
+));
+//Note: The general syntax for the command to add a script to the framebox is
+//  Add Graphics Script(<order>, script) order can be the word BACK or a number
+//  by using 2 the reference lines will draw on top of these heavy "control limits"
+//  Grid lines (1) will be in the background, custom "control limits" (2) and
+//  all other references lines (3).  
+//Recommend the use of list boxes and outline boxes to append
+ep_HL << Append( ep_vv );
+
+//---------------T0 Trend------------------------------------------------
+//By wrapping this in a VListbox the Graph Builder report window is still live.
+//When you dock it in the outline box it will still be live
+//JMP only allows one append for live report windows
+t0_vv = VListBox(t0_gb=rpt_dt<<Graph Builder(
+	Size( 1010, 546 ),
+	Show Control Panel( 0 ),
+	Variables(
+		X( :DateTime, Size( 124 ) ),
+		Y( :Temperature at T0 ),
+		Group X( :Tool ),
+		Overlay( :Wfr )
+	),
+	Elements(
+		Points( X, Y, Legend( 2 ) ),
+		Line( X, Y, Legend( 6 ), Row order( 0 ), Summary Statistic( "Mean" ) )
+	),
+	SendToReport(
+		Dispatch( {}, "DateTime", ScaleBox, {Rotated Labels( "Automatic" )} ),
+		Dispatch(
+			{},
+			"Temperature at T0",
+			ScaleBox,
+			{Min( 12 ), Max( 38 ), Inc( 3 ), Minor Ticks( 1 ),
+			Add Ref Line( 25, Solid, "Black" ), Show Major Grid( 1 ),
+			Show Minor Grid( 1 ), Rotated Labels( "Automatic" )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox,
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 25, x );
+				Pen Color( "Red" );
+				Y Function( 33, x );
+				Y Function( 17, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 2 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 25, x );
+				Pen Color( "Red" );
+				Y Function( 33, x );
+				Y Function( 17, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 3 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 25, x );
+				Pen Color( "Red" );
+				Y Function( 33, x );
+				Y Function( 17, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		),
+		Dispatch(
+			{},
+			"Graph Builder",
+			FrameBox( 4 ),
+			{Add Graphics Script(
+				2,
+				Description( "Script" ),
+				Pen Size( 3 );
+				Pen Color( "Black" );
+				Y Function( 25, x );
+				Pen Color( "Red" );
+				Y Function( 33, x );
+				Y Function( 17, x );
+			), Grid Line Order( 1 ), Reference Line Order( 3 )}
+		)
+	)
+));
+//Recommend the use of list boxes and outline boxes to append
+t0_HL << Append( t0_vv );
+
+ror_nw << Bring Window to Front;

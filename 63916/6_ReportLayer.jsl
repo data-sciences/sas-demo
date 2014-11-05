@@ -1,0 +1,112 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_ReportLayer.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for reporting and navigating reports.
+
+
+bigclass_dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+bigclass_ht_onew = bigclass_dt << Oneway(
+	Y( :height ),
+	X( :sex ),
+	Means and Std Dev( 1 ),
+	Mean Error Bars( 0 ),
+	Std Dev Lines( 0 )
+);
+
+//These two lines assign a variable name to the report,
+//either syntax is acceptable
+rpt_bc_ht_onew = Report( bigclass_ht_onew );
+rpt_bc_ht_onew = bigclass_ht_onew << Report;
+
+bigclass_ht_onew << Bring Window to Front;
+//line up this script and this window, run 1 line at a time
+rpt_bc_ht_onew[OutlineBox(1)] << Close;
+rpt_bc_ht_onew[OutlineBox(1)] << Open All Below;
+rpt_bc_ht_onew[OutlineBox(1)] << Close(1);
+rpt_bc_ht_onew[OutlineBox(1)] << Close(0);
+
+rpt_bc_ht_onew[OutlineBox(1)] << Set Title("Limit Mousing via JSL");
+
+//-----------------------------------------------------------
+rpt_bc_ht_onew[TableBox(1)] << Select;
+wait(2);
+rpt_bc_ht_onew[TableBox(1)] << Deselect;
+
+
+//---- More navigation --------------------------------------
+//This first syntax travels down the tree structure 
+//report -> TableBox(1) -> NumberCol Box...
+
+//------------------------------------------------------------
+rpt_bc_ht_onew[TableBox(1)][NumberColBox("Std Dev")] << Select;
+wait(2);
+rpt_bc_ht_onew[TableBox(1)][NumberColBox("Std Dev")] << Deselect;
+
+
+//------------------------------------------------------------
+//----since there are no other NumberColBox labeled Std Dev 
+//----that is, it is unique, reference "Std Dev" directly
+rpt_bc_ht_onew[NumberColBox("Std Dev")] << Select;
+wait(2);
+rpt_bc_ht_onew[NumberColBox("Std Dev")] << Deselect;
+
+//------------------------------------------------------------
+//---The absolute address can be used as well.
+rpt_bc_ht_onew[NumberColBox(3)] << Select;
+wait(2);
+rpt_bc_ht_onew[NumberColBox(3)] << Deselect;
+
+/*---
+A variable can be assigned to any display box. Subsequently, the assigned
+variable name may be used to reference display box objects that belong to it.  
+This can simplify "deep" nesting.  Below bc_ht_stats is the variable name assigned 
+to the table box belonging to  "Means and Std Deviations".
+----*/
+bc_ht_stats = rpt_bc_ht_onew["Means and Std Deviations"][1]; //assign varname to tablebox
+Show( bc_ht_stats, bc_ht_stats[2][2], bc_ht_stats << Class Name ); 
+
+
+//-------------Advanced Peek at Navigation----------------------------------
+/*---
+The syntax to reference nested display objects is consistent with the 
+syntax to reference items in nested lists.  The script below is a quick 
+reminder of nested list syntax: items are referenced higher to lower.  
+If an item has a variable name assigned to it, the quoted name may be 
+used as a key or an index to that item.  In other words A[1] is the 
+same as A["z"]. 
+----*/
+
+A = { z = {1 ,2, 17, 29}, { 10, 20, 30 } };
+show( A[2][3], A["z"][4] ); 
+//*: A[2][3] = 30;  A["z"][4] = 29;
+//The 2nd item in A is the list {10, 20 , 30}
+//The 3rd item in that list is 30
+//*: A["z"][4] = 29;
+// The items assigned to z in A is the list {1, 2, 17, 29}
+// The fourth item of that list 29
+
+/*---
+The statements below demonstrate the same syntax rules apply to the report 
+rpt_bc_ht_onew.  All five variables v1-v5 have the same value of 22, 
+representing the number of males in this analysis.
+For each follow the path.
+----*/
+
+v1 = rpt_bc_ht_onew[Outline Box( 2 )][1][2][2]; 
+//OutlineBox(2) is named Means and Std Deviations
+//1st item in the outline is a TableBox
+//2nd item in the TableBox is a the numberColBox named "Number"
+//2nd item in that column is the value 22
+
+v2 = rpt_bc_ht_onew["Means and Std Deviations"][1][2][2];
+//---JMP rule: A named Outline Box may be referenced by its name alone.  
+//   ["name"] is equivalent to  [OutlineBox("name") ]
+//   This is true only for outline boxes
+
+v3 = rpt_bc_ht_onew["Means and Std Deviations"]
+            [Number Col Box( "Number" )][2];
+v4 = rpt_bc_ht_onew[Table Box( 1 )][2][2];   //StringColBox is 1st item in the tablebox
+v5 = rpt_bc_ht_onew[Number Col Box( 1 )][2]; //Use the absolute number col box, the 2nd cell
+Show( v1, v2, v3, v4, v5 );
+
+//Five different ways to get to the same value on the report

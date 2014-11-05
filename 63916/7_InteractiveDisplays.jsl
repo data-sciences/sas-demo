@@ -1,0 +1,143 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_InteractiveDisplays.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates DisplayBox objects and methods for making interactive displays.
+
+//Slider Box(min, max, global, script)
+//Global Box(global)
+//ButtonBox("Button Name", script);
+
+/*
+This file contains 3 examples, delimited by a full line of commented dashes.
+*/
+
+score = 50;
+New Window( "Judge the Project",
+	Panel Box( "Select score on a scale from 1 to 100",
+		sb = Slider Box( 1, 100, score ),
+		sb << Set Width( 250 ),
+		gb = Global Box( score ),
+		Button Box( "Score",
+			Caption( "The final score is " || Char( score ) );
+			Wait( 3 );
+			Caption( Remove );
+		)
+	)
+);
+
+//------------------------------------------------------------------------------------
+// Extension of 7_RetrievingInput.jsl
+// This example keeps only a display of the currently selected columns
+//Distribution - Current
+clear globals();
+orig_dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+cnt = 0; Chosen Columns={};  //initiate values
+
+//----Refresh display script---------------------------
+refresh_script = Expr(
+   Try(dist_vlist << delete);
+   	If( (cnt > 0 & N Items( Chosen Columns ) >= 1),
+   	show(Chosen Columns);
+	dist_vlist = V List Box(
+		orig_dist = orig_dt << Distribution( Column( Eval( Chosen Columns ) ), invisible )
+	);
+	result_ob << append( dist_vlist );
+	)
+);
+
+//----Action to take for Add-----------------------------
+add_script = Expr(
+	cnt = cnt + 1;
+	listocols << Append( selcol << Get Selected );
+	// Send Get Items to a Col List Box
+	Chosen Columns = listocols << Get Items;
+    refresh_script;
+	
+);
+
+//----Action to take for Remove -----------------------------
+remove_script= Expr(
+	cnt = cnt + 1;
+	listocols << Remove Selected;
+	// Send Get Items to a Col List Box
+	Chosen Columns = listocols << Get Items;
+	show(Chosen Columns);
+    refresh_script
+);
+
+//-----Dialog Window layout---------------------------------
+dist_win = New Window( "Create Distributions",
+	H List Box(
+		selcol = Col List Box( All, width( 100 ), nlines( 6 ) ),
+		Lineup Box( N Col( 1 ), Spacing( 3 ),
+			Button Box( "Add Column >>", add_script ),
+			Button Box( "<< Remove Column", remove_script )
+		), 
+// listocols is a Col List Box
+		listocols = Col List Box( width( 100 ), nlines( 6 ) )
+	),
+	Text Box( " " ),
+	result_ob = Outline Box( "Current Selections" )
+);
+
+
+//------------------------------------------------------------------------------------
+// Extension of 7_RetrievingInput.jsl
+// This is an interactive display of Distributions that maintains a history of selections.
+// This example creates distribtion plots of chosen columns while
+// previous selections are retained in the window with their outline boxes
+// closed. 
+//Distribution - History of selections
+clear globals();
+orig_dt = Open( "$SAMPLE_DATA/Fitness.jmp" );
+
+cnt = 0; Chosen Columns={};  //initiate values
+
+//----Refresh display script---------------------------
+refresh_script = Expr(
+   	If( (cnt > 1 & N Items( Chosen Columns ) >= 1),
+			dist_vlist["Distributions"] << Close( 1 )
+     );
+	dist_vlist = V List Box(
+		orig_dist = orig_dt << Distribution( Column( Eval( Chosen Columns ) ), 
+		  invisible )
+	);
+	dist_win << append( dist_vlist );
+);
+
+
+//----Action to take for Add-----------------------------
+add_script = Expr(
+	cnt = cnt + 1;
+	listocols << Append( selcol << Get Selected );
+	// Send Get Items to a Col List Box
+	Chosen Columns = listocols << Get Items;
+    refresh_script;
+	
+);
+
+//----Action to take for Remove -----------------------------
+remove_script= Expr(
+	cnt = cnt + 1;
+	listocols << Remove Selected;
+	// Send Get Items to a Col List Box
+	Chosen Columns = listocols << Get Items;
+	show(Chosen Columns);
+    refresh_script
+);
+
+//-----Dialog Window layout---------------------------------
+dist_win = New Window( "Create Distributions",
+	H List Box(
+		selcol = Col List Box( All, width( 100 ), nlines( 6 ) ),
+		Lineup Box( N Col( 1 ), Spacing( 3 ),
+			Button Box( "Add Column >>", add_script ),
+			Button Box( "<< Remove Column", remove_script )
+		), 
+     // listocols is a Col List Box
+		listocols = Col List Box( width( 100 ), nlines( 6 ) )
+	),
+	Text Box( " " ),
+);
+

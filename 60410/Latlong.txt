@@ -1,0 +1,30 @@
+Altar         -1.67 -78.42
+Barren Island 12.28  93.52
+Elbrus        43.33  42.45
+Erebus       -77.53 167.17
+Etna          37.73  15.00
+Fuji          35.35 138.73
+Garibaldi     49.85-123.00
+Grimsvotn     64.42 -17.33
+Illimani     -16.39 -67.47
+Kenya         -0.09  37.18
+Kilauea       19.43-155.29
+Kilimanjaro   -3.07  37.35
+Kliuchevskoi  56.06 160.64
+Krakatau      -6.10 105.42
+Lassen        40.49-121.51
+Mauna Loa     19.48-155.61
+Nyamuragira   -1.41  29.20
+Nyiragongo    -1.52  29.25
+Pinatubo      15.13 120.35
+Poas          10.20 -84.23
+Popocatepetl  19.02 -98.62
+Puy de Dome   45.50   2.75
+Reventador    -0.08 -77.66
+Ruapehu      -39.28 175.57
+Sabancaya    -15.78 -71.85
+Santorini     36.40  25.40
+Shishaldin    54.76-163.97
+St. Helens    46.20-122.18
+Vesuvius      40.82  14.43
+Villarrica   -39.42 -71.93

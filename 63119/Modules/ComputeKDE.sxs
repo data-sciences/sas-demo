@@ -1,0 +1,21 @@
+start ComputeKDE(x, f, DSName, VarName, Bandwidth);    /* 1 */
+/* define module to compute a kernel density estimate */
+/* input arguments:   DSName     name of SAS data set
+ *                    VarName    name of variable
+ *                    Bandwidth  numerical bandwidth, "MISE", or "SJPI"
+ * output arguments:  x          evenly spaced x values
+ *                    f          corresponding density value
+ */
+   submit DSName VarName Bandwidth;                    /* 2 */
+   proc univariate data=&DSName;                       /* 3 */
+      var &VarName;
+      histogram / noplot kernel(C=&Bandwidth) outkernel=KerOut;
+   run;
+   endsubmit;
+   
+   use KerOut;   
+   read all var {_value_} into x;                      /* 4 */
+   read all var {_density_} into f;
+   close KerOut;
+finish;
+store module=ComputeKDE;

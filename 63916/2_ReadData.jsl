@@ -1,0 +1,100 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_ReadData.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: This script covers simple JSL functions to read data
+
+
+//---------Open file with unspecified path--------------------------------
+dt1 = Open();   // user is prompted for file & options
+
+//---------Open/Read a JMP table -----------------------------------------
+dt2 = Open( "$Sample_Data\Solubility.jmp" );   // existing JMP table 
+
+//---------Read a text file -----------------------------------------------
+// open a text file, data starts on line 4, labels on line 3 and all options
+dt3 = Open(
+	"$Sample_Import_Data\Animals_line3.txt",
+	columns( species = Character, subject = Numeric, miles = Numeric, season = Character ),
+	Import Settings(
+		End Of Line( CRLF, CR, LF ),
+		End Of Field( Tab ),
+		Strip Quotes( 1 ),
+		Use Apostrophe as Quotation Mark( 0 ),
+		Scan Whole File( 1 ),
+		Labels( 1 ),
+		Column Names Start( 3 ),
+		Data Starts( 4 ),
+		Lines To Read( All ),
+		Year Rule( "10-90" )
+	)
+);
+
+// Alternate Open() only specifying arguments with non-default settings
+dt3 = Open(
+	"$Sample_Import_Data\Animals_line3.txt",
+	Import Settings( Column Names Start( 3 ), Data Starts( 4 ) )
+); 
+
+//--------- Open XLS files---------------------------------------------------------
+// With this option when an Excel file is opened, user is prompted for which sheet to open
+// Use PickFile for user to select an XLS file
+Set Preference( Select Individual Excel Worksheets( 1 ) );
+
+/*  See Help > JSL Function Index > Pick File for more information
+    Syntax:  Pick File(<"caption">, 
+      <"initial directory">, 
+      <{filter list}>, 
+      <first filter>, 
+      <save flag>, 
+      <"default file">)
+*/
+
+// Get the directory that is currently the default for opening files
+currDir = Get Current Directory();
+//Hover over currDir to see the result
+
+// To change the default use set
+Set Current Directory( "$JSL_Companion" ); 
+
+// Now check it out
+currDir = Get Current Directory();
+//Hover over currDir to see the result
+
+// Note: by using Pick File with only one filter, the user is forced to select Excel
+xlsFID = Pick File(
+	"Select an existing Excel file",
+	currDir,  //starting directory or leave empty for default
+	{"Excel Files|xls; xlsx; xlsm; xlsb"},   //file filter
+	1,      //use the first filter
+	0,       //0-->Open,  1-->Save
+	"Basketball Football Sample Data.xlsx"
+);
+//if the Excel file selected has more than worksheet, you will be prompted to select 
+dt5 = Open( xlsFID );
+
+// Note: depending upon your version of Windows, JMP, and database drivers, the opened
+// Excel file may have a script named "JSL" attached to the newly created data table.
+// It uses the Open Database command discussed in section 2.5.  For more information
+// from the menu bar select Help > JSL Function Index > Utility > Open Database
+
+//--------- More Examples of Open options
+
+// Flag options
+// Flag is used to open a file with no extension 
+// $Sample_Data\Pollen.jmp was copied and the extension was deleted.
+
+dt6 = Open( currDir || "Pollen", JMP );   //"Flag" option to read a file with no extension
+// Documentation states options are Text, SAS, JMP, Journal, Script and must be quoted, yet this
+// seems to work without being quoted 
+
+
+//---- Run to delete tables created by this script --- Clean up see Help>JSL Function Index > Utility > Try
+/*  Highlight below and run
+Try( Close(dt1, NoSave));
+Try( Close(dt2, NoSave));
+Try( Close(dt3, NoSave));
+Try( Close(Data Table( "Animals_line3" ), NoSave));  //May be 2 versions open
+Try( Close(dt4, NoSave));
+Try( Close(dt5, NoSave));
+Try( Close(dt6, NoSave));
+*/

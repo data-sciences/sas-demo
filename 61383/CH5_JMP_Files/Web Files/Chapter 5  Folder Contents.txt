@@ -1,0 +1,16 @@
+CHAPTER 5: Comparing the Measured Performance of Two Materials, Processes, or Products
+
+In this section you will find 3 files that contain the JMP data tables and statistical computations or analyses that are used in this chapter. Each file name begins with the acronym AICDUJ, which stands for 'Analyzing and Interpreting Continuous Data Using JMP', followed by 'Chapter 5' and the name of the data or statistical techniques illustrated in the book. The file names and their content are provided below.  
+
+1. AICDUJ-Chapter 5 Equipment Thickness Data.JMP
+
+This file contains 40 observations of Thickness data for Old and New equipment. The two scripts in the JMP table will reproduce the results for the two sample tests of significance for the means and standard deviations shown in Figures 5.3a and 5.8 in Section 5.3 "Overview of Two-Sample Significance Test". 
+
+2. AICDUJ-Chapter 5 Oven Study.JMP
+
+This file includes 20 matched pairs of Thickness data before and after a drying step. There are 2 scripts that produce the output shown in Figures 5.5 and 5.6 in Section 5.3 "Overview of Two-Sample Significance Test".    
+
+
+3. AICDUJ-Chapter 5 Atomic Weight Ag.JMP
+
+This JMP table contains the data for the Mass Spectrometer case study presented in this chapter, patially shown in Figure 5.16 in Section 5.4 "Step-by-Step JMP Analysis Instructions". There are 13 scripts in this table. The first 3 scripts produce Figures 5.18, 5.21a, and 5.21b in Step 4 of the analysis instructions. The next 4 scripts create Figures 5.23, 5.26, 5.28, 5.31a, and 5.31b discussed in Step 5. The next 3 scripts are for Figures 5.32c, 5.34, and 5.35 in Step 6. Finally, the last 2 scripts reproduce Figures 5.37 and 5.38 in Section 5.5 "Equivalence of Two Materials, Processes, or Products".      

@@ -1,0 +1,10 @@
+start Mean(x);
+/* Mean: return sample mean of each column of a data matrix */
+/* For this module
+ *    x     is a matrix that contains the data
+ */
+   mean = x[:,];
+   return ( mean );
+finish;
+store module=Mean;
+

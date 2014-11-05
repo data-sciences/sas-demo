@@ -1,0 +1,323 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_Namespace.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates characteristics of namespaces and examples of Window and Box
+//          namespaces.
+
+
+// Simple review of syntax
+Delete Symbols();
+Clear Globals();
+Names Default To Here( 1 );
+
+nsOne = New Namespace ( "nsOne", {x=11, y=12, z=13});
+show( nsOne, nsOne << Get Contents, nsOne:x, nsOne:y);
+show( nsOne["y"], "nsOne":z);
+Delete Symbols();
+Clear Globals();
+Show Namespaces(); //nsOne still exists
+//a namespace can only be deleted by reference << delete;
+Namespace( "nsOne") << delete;
+//----- or use
+//nsOne << delete;
+//prior to deleting symbols and globals
+Show Namespaces(); //nsOne no longer exists
+
+//---------------------------------------------------------------------------------
+// Namespaces are global
+testit = Function({}, {Default Local},
+   nsTwo = New Namespace( "nsTwo",
+   	{x=21, y=22, z=23});
+	1
+);
+xx=testit;  //run the function
+//run one line at a time
+Show Namespaces(); //namespace nsTwo exists is not Local
+Show(nsTwo);  //the reference is Local, does not exist
+
+//----This is even true with Include files using New Context
+//    to create its own context
+//Define a namespace in an include file
+txtfid = "\[
+	Names Default To Here( 1 );
+	app = New Namespace("app");
+	app:greetings =Function({}, "hello world");
+	app:time = Function({}, Today());
+	app:memory = Function({}, Get Memory Usage());
+	app:fcn = Function({}, NameExpr(Expr(x + 3)) );
+	app<<Insert("xpr", Name Expr( x + 3 ));
+	app["nmexpr"] = Name Expr( Expr(x + 3) );
+	app:nmexpr_2 = Name Expr( Name Expr(x + 3) );
+	show( Namespace("app") ); ]\";
+SaveTextFile("c:\temp\NSfid.jsl", txtfid);
+wait(0);
+
+//-----Include the file
+Include( "c:\temp\NSfid.jsl", <<New Context );
+wait(0);
+Show Namespaces();  //Namespace app and nsTwo should exist
+Show( Namespace( "app" ));
+Namespace ("app") << delete;
+
+//the syntax of namespaces should be familiar
+app = New Namespace("app");
+	app:greetings =Function({}, "hello world");
+	app:time = Function({}, Today());
+	app:memory = Function({}, Get Memory Usage());
+	app:fcn = Function({}, NameExpr(Expr(x + 3)) );
+	app<<Insert("xpr", Name Expr( x + 3 ));
+	app["nmexpr"] = Name Expr( Expr(x + 3) );
+	app:nmexpr_2 = Name Expr( Name Expr(x + 3) );
+	app:strexpr = Parse( Char( Expr(x+3)));
+Show( Namespace( "app" ));
+Show Namespaces();
+
+// -- run one line at a time 
+// the semantics --- evaluation that occurs in the assignment -- is not so intuitive
+show(app:greetings);
+app:greetings;  //executes the function (aka command)
+show( app:time);
+As Date(app:time);
+show (app:memory);
+app:memory;
+show (app:fcn);
+yExpr = app:fcn;  //use a function to return an expression
+show(app:xpr);
+y= app:xpr;  //throws an error if x does not exist
+show(app:nmexpr);
+yExpr= app:nmexpr;  //same is true for name expression
+show(app:nmexpr_2);
+yExpr2= app:nmexpr_2;  //throws an error if x does not exist
+
+x=7;  //define x
+app:xpr;  //returns 10
+app:nmexpr;
+app:nmexpr_2;
+
+//--------------------------------------------------------------------------------
+//Below are 6 fun examples with Window & Box scoping
+
+//----Example #1: No Namespace & No Scoping x0 and y0, gb1, gb2 are globals
+//any change in one variable affects the other
+
+Clear globals();
+Delete Symbols();
+nw1= New Window("Without Window Scoping",
+	x0=20;
+	y0= 50;
+	gb1=GraphBox(Frame Size(200,200),
+		Handle(x0, y0,
+			Function({x,y}, x0 = x; y0=y;)
+		);
+		Circle({0,0}, sqrt(x0*x0 + y0*y0));
+		gb2<<inval
+
+	)
+);
+
+nw2= New Window("Without Window Scoping",
+	x0=20;
+	y0=50;
+	gb2=GraphBox(Frame Size(200,200),
+		Handle(x0, y0,
+			Function({x,y}, x0 = x; y0=y;);  
+		);
+		
+		Rect({0,y0}, {x0,0},0);
+		gb1<<inval
+	)
+);
+//--------------------------------------------------------------------------------
+
+//---- Example #2: Uses Window namespace with 2 Windows providing separate control
+//the variable is controlled within the window variable. 
+//x0, y0 in one window does affect the other window.  They are local to the window.
+Clear globals();
+Delete Symbols();
+
+nw1= New Window("With Window Scoping",
+	Window:x0=20;
+	Window:y0= 50;
+	::gb1=GraphBox(Frame Size(200,200),
+		Handle(Window:x0, Window:y0,
+			Function({x,y}, Window:x0 = x; :Window:y0=y;)
+		);
+		Circle({0,0}, sqrt(Window:x0*Window:x0 + Window:y0*Window:y0));
+		::gb2<<inval
+
+	)
+);
+
+nw2= New Window("With Window Scoping",
+	Window:x0=20;
+	Window:y0=50;
+	::gb2=GraphBox(Frame Size(200,200),
+		Handle(Window:x0, Window:y0,
+			Function({x,y}, Window:x0 = x; Window:y0=y;);  
+		);
+		
+		Rect({0,Window:y0}, {Window:x0,0},0);
+		::gb1<<inval
+	)
+);
+//--------------------------------------------------------------------------------
+
+//---- Example #3: Uses Window namespace in the same window
+// Even though each graph has a separate ContextBox, the variable is the window variable
+//x0,y0 are local to the window.  However, since both graphs belong
+//to the same window a cahnge in x0,y0 affects both graphs.
+Clear globals();
+Delete Symbols();
+
+nw1= New Window("With Window Scoping",
+HListBox(
+  cB1= ContextBox(
+	Window:x0=20;
+	Window:y0= 50;
+	::gb1=GraphBox(Frame Size(200,200),
+		Handle(Window:x0, Window:y0,
+			Function({x,y}, Window:x0 = x; :Window:y0=y;)
+		);
+		Circle({0,0}, sqrt(Window:x0*Window:x0 + Window:y0*Window:y0));
+		::gb2<<inval
+
+	)
+ ),  //end ContextBox 1
+  cB2 = ContextBox(
+	Window:x0=20;
+	Window:y0=50;
+	::gb2=GraphBox(Frame Size(200,200),
+		Handle(Window:x0, Window:y0,
+			Function({x,y}, Window:x0 = x; Window:y0=y;);  
+		);
+		
+		Rect({0,Window:y0}, {Window:x0,0},0);
+		::gb1<<inval
+	)
+ )  //end ContextBox 2
+));
+//--------------------------------------------------------------------------------
+
+//---- Example #4: Uses Box namespace in the same window
+//Variable control is within the ContextBox, 
+//Wrapping a ContextBox() around a single graph or multiple graphs
+//enables the scripter to determine which controls should be syncronized.
+Clear globals();
+Delete Symbols();
+
+nw= New Window("With Box Scoping",
+ HListBox(
+  cB1 = ContextBox(
+	Box:x0=20;
+	Box:y0= 50;
+	::gb1=GraphBox(Frame Size(200,200),
+		Handle(Box:x0, Box:y0,
+			Function({x,y}, Box:x0 = x; Box:y0=y;)
+		);
+		Circle({0,0}, sqrt(Box:x0*Box:x0 + Box:y0*Box:y0));
+		::gb2<<inval
+
+	)
+ ),  //end ContextBox 1
+  cB2 = ContextBox(
+	Box:x0=20;
+	Box:y0=50;
+	::gb2=GraphBox(Frame Size(200,200),
+		Handle(Box:x0, Box:y0,
+			Function({x,y}, Box:x0 = x; Box:y0=y;);  
+		);
+		
+		Rect({0,Box:y0}, {Box:x0,0},0);
+		::gb1<<inval
+	)
+ )   //end ContextBox 2
+));
+//--------------------------------------------------------------------------------
+
+//---- Example #5: No scoping x0 and y0 are global since Names Default to Here(0)
+Clear globals();
+Delete Symbols();
+txt1="\[ 
+Names Default to Here(0);
+nw1= New Window("Without Window Scoping",
+	x0=20;
+	y0= 50;
+	::gb1=GraphBox(Frame Size(200,200),
+		Handle(x0, y0,
+			Function({x,y}, x0 = x; y0=y;)
+		);
+		Circle({0,0}, sqrt(x0*x0 + y0*y0));
+		Try(::gb2<<inval)
+	)
+);]\";
+Save Text File("c:\temp\gb1.jsl", txt1);
+
+txt2= "\[ 
+Names Default to Here(0);
+nw2= New Window("Without Window Scoping",
+	x0=20;
+	y0=50;
+	::gb2=GraphBox(Frame Size(200,200),
+		Handle(x0, y0,
+			Function({x,y}, x0 = x; y0=y;);  
+		);
+		
+		Rect({0,y0}, {x0,0},0);
+		Try(::gb1<<inval)
+	)
+);]\";
+
+Save Text File("c:\temp\gb2.jsl", txt2);
+
+wait(0);
+
+Clear globals();
+Delete Symbols();
+Include("c:\temp\gb1.jsl", <<New context);
+Include("c:\temp\gb2.jsl", <<New Context);
+//--------------------------------------------------------------------------------
+
+//---- Example #6: similar to #5 with  Names Default to Here (1)
+//----No scoping x0 and y0 a are local since Names Default to Here(1)
+Clear globals();
+Delete Symbols();
+txt1="\[ 
+Names Default to Here(1);
+nw1= New Window("Without Window Scoping",
+	x0=20;
+	y0= 50;
+	::gb1=GraphBox(Frame Size(200,200),
+		Handle(x0, y0,
+			Function({x,y}, x0 = x; y0=y;)
+		);
+		Circle({0,0}, sqrt(x0*x0 + y0*y0));
+		Try(::gb2<<inval)
+	)
+);]\";
+Save Text File("c:\temp\gb1.jsl", txt1);
+
+txt2= "\[ 
+Names Default to Here(1);
+nw2= New Window("Without Window Scoping",
+	x0=20;
+	y0=50;
+	::gb2=GraphBox(Frame Size(200,200),
+		Handle(x0, y0,
+			Function({x,y}, x0 = x; y0=y;);  
+		);
+		
+		Rect({0,y0}, {x0,0},0);
+		Try(::gb1<<inval)
+	)
+);]\";
+
+Save Text File("c:\temp\gb2.jsl", txt2);
+
+wait(0);
+
+Clear globals();
+Delete Symbols();
+Include("c:\temp\gb1.jsl", <<New context);
+Include("c:\temp\gb2.jsl", <<New Context);
+//--------------------------------------------------------------------------------
+

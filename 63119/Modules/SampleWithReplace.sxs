@@ -1,0 +1,47 @@
+start SampleWithReplace(A, numSamples, prob);
+/* Random sampling with replacement. The arguments are:
+ * A           events (sample space)
+ * numSamples  number of times to sample from A. 
+ *             numSamples[1] specifies the number of rows returned.
+ *             If numSamples is a vector, then numSamples[2]
+ *             specifies the number of repeated draws from A
+ *             contained in each sample.
+ * prob        specifies the probabilities associated with each
+ *             element of A. If prob=. (missing), then equal
+ *             probabilities are used.
+ * The module returns a matrix that contains elements of A. The matrix
+ * has numSamples[1] rows. It has either 1 or numSamples[2] columns.
+ */      
+   x = rowvec(A);                                        /* 1 */
+   k = ncol(x);
+
+   if prob = . then 
+      p = j(1, k, 1) / k;                                /* 2 */
+   else do;              
+      p = rowvec(prob);
+      if ncol(p) ^= k then do;                           /* 3 */
+         msg = "ERROR: The probability vector must have the same
+                number of elements as the set being sampled.";
+         /* Runtime.Error(msg); */         /* use in SAS/IML Studio */
+         reset log; print msg; reset nolog;/* use in PROC IML       */
+         stop;
+      end;
+   end;
+
+   /* overload the numSamples argument: 
+      if a vector, then sumSamples[2] is a repetition factor */
+   if nrow(numSamples)*ncol(numSamples)=1 then do;
+      nSamples = numSamples;                             /* 4 */
+      nRep = 1;
+   end;
+   else do;
+      nSamples = numSamples[1];
+      nRep = numSamples[2];
+   end;
+         
+   results = j(nSamples, nRep);                          /* 5 */
+   call randgen(results, "Table", p);
+   
+   return (shape(A[results], nSamples));                 /* 6 */
+finish;
+store module=SampleWithReplace;

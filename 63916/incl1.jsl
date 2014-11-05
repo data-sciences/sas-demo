@@ -1,0 +1,1 @@
+Try( New Window( "Example",	mb = Matrix Box( xx )   );   1 ,   //returns 1 if successful  err_str = "xx is not a matrix..aborting";  Caption(err_str);wait(3); Caption(Remove);   Throw(err_str)   ); 

@@ -1,0 +1,105 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	10_MemoryPerformance.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the concepts of memory management
+//          using the function Get memory Usage()
+
+/*
+ JMP controls how and when it uses or stores imformation, i.e., memory management. 
+ The memory usage depends on the system and what is currently running.  
+ Get Memory Usage() will likely produce different values from repeat trials.  
+ The goal of this script is to use this function as an indicator of the
+ memory usage and several memory manamgement techniques.
+*/
+
+//Create a large tables
+Clear Globals();
+Delete Symbols();
+m0 = Get Memory Usage();
+//Create a table with 2 million rows and 6 columns
+dt = New Table( "Tall",
+	New Column( "X1", numeric ),
+	New Column( "X2", Numeric ),
+	New Column( "X3", numeric ),
+	New Column( "X4", Numeric ),
+	New Column( "X5", numeric ),
+	Add Rows( 2000000 )
+);
+:X1 << Set Each Value( Random Integer( 1000, 1999 ) );
+:X2 << Set Each Value( Random Integer( 2000, 2999 ) );
+:X3 << Set Each Value( Random Integer( 3000, 3999 ) );
+:X4 << Set Each Value( Random Integer( 4000, 4999 ) );
+:X5 << Set Each Value( Random Integer( 5000, 5999 ) );
+
+dt << New Column( "Param", Character );
+dt:Param << set each value( "P" || Char( Floor( (Row() - 1) / 1000 ) + 1 ) );
+Wait( 0 );
+
+//Compare memory usage before table is created to after
+//and after creation to after closing the table
+m1 = Get Memory Usage();
+Close( Data Table( "Tall" ), NoSave );
+m2 = Get Memory Usage();
+Show( m1 - m0, m2 - m1 );
+
+//Closing a table that is no longer needed is a good memory management.  The numbers
+//will not be identical, they be in the same magnitude "ballpark". 
+
+//Show the difference in memory after clearing globals and deleting symbols
+Clear Globals( {dt} );
+m3 = Get Memory Usage();
+Delete Symbols( {dt} );
+m4 = Get Memory Usage();
+Show( m0, m1, m2, m3, m4, m1 - m0, m2 - m1, m2 - m3, m4 - m3 );
+//Clear Log();
+//Clear Globals();
+//Delete Symbols();
+
+//function using local variables
+d50 = Function( {xval, mid},
+	{Default Local},
+	Show( Get Memory Usage() );
+	If( Is Matrix( xval ) & Is Number( mid ),
+		ntot = N Row( xval );
+		(ntot - N Row( Loc( xval > mid ) )) / ntot;
+	, 
+// else
+		-1
+	);
+);
+
+//function using global variables
+d50_noloc = Function( {xval, mid},
+	Show( Get Memory Usage() );
+	If( Is Matrix( xval ) & Is Number( mid ),
+		ntot = N Row( xval );
+		(ntot - N Row( Loc( xval > mid ) )) / ntot;
+	, 
+// else
+		-1
+	);
+);
+
+//Check memory usage of local and global functions
+m5 = Get Memory Usage();
+xmat = J( 2000000, 1, Random Integer( 1000, 1999 ) );
+m6 = Get Memory Usage();
+z = d50( xmat, 1500 );
+m7 = Get Memory Usage();
+q = d50_noloc( xmat, 1500 );
+m8 = Get Memory Usage();
+Show(m0, m1, m2, m3, m4, m5, m6, m7, m8,
+	m2 - m1,
+	m3 - m2,
+	m4 - m3,
+	m5 - m4,
+	m6 - m5,
+	m7 - m6,
+	m8 - m7,
+	z,
+	q
+);
+
+//Review the output, each global, each datum requires memory.  For large 
+//files or custom algorithms, good memeory management techniques are important 
+//and Get Memory Usage() may be useful. 

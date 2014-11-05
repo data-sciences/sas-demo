@@ -1,0 +1,131 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_AssigningValues.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates assigning values to selected rows
+
+
+//   Uses: Select Where() with Get Selected Rows() vs. Get Rows Where()
+//         ColumnRef[rowList] = value vs. Name Selection in Column
+//         Name Selection in Column()is a feature new in JMP 9.
+//         Bivariate with added row legend shows the selections 
+//
+//-----------Good Protein example of assigning labels and graphing---------------------
+
+//--Open and reference data, create a new column
+//$SAMPLE_DATA/ posix format -- see script 2_Paths.jsl 
+Candy_dt = Open( "$SAMPLE_DATA/Candy Bars.jmp" );
+MyPicks = Candy_dt << New Column( "MyOpinion", character, nominal );
+
+//Highlight rows in the table and get selected rows
+Candy_dt << Select Where( :Protein g / :Name( "Oz/pkg" ) > 2 );
+RowChoice = Candy_dt << Get Selected Rows;
+Candy_dt << Clear Select;   //Clear selections
+
+//--Get selected rows *without* changing current selections
+RowChoice2 = Candy_dt << Get Rows Where( :Protein g / :Name( "Oz/pkg" ) > 2 );
+
+//Example of diagnostic check: same size?  same values? 
+SizeDiff = N Row( RowChoice ) - N Row( RowChoice2 );
+VecDiff = Loc( Abs( RowChoice - RowChoice2 ) > 0 );
+//VecDiff shows the items in the vector that do not match
+Show( RowChoice, RowChoice2, SizeDiff, VecDiff);
+  
+//----Assign a constant value to chosen rows in new column MyPicks
+::MyPicks[RowChoice2] = "Good Protein" ;
+
+//-- Look at Candy Bar data 
+
+//-------------------------------------------------------------------------------------
+//Name Selection in Column is a new funtion in JMP 9
+//It can create this new column in 1 command
+Candy_dt << Select Rows( RowChoice ) ;
+
+Candy_dt << Name Selection in Column(
+      Column Name("New Choice"),
+      Selected("Good Protein"), 
+      unSelected()  //or specify a value for unselected rows
+    ); 
+
+//JMP documentation states values must be text, however numeric values work
+Candy_dt << Name Selection in Column(
+      Column Name("Protein Threshold"),
+      Selected(2.5 ), 
+      unSelected(0)
+    ); 
+    
+    
+//-------------------------------------------------------------------------------------
+
+//--Graph Calories vs. Carbohydates using My Opinion as a legend
+//--Run down to dashed line
+Candy _dt << Bivariate(
+	Y( :Calories ),
+	X( :Carbohydrate g ),
+	Fit Line(0), Fit Spline(0),
+	SendToReport(
+		Dispatch(
+			{},
+			"Bivar Plot",
+			FrameBox,
+			{Frame Size( 294, 197 ), Marker Size( 4 ),
+			Marker Selection Mode(Unselected Faded),
+			Row Legend(
+				MyOpinion,
+				Color( 1 ),
+				Color Theme( "JMP Default" ),
+				Marker( 0 ),
+				Marker Theme( "" ),
+				Continuous Scale( 0 ),
+				Reverse Scale( 0 ),
+				Excluded Rows( 0 )
+			)}
+		)
+	)
+);
+
+wait(2);
+Candy_dt << Clear Select;
+//-------------------------------------------------------------------------------------
+//Marker Selection Mode is new to JMP 9, Unselected Faded is favored, also
+//Selected Haloed.  See Object Scripting Index --> FrameBox --> Marker Selection Mode 
+
+//--------------------------Note-------------------------------------------------------
+// Chapter 8 provides commands to customize graphs.  Adding a user feature that 
+// allows the user to save the current selctions and name them is made much easier with 
+// the command Name Selection in Column
+
+//------- WARNING: Code below uses syntax from chapters beyond Chapter 3.--------------
+//--------------Update information for two candy bars----------------------------------
+//Below are several options to update sub portions of a table.
+//The first method uses Eval List().  This "list" might be the the output of a dialog window.
+
+//--------------Update information for two candy bars----------------------------------
+selRow = Candy_dt << Get Rows Where(:Name == "Milky Way Lite");
+Row() = selRow[1];  //set the current row to be the found row
+Eval List( {:Calories = 150, :Total fat g = 4, :Saturated fat g = 3});
+
+selRow = Candy_dt << Get Rows Where(:Name == "Peanut Nut Roll" & :Brand == "Pearson");
+Row() = selRow[1];  //set the current row to be the found row
+Eval List( {:Calories = 320, :Sodium mg = 200, :Carbohydrate g = 38, :Sugars g = 27});
+
+//-------------------------------------------------------------------------------------
+//Explicit specification also works. Let's suppose the update data is 
+//read as a list of lists
+updateList = {{"Milky Way Lite",{Calories,150}, {Total fat g, 4}, {Saturated fat g, 3}} ,
+	{"Peanut Nut Roll", {Calories, 320}, {Sodium mg, 200}, {Carbohydrate g,38}, {Sugars g, 27}}
+};
+for( i = 1, i <= nitems(updateList), i++,
+	selRow = Candy_dt << Get Rows Where(:Name == updateList[i][1]);
+	for(j = 2, j<= nitems(updateList[i]), j++,
+	   	if(IsList(updateList[i][j]), nme=Char(updateList[i][j][1]);
+	   	   val=updateList[i][j][2];
+	   	 Try(column(Candy_dt,nme)[selRow[1]]=val)  
+	   	);  //end if
+	)  // end for j
+);  // end for i
+
+//As stated numerous times, the actual code depends upon the task and in this
+//case the format of the incoming update information, which in today's world
+//may be in XML format
+
+//Close(Candy_dt, No Save);

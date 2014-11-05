@@ -1,0 +1,105 @@
+
+   /********************************************************************/
+   /********** The DataObject Class **********/
+
+   /* create data object and call methods */
+   declare DataObject dobj;                                       /* 1 */
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");   /* 2 */
+
+   dobj.GetVarNames(varNames);                                    /* 3 */
+   print varNames;
+
+   dobj.GetVarData("Budget", b);                                  /* 4 */
+   budgetSummary = quartile(b);                                   /* 5 */
+   print budgetSummary[rowname={"Min" "Q1" "Median" "Q3" "Max"}];
+
+
+   /********************************************************************/
+   /********** Creating a Graph **********/
+
+   /* call base class methods for object of BarChart class */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+
+   /* create a bar chart from a variable in a data object */
+   declare BarChart bar;
+   bar = BarChart.Create(dobj, "MPAARating");
+
+   /* call various methods that modify attributes of the bar chart     */
+   bar.ShowPercentage();                           /* BarChart method  */
+   bar.SetAxisViewRange(YAXIS, 0, 50);             /* Plot2D method    */
+   bar.ShowReferenceLines();                       /* Plot method      */
+   bar.SetWindowPosition(50,50,50,50);             /* DataView method  */
+
+
+   /********************************************************************/
+   /********** Creating Dynamically Linked Graphs **********/
+
+
+   /* create a second graph. The two graphs are dynamically linked. */
+   declare ScatterPlot plot;                                    
+   plot = ScatterPlot.Create(dobj, "ReleaseDate", "Budget");
+
+
+   /********************************************************************/
+   /********** The Plot Class: A Base Class for Graphs **********/
+
+
+   /* create tabular view of data */
+   declare DataTable dt;                                    
+   dt = DataTable.Create(dobj);
+   dt.ActivateWindow();          /* display on top; make active */
+
+   /********************************************************************/
+   /********** Passing Objects to IMLPlus Modules **********/
+
+
+   /* pass Java object to a module */
+   start PrintNames(DataObject dobj);
+      dobj.GetVarNames(varNames); 
+      print varNames;      
+   finish;
+
+   declare DataObject dobj;                                      
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   run PrintNames(dobj);
+
+
+   /* create data object inside module; use it outside of module */
+   start CreateNormalData(DataObject d, nObs, nVar);
+      x = j(nObs, nVar);                                          /* 1 */
+      call randgen(x, "normal");                                  /* 2 */
+      d = DataObject.Create("Matrix", x);                         /* 3 */ 
+   finish;
+
+   /* begin main program */
+   declare DataObject dobj;
+   run CreateNormalData(dobj, 100, 5);        /* call module           */
+   declare DataTable ndt;
+   ndt = DataTable.Create(dobj);              /* create the data table */
+   ndt.ActivateWindow();                      /* display on top        */
+
+
+   /********************************************************************/
+   /********** Using a Base Class in a Module **********/
+
+
+   /* define module whose argument is a base-class object */
+   start ConfigPlot(Plot p);
+      p.ShowReferenceLines();
+      p.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+      p.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+   finish;
+
+   /* begin main program */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Sasuser.Movies");
+   
+   declare ScatterPlot scat;
+   scat = ScatterPlot.Create(dobj, "ReleaseDate", "Budget");
+   run ConfigPlot(scat);
+   
+   declare BarChart bar;
+   bar = BarChart.Create(dobj, "MPAARating");
+   run ConfigPlot(bar);
+

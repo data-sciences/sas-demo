@@ -1,0 +1,101 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_Compatibility.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates useful functions to check compatibility.
+
+
+//Possibly the most useful compatibility functions
+//JMP version info
+versionInfo = Eval List( {Trim( JMP Version() ), JMP Product Name()} );
+//operating system info
+osInfo = Eval List( {Host Is( Mac ), Host Is( Windows ), Host Is( Bits32 ), Host Is( Bits64 )} );
+//platform preference -- Bivariate
+usrBivOpt = Arg( Get Platform Preferences( Bivariate ) );
+Show( versionInfo, osInfo, usrBivOpt );
+
+//how to parse preferences
+//examples using expressions to parse preferences & store in an associative array
+ :: aaBivOpt = Associative Array();
+::aaBivOpt << Default Value( "NULL" );
+Local( {i, tArg},
+	For( i = 1, i <= N Arg( ::usrBivOpt ), i++,
+		tArg = Arg( usrBivOpt, i );
+		::aaBivOpt[Head( tArg )] = Arg( tArg );
+	)
+);
+
+//--------or--------------------------------------
+
+::aaBivExpr = Associative Array();
+::aaBivExpr << Default Value( Empty() );
+Local( {i},
+	For( i = 1, i <= N Arg( ::usrBivOpt ), i++, 
+/*write script to check for defaults that are set on, 
+  that you want to turn off, change and insert*/
+		Insert Into( ::aaBivExpr, Arg( usrBivOpt, i ) )
+	)
+);
+//end of preference parsing
+
+//-----------------------Examples--See JSL Function Index Utility---------------------------
+//------------------------------------------------------------------------------------------
+// Syntax: Host Is( Mac | Windows | Bits32 | Bits64 ); 
+// only 1 argument can be tested at a time.  Returns 0|1 if False|True.
+
+If( Host Is( Mac ),
+	Caption( "myDLL is not compatible with MAC...aborting" );
+	Wait( 3 );
+	Caption( Remove );
+	Throw();
+);
+
+//JMP Functions
+Show(
+	Build Information(),
+	Get Addr Info( "www.sas.com" ),   //Get Addr Info( "www.sas.com" )[3][4] is ip address
+	Get Addr Info( "www.cnn.com" ),   //Some sites have several addresses
+	Get Current Directory(),          //OS current directory used by Open File dialog
+	Get Default Directory(),          //JMP's default directory
+	Get File Search Path(),           //Returns a list of current directories for search path
+	Get Name Info( "157.166.255.18" )[3][4], //Returns name of ip address see Get Addr Info
+	Get Path Variable( "HOME" ), 
+/* try: SAMPLE_DATA, SAMPLE_IMPORT_DATA, SAMPLE_SCRIPTS 
+See also Convert File Path() and Set Path Variable() */
+	Get Platform Preferences( Bivariate, Oneway ),  
+/* returns the calling expression of all preferences for each platform_name argument */
+	Get Platform Preferences( Bivariate( Fit Line, Density Ellipse ) ),   
+/* or get information so your graphs are compatible with user sepcifications*/
+	JMP Product Name(),
+	JMP Version()                    //important to test script compatibility with user version
+);
+
+/* Get Environment Variable() function example is below. On MAC and Unix the environment variable
+  is case sensitive, and on Windows it is not.  An internet search using the search string
+  "what is an environment variable" should get you started*/
+
+//----Run each of these examples, line-by-line and check the log
+Get Environment Variable( "ComSpec" );     //Command line program
+Get Environment Variable( "ProgramFiles" );
+Get Environment Variable( "WinDir" );
+Get Environment Variable( "SystemRoot" );
+Get Environment Variable( "UserName" );
+Get Environment Variable( "UserProfile" );
+Get Environment Variable( "OS" );        //useful for checking users operating system
+Get Environment Variable( "UserDnsDomain" );
+Get Environment Variable( "UserDomain" );
+Get Environment Variable( "AppData" );
+
+installPath = Convert File Path( "$JMP_HOME", windows );
+
+//More than one way to do it ---the hard way that uses Get Log() and Munger()
+Show License Path(); 
+wait(0);
+licPath = Get Log( -3 ); // {"/*:", "C:\Program Files\SAS\JMP\9\JMP.PER", ""}
+If( licPath[1] == "/*:",
+	licPath = licPath[2],
+	Caption( "Unexpected condition..do something" );
+	Wait( 3 );
+	Caption( Remove );
+	Throw();
+);
+installPath = Munger( licPath, 1, "JMP.PER", "" );

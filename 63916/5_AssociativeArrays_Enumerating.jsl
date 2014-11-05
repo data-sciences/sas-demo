@@ -1,0 +1,92 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_AssociativeArrays_Enumerating.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for Associative Arrays.
+
+
+//-------------------------------------------------------------------------------------
+//
+//  This script demonstrates 3 methods to find unique values:
+//    Associative Array for Text and Integers
+//    Summarize for Text and Numeric, however, results are returned as text 
+//    CDF - Cumulative Distribution Function that returns 2 values, list of unique 
+//        values and cumulative percentage
+//    These 3 methods apply to a column or vector/list of single values
+//
+//    The second half of this script uses an Associative Array to enumerate or 
+//    count unique words found in a survey question.  It uses a column, but the
+//    column has many words per row.  It uses the AddTo (+=1) function and demonstrates
+//    how to remove multiple items from an associative array with a  single remove 
+//    statement. 
+//------------------------------------------------------------------------------------
+//JMP provides several methods for finding a single unique value
+class_dt = open ("$Sample_Data\Big Class.jmp");
+class_dt << New Column("ratio", numeric, continuous);
+:ratio << set each value( Round( :weight/:height , 1) );
+
+uniqA = Associative Array( :age ) << Get Keys;
+Summarize( uniqB = By( :age ) );
+{uniqC, cumProb} = CDF( :age << Get Values );
+Show( "age results", uniqA, uniqB, uniqC );
+
+/*:
+"age results";
+uniqA = {12, 13, 14, 15, 16, 17};
+uniqB = {"12", "13", "14", "15", "16", "17"};
+uniqC = [12, 13, 14, 15, 16, 17];
+*/
+
+//----Associative Array() numeric keys must be integers 
+//----Summarize By returns a list of character values
+//----CDF only applies to numeric columns not character columns
+
+//-- repeat for ratio 
+uniqA = Associative Array( :ratio ) << Get Keys;
+Summarize( uniqB = By( :ratio ) );
+{uniqC, cumProb} = CDF( :ratio << Get Values );
+Show( "ratio results", uniqA, uniqB, uniqC );
+
+/*:
+"ratio results";
+uniqA = {1, 2};
+uniqB = {"1.2", "1.3", "1.4", "1.5", "1.6", "1.7", "1.8", "1.9", "2", "2.1", "2.2", "2.5"};
+uniqC = [1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 2.1, 2.2, 2.5];
+*/
+
+//----As stated above an Associative Array key if numeric should be an integer
+
+
+//-------------------------------------------------------------------------------------
+/* Example of a simple text mining example using Associative Arrays 
+/ Q6 What did you like about this class?
+/ Q7 What would you change about this class?
+/ Evaluate Q7,  Modify and try it on Q6 
+*/
+surv_dt = open("$JSL_Companion\ClassSurvey.jmp");
+
+uniqQ7_AA=[=>0];
+Local({i, j},
+for(i=1, i<=nrow(surv_dt), i++,
+  words7=words(lowercase(column(surv_dt,"Q7")[i]), " .,;");
+  for(j=1, j<=nitems(words7), j++,
+    uniqQ7_AA[words7[j]]+=1);  //end for j
+);  //end for i
+); // end Local
+show( uniqQ7_AA << Get Contents, NItems(uniqQ7_AA) );
+//*: N Items(uniqQ7_AA) = 43;
+
+//---------------------------------------------------------------------------
+//get rid of low value words
+lowValue=Associative Array({"a", "an", "and", "or", "is", "was", "i", "in",
+"of", "for", "this", "that", "these", "those", "the", "when", "to", "were", 
+"has", "have"});
+nBeg = N Items( uniqQ7_AA );
+uniqQ7_AA << Remove( lowValue ); //no need to iterate...powerful!
+nEnd = N Items( uniqQ7_AA );
+Show( nBeg, nEnd, nBeg - nEnd );
+//*: nBeg = 43; nEnd = 31; nBeg - nEnd = 12;
+uniqQ7_AA << Get Contents;
+show( uniqQ7_AA << Get Contents, NItems(uniqQ7_AA) );
+//*: N Items(uniqQ7_AA) = 31;
+
+

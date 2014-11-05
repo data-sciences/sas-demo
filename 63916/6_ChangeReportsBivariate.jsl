@@ -1,0 +1,110 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_ChangeReportsBivariate.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates sending messages to the platform (Analysis Layer)
+
+
+//  Accesses and customizes 3 curves, showing how to delete linear and add cubic curves.
+//  Customizes the OutlineBox, AxisBox TextEditBoxes (axis titles).
+//  Adds a Legend Box demonstrating how to maintain current table rowstates
+//    and comments on how to use custom colors otherwise.
+//  With Select/Deselect shows an example of relative and absolute 
+//    display box referencing discussed in "navigating a display". 
+//-----------------------------------------------------------------------------------------
+coal_dt = Open( "$Sample_Data\Cleansing.jmp" );
+//user define custom coloring
+coal_dt << select where( :Polymer == "A" );
+coal_dt << Markers( 8 ) << Colors( {0, 151, 0} );
+coal_dt << select where( :Polymer == "B" );
+coal_dt << Markers( 1 ) << Colors( {198, 9, 28} );
+coal_dt << select where( :Polymer == "C" );
+coal_dt << Markers( 12 ) << Colors( {64, 111, 223} );
+coal_dt << clear select;
+
+//Look at the relationship of Coal Clean up and pH (graphically) for each polymer type.
+biv = coal_dt << Bivariate( Y( :Coal particles ), X( :pH ) );
+
+//----------Platform Commands - from the pulldown -------------------------------
+biv << Group By( :Polymer );
+biv << Fit Line( 1 );  //sent to the report each group has a linear fit
+
+//----------Curve Commands - from curve pulldowns -------------------------------
+biv << {Curve[1] << Confid Shaded Fit( 1 ) << Report( 0 ) << LineWidth( 2 )};
+//Since colors were defined, JMP uses a line color to match the point color
+//if all points are consistent.  Syntax is below
+//biv << {Curve[1] << Line Color({0, 151, 0} )};  
+
+biv << {Curve[2] << Confid Shaded Fit( 1 ) << Report( 0 ) << LineWidth( 2 )};
+biv << {Curve[3] << Confid Shaded Fit( 1 ) << Report( 0 ) << LineWidth( 2 )};
+
+//remove fit for Polymer=="C" and try a higher order fit
+biv << {Curve[3] << Remove Fit};
+//custom fit for a given group
+biv << Fit Where(
+	:Polymer == "C",
+	Fit Polynomial(
+		3,
+		{Confid Shaded Fit( 1 ), Report( 0 ), Line Color( {64, 111, 223} ),
+		Line Width( 2 ), Report( 0 )}
+	)
+);
+
+//-----------Report Layer Changes-----------------------------------------------
+biv_rpt = biv << report;  //alternate syntax: biv_rpt = report(biv);
+
+//------------Customize Title----------------------------------
+biv_rpt[Outline Box( 1 )] << set title(
+	"Cleansing.jmp: Coal Particles vs. pH for 3 Polymers"
+);
+     
+//------------Customize Y Axis AxisBox(1)----------------------------------
+biv_rpt[AxisBox( 1 )] << select;
+Wait( 3 );
+biv_rpt[AxisBox( 1 )] << deselect;
+//use default scaling, just turn on grids
+biv_rpt[AxisBox( 1 )] << {Show Major Grid( 1 ), Show Minor Grid( 1 )};
+
+//Most platforms, continuous Y axis is the parent of the TextEditBox  
+biv_rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Size( 11 );
+biv_rpt[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Style( "Bold" );
+
+//------------Customize X Axis AxisBox(2)----------------------------------
+biv_rpt[AxisBox( 2 )] << select;
+Wait( 3 );
+biv_rpt[AxisBox( 2 )] << deselect;
+//adjust scaling, turn on grids
+biv_rpt[AxisBox( 2 )] << {Min( 6 ), Max( 9.6 ), Inc( .5 ), Minor Ticks( 1 ),
+Show Major Grid( 1 ), Show Minor Grid( 1 )};
+
+//Most platforms, continuous Y axis is the parent of the TextEditBox  
+//The absolute reference for this X Axis label is TextEditBox(2)
+//It can be accessed with an absolute reference 
+biv_rpt[Text Edit Box( 2 )] << select;
+Wait( 3 );
+biv_rpt[Text Edit Box( 2 )] << deselect;
+//or as a relative reference, it is the 1st (and only) TextEditBox for AxisBox(2)
+biv_rpt[AxisBox( 2 )][Text Edit Box( 1 )] << select;
+Wait( 3 );
+biv_rpt[AxisBox( 2 )][Text Edit Box( 1 )] << deselect;
+
+//however you reference it, here are commands to change it 
+biv_rpt[AxisBox( 2 )][Text Edit Box( 1 )] << Set Font Size( 11 );
+biv_rpt[AxisBox( 2 )][Text Edit Box( 1 )] << Set Font Style( "Bold" );
+
+
+//------------Framebox Size and Add a Legend----------------------------------
+
+biv_rpt[FrameBox( 1 )] << {Frame Size( 294, 218 ), Marker Size( 4 )};
+//To get the colors and symbols from the table row state
+//use options below...this is not intuitive based upon the interactive dialog
+//Not every combination is documented.  To learn
+// --- customize the graph, then save Script to Script Window
+// --- that is how the authors learned this trick
+biv_rpt[FrameBox( 1 )] << Row Legend(
+	:Polymer,
+	Color( 0 ),
+	Color Theme( "" ),
+	Marker( 0 ),
+	Marker Theme( "" )
+);
+

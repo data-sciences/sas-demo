@@ -1,0 +1,109 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_RowStates.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates the syntax to modify Rows States
+
+
+//  Uses: Select Where(), Row State(), Hide, Exclude, Color of(), Marker of()
+//  Extra: Commands to save row states and retrieve row states
+//---------------------------------------------------------------------------
+
+Open( "$Sample_Data\Cars.jmp" );
+
+//Reference the Cars dataset
+Cars_dt = Current Data Table();
+
+//----After each command is run look at the data table to see the changed states
+//Select rows where :Doors is equivalent to 2
+Cars_dt << Select Where( :Doors == 2 );
+
+Cars_dt << Hide;  // Only Hide
+//----Mask icon appears on all rows representing 2-door cars
+
+Cars_dt << Hide << Exclude;  //Hide and Exclude
+//----Mask icon disappears since Hide is a toggle command, 
+
+//Clear all row states
+Cars_dt << Clear Row States;
+
+//To get a Row State, place the row state expression on the right side of the assignment:
+//----Reset 2-door car row states
+Cars_dt << Select Where( :Doors == 2 );
+Cars_dt << Hide << Exclude;  //Hide and Exclude
+
+//----Both Hide and Exclued were turned on since all row states were cleared (off)
+//    prior to running the last commands  
+
+rs = Row State( 6 );
+//-----After running this last command, hover over rs, or look at the log
+
+
+//To set a Row State, place the row state expression on the left side of the assignment:
+Color Of( Row State( 6 ) ) = 3;  //red
+
+//----Alternate use RGB Color() function that returns a color "number" 
+//    for specified red , green, blue mix
+Color Of( Row State( 6 ) ) = RGB Color(0,0,221);
+
+//----JMP provides a table of different JMP colors
+//  open("$Sample_Data\Color Palette.jmp");
+
+//------------------------More on Row States, Color/Marker by Column ---------------------------
+Cars_dt << Clear Row States;
+
+//Demonstrate general control of color and marker states by letting JMP set them
+Cars_dt << Color By Column( :Doors ) << Marker By Column( :Make );
+
+//----Note: Excluded rows will not be assigned colors or markers
+
+//Demonstrate specific control of color and marker states by explicitly setting them.  
+Cars_dt << Select Where( Make == "Chrysler" ) << Colors( 14 ) << Markers( 169 ) << Clear Select;
+
+//----Chrysler cars have assigned a Magenta Copyright symbol look near row 209
+
+Cars_dt << Select Where( Row() == 6);
+Color Of( Row State( 6 ) ) = 3;  //red
+rs = Row State( 6 );
+
+//----rs now includes a color state - see Log window
+rscode = Selected( rs ) + 2 * Excluded( rs ) + 4 * Hidden( rs ) + 8 * Labeled( rs ) + 16 * Marker Of( rs ) + 256 * Color Of( rs );
+
+//rscode value is 833 if you executed this script in sequence
+
+//determine the individual values from the overall row state number
+rsVal = As Row State( rscode );
+colorVal = Floor( rscode / 256 );
+markerVal = Floor( (rscode - colorVal * 256) / 16 );
+labelVal = Floor( (rscode - colorVal * 256 - markerval * 16) / 8 );
+hideVal = Floor( (rscode - colorVal * 256 - markerval * 16 - labelVal * 8) / 4 );
+excludeVal = Floor( (rscode - colorVal * 256 - markerval * 16 - labelVal * 8 - hideVal * 4) / 2);
+selectVal = rscode - colorVal * 256 - markerval * 16 - labelVal * 8 - hideVal * 4 - 2 * excludeVal;
+  
+show( rscode, rsVal, colorVal, markerVal, labelVal, hideVal, excludeVal, selectVal);
+
+//----See the Log Window. Note JMP color values have been greatly enhanced since version 8.
+//In the past it was a 256 value wheel, and values like -221 would be equivalent to 35
+//so you might get 2 different values for a calculated rscode
+//Learning rows state functions and messages is probably more intuitive than numeric coding
+
+//---------------------------Uses a For loop to assign markers-----------------------------------  
+//A simple method to find your favorite marker:
+Markers_dt = New Table( "Marker Codes",
+	Add Rows( 300 ),
+	New Column( "Marker Number", Numeric, Formula( Row() ) )
+);
+
+For( i = 1, i <= N Row( Markers_dt ), i++,
+	Marker Of( Row State( i ) ) = i
+);
+
+//-----------------------Extra Save/Restore Row States-------------------------------------------------
+// Cars_dt has many row states set to preserve before clearing
+rsCol = Cars_dt << New Column("Saved RowStates", Row State);
+rsCol << Copy From Rowstates; //copies current row states to the column
+Cars_dt << Clear Rowstates;
+
+//--Restore previous rowstates
+rsCol <<  Copy to Rowstates;
+//----Also look up "Add to Rowstates"
+//  Object Scripting Index --> Data Table --> Column Scripting --> Row States --> Add to Row States

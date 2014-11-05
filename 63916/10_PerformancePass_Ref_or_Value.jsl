@@ -1,0 +1,67 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	10_PerformancePass_Ref_or_Value.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the difference of using functions and passing by
+//          value or passing by reference.
+
+
+/*
+ Other programming languages call passing by reference as passing a pointer.
+ If a matrix or value is passed into a function the function makes a copy unless 
+ it is passed by reference.  For the simple example below using Expr(_matrix_) or
+ Expr(_var_) passes a variable by reference or pointer.  Changes made 
+ within the function are made to that variable, not a copy of it.
+*/
+
+// usage examples - execute each block separately
+//----Block 0 Define Function
+Clear Globals();
+Delete Symbols();
+foo = Function( {a, b, c, n = 0},
+	{k},
+	Show( "inside of foo", Get Memory Usage() );
+	a += b;
+	For( k = 1, k <= n, k++,
+		c[k] = c[k] + Random Uniform()
+	);
+	Show( a[1 :: 10], b[1 :: 10], c[1 :: 10] );
+	If( Type( Name Expr( a ) ) != "Name",
+		Eval List( List( a, b, c ) )
+	);
+);
+
+//----Block 1 Pass by Reference (pointer)
+Show( "before matrix creation", Get Memory Usage() );
+bigx = 1 :: 1000000;
+bigy = J( 1, 1000000, 5 );
+bigz = bigy;
+Show( bigx[1 :: 10], bigy[1 :: 10], bigz[1 :: 10] );
+Show( "before foo", Get Memory Usage() );
+foo( Expr( bigx ), Expr( bigy ), Expr( bigz ), N Col( bigz ) );  //using Expr by Ref
+wait(2); //let JMP catch up
+Show( "after foo", Get Memory Usage() );
+Show( "after foo", bigx[1 :: 10], bigy[1 :: 10], bigz[1 :: 10] );
+
+/*
+Memory did not change inside the function foo, bigx and bigz are now changed.
+*/
+
+
+//--Block 2 Re-define large matrices and Pass by Value
+Show( "before matrix creation", Get Memory Usage() );
+bigx = 1 :: 1000000;
+bigy = J( 1, 1000000, 5 );
+bigz = bigy;
+Show( bigx[1 :: 10], bigy[1 :: 10], bigz[1 :: 10] );
+Show( "before foo", Get Memory Usage() );
+//memory did not change significantly since matrices are being reused
+foo( bigx, bigy, bigz, N Col( bigz ) );   //this is by Value
+wait(2); //let JMP catch up
+Show( "after foo", Get Memory Usage() );
+Show("after foo", bigx[1 :: 10], bigy[1 :: 10], bigz[1 :: 10] );
+
+/*
+Memory inside the function foo changed. bigx and bigz did not change.  After foo
+the memory is the "same" because JMP treats undefined variables within a 
+function as local.
+*/

@@ -1,0 +1,42 @@
+*E15_2_5.sas
+*
+* Deleting functions.;
+proc fcmp outlib=work.funcs.dates; 
+function start(int$,date);
+   return(intck(int,date,0,'b'));
+   endsub;
+run;
+proc fcmp outlib=advrpt.functions.dates; 
+function start(int$,date);
+   return(intnx(int,date,0,'b'));
+   endsub;
+run;
+options cmplib=(advrpt.functions work.funcs );
+data list;
+do d = '01jan2010'd to '05feb2010'd;
+   styr = start('year',d);
+   stmo = start('month',d);
+   output;
+   end;
+   format d styr stmo date9.;
+   run;
+proc print data=list;
+run;
+proc fcmp inlib=funcs listall;
+run;
+
+proc fcmp outlib=work.funcs.dates;
+   deletefunc start; 
+   run; 
+proc fcmp inlib=funcs listall;
+   run;
+data list;
+do d = '01jan2010'd to '05feb2010'd;
+   styr = start('year',d);
+   stmo = start('month',d);
+   output;
+   end;
+   format d styr stmo date9.;
+   run;
+proc print data=list;
+run;

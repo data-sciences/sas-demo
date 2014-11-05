@@ -1,0 +1,79 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_ExtraWriteTableXML.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates writing an XML file
+
+// This script handles a simply named table 
+// with column names that are XML tag compatible.
+// Two user-defined functions are used: tagwrite and tagitem
+
+// This script is presented here in case
+// you have a need to write an XML file.
+// It is also an opprtunity to look at coding techniques.
+// Note: vv ||= str; is equivalent to vv = vv || str;
+// ||= is equivalent to the character function ConcatTo() .
+
+//---- Function tagwrite
+tagwrite=Function({colstr,colval}, {Default Local},
+  newstr="<"||trim(colstr)||">"||char(colval)||"</"||trim(colstr)||">";
+  newstr;	
+);
+
+//---- Function tagitem
+tagitem=Function({mystr,tagtype="S",attr="",val=""}, {Default Local},
+  if (uppercase(tagtype)=="S" & IsMissing(attr),
+      newstr="<"||trim(mystr)||">",
+      uppercase(tagtype)=="S" & !IsMissing(attr),
+      newstr="<"||trim(mystr)||" "|| char(attr) ||"\[="]\" || char(val)||"\[">]\",
+      uppercase(tagtype)=="E",
+      newstr="</"||trim(mystr)||">",
+      newstr="");
+  newstr;	
+);
+
+ret="\!r";   // carriage return
+
+//--Open a simple data table like Big Class or Iris
+//--or comment out the next line and uncomment the 2nd line.
+//--See below that the names need to be simple
+dt = open ("$Sample_Data\Iris.jmp");
+//dt=current data table();
+dtname=dt<<getname;
+clear globals(vv);
+vv = "\[<?xml version="1.0"?>]\" || ret;
+str = "\[<table name="]\" || dtname || "\[">]\" || ret;
+vv ||= str; 
+
+//-- Create a list of column names
+colstrList = dt << Get Column Names( String );
+
+//--Replace spaces with underscores--Tags need to be simple names 
+//This program does not handle other character in column names
+for( i=1, i<=nitems(colstrList), i++,
+	tmp = words(colstrList[i]);
+	colstrList[i] = ConcatItems(tmp, "_")
+);
+//Words(text, <delimiter, default " ">) function creates breaks the string into substring with a space delimiter
+//ConcatItems(list, "glue string")
+
+//-- Create a tag for each row in the table
+for(i=1, i<=nrow(dt), i++,
+    tmpstr=tagitem("obs", "S","n",i) || ret;
+    vv ||= tmpstr;
+	for(j=1, j<=nitems(colstrList), j++,
+	str=tagwrite(XML Encode(colstrList[j]), 
+	  XML Encode(char(column(dt,j)[i]))) || ret;
+	vv ||= str ;	
+	);
+    tmpstr=tagitem("obs", "E") || ret;
+    vv ||= tmpstr;		
+);  // end i
+
+str="</table>";
+vv ||= str;
+
+xml_txt=vv;
+Save Text File("c:\temp\" ||dtname ||".xml",xml_txt);
+
+//Display the file that was written
+New Window("New XML", Text Box(xml_txt));

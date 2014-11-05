@@ -1,0 +1,19 @@
+CHAPTER 2: Overview of Statistical Concepts and Ideas
+
+In this folder you will find 3 files that contain the JMP data tables and statistical computations or analyses that are used in this chapter. Each file name begins with the acronym AICDUJ, which stands for 'Analyzing and Interpreting Continuous Data Using JMP', followed by 'Chapter 2' and the name of the data or statistical techniques illustrated in the book. The file names and their content are provided below.  
+
+1. AICDUJ-Chapter 2 Resistance Data.JMP
+
+This file contains 40 observations of Resistance data, partially shown in Figure 2.7, along with 7 scripts. The first 5 scripts will reproduce Figures 2.9, 2.13, 2.15, 2.17a, and 2.17b which are discussed in Section 2.4 "Descriptive Statistics and Graphical Displays". The remaining 2 scripts will produce Figures 2.19 and 2.20 in Section 2.5 "Quantifying Uncertainty: Common Probability Distributions".  
+
+
+2. AICDUJ-Chapter 2 Z-Score Calculations.JMP
+
+This file includes a JMP table with one row of data that contains the necessary components to calculate the predicted yield loss, using the Formula Editor, for the Resistance data presented in Section 2.5 "Quantifying Uncertainty: Common Probability Distributions".     
+
+
+3. AICDUJ-Chapter 2 Statistical Intervals.JMP
+
+The same Resistance data, 40 observations, is included in this file along with 6 JMP scripts. All of these scripts are used to reproduce the graphs and statistical intervals found in Section 2.6 "Useful Statistical Intervals", including Figure 2.22, which provides a simulation tool to study the meaning of confidence levels for calculating a confidence interval for the mean.  
+
+

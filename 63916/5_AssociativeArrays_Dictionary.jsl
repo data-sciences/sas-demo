@@ -1,0 +1,202 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_AssociativeArrays_Dictionary.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for Associative Arrays as a dictionary or look-up
+//     application.  Includes extras not discussed in the book.
+
+
+//------------------------------------------------------------------------------------
+// 5_AssociativeArrays_Dictionary.jsl
+//   
+//   This script provides another example of basic associative array
+//   syntax, its use as a "look up" tool and its semantics (behavior)
+//   with undefined keys, etc.
+//   It uses a less conventional approach, the associative array value 
+//   is an expression, the funtion RGB Color(r,b,g), instead of the evaluated
+//   color number.
+//   The script begins by defining a function to display the color "swatches"
+//   New Window and display boxes like Graph Box() are discussed in chapters 6-8.
+//   You can "close your eyes" for that segment of code, but it does provide
+//   more examples of using expression functions (Substitute, Name Expr, etc.)  
+//   
+//   After running the code for creating the function, run the rest of this
+//   script in "blocks" where a block is defined by a blank line or a line of dashes
+//-----------------------------------------------------------------------------------
+
+//--------Dictionary (look-up) Application Color Palette ----------------------------
+
+//--Define a function that draws a swatch of the specified color--------------------- 
+// Uses  familiar functions Expr() and  Substitute() and 
+// commands discussed in later sections New Window() and Graph Box()
+// Expressions and Substitute force actual values not references that 
+//change with each function call
+test_color = Function( {rgbName},
+	{Default Local},
+	drawit = Expr(
+		New Window( rgbName,
+			Graph Box(
+				framesize( 150, 150 ),
+				Pen Color( _rgb_ );
+				Fill Color( _rgb_ );
+				Rect( 10, 90, 90, 10, 1 );
+			)   // end Graph Box
+		)
+	);  //end New Window & Expr
+	swatch = Substitute( Name Expr( drawit ), Expr( _rgb_ ), ::rgb_AA[rgbName] );
+	Show( swatch );  //after each test_color call look at the Log
+	swatch;
+);  //end Function
+//--------------------------------------------------------------------------------
+
+//--Create an Associative array using a list of key-value pairs
+rgb_AA = Associative Array(
+	{{"tan", RGB Color( [210, 180, 140] )}, {"crimson", RGB Color( [220, 20, 60] )},
+	{"dodger blue", RGB Color( [30, 144, 255] )}, {"forest green", RGB Color( [34, 139, 34] )},
+	{"salmon", RGB Color( [250, 128, 114] )}, {"sienna", RGB Color( [160, 82, 45] )}, {"wheat",
+	RGB Color( [245, 222, 179] )}}
+);   //end rgb_AA definition
+
+//--draw swatches of prescribed colors
+test_color( "sienna" );
+test_color( "forest green" );
+
+//Alternative method for creating rgb_AA
+//This works as vectors as well e.g., [210 180 140]
+rgb_AA = Associative Array(
+	{"tan", "crimson", "dodger blue", "forest green", "salmon", "sienna", "wheat"},
+	{RGB Color( [210, 180, 140] ), RGB Color( [220, 20, 60] ), RGB Color( [30, 144, 255] ),
+	RGB Color( [34, 139, 34] ), RGB Color( [250, 128, 114] ), RGB Color( [160, 82, 45] ),
+	RGB Color( [245, 222, 179] )}
+);
+test_color( "dodger blue" );
+test_color( "salmon" );
+
+//-- Add a new color using subscripting, "key" is the subscript 
+rgb_AA["aquamarine"] = Expr( RGB Color( [127, 255, 212] ) );
+test_color( "aquamarine" );
+
+//Add default a color, JMP's color 0 is Black
+//use Name Expr so default Value will not evaluate it 
+rgb_AA << Set Default Value( Name Expr( RGB Color( Color To RGB( 0 ) ) ) );
+
+//-- since an assocaitive array is case sensitive Aquamarine is not a valid key
+test_color( "Aquamarine" ); //not a valid Key draws black
+
+//Add a key-value with subscripting
+rgb_AA["maroon"] = Expr( RGB Color( {128, 0, 0} ) );
+test_color( "maroon" );
+//replace value with web safe maroon
+rgb_AA["maroon"] = Expr( RGB Color( {167, 0, 0} ) );
+test_color( "maroon" );
+
+//--- result are lists or a single value
+color_palette = rgb_AA << Get Contents;
+color_names = rgb_AA << Get Keys;
+color_rgb = rgb_AA << Get Values;
+color_default = rgb_AA << Get Default Value;
+
+//Hover over color_palette, color_names, etc. to see results.
+
+//---------------------Dictionary - Extra  - Advanced---------------------------------------------
+//This script creates a table from an associative array and attaches the default value
+//as a table property/variable.
+//It also creates and attaches a propety, when run it recreates the associative array.
+//So when needed a simple open statement and run script will recreate the associative array from
+//the table.
+//The last segment of code is added just as a "concept script".  This script is writing a script
+//that requires a single includes. When a script is writing a much larger script, a technique
+//is to create vlScript =  VListBox(TextBox()); and append text boxes.  Then get the
+//text and write it to a text file with the extension jsl.
+//Many commands should be familiar.  It is designated as Advanced because its usage
+//of Arg Expr(expr, n) picking out (peeling off) arguments in expressions and the 
+//programming techniques like a script writing a script (code generator) are not 
+//methods typically used by novice scripters.
+//-------------------------------------------------------------------------------------------------
+myColors = New Table( "Standard Report Color Palette",
+	add rows( N Items( rgb_AA ) ),
+	New Column( "Color Names", Character, Values( color_names ) ),
+	New Column( "Color Expression", Character ),
+);
+
+myColors << add multiple columns( "c", 3, After Last, numeric );
+Column( myColors, 3 ) << set name( "Red" );
+Column( myColors, 4 ) << set name( "Green" );
+Column( myColors, 5 ) << set name( "Blue" );
+
+//this loop could be a fixed loop for 1 to nitems(rgb_AA), First and Next will be used
+//for demonstration purpose
+cKey = rgb_AA << First;
+cVal = 1;
+While( !Is Empty( cKey ),
+	myColors:Color Expression[cVal] = Char( rgb_AA[cKey] );
+	myColors:Red[cVal] = Arg Expr( rgb_AA[cKey], 1 )[1];
+	myColors:Green[cVal] = Arg Expr( rgb_AA[cKey], 1 )[2];
+	myColors:Blue[cVal] = Arg Expr( rgb_AA[cKey], 1 )[3];
+	tmpKey = cKey;
+	cKey = rgb_AA << next( tmpKey );
+	cVal++;
+);
+
+//myColors<<Reorder by Data Type; //Character before numeric
+myColors << set name( "Standard Report Colors" );
+tmpExpr = Expr( myColors << set property( "Default_Value", __xx ) );
+Substitute Into( tmpExpr, Expr( __xx ), color_default );
+tmpExpr;
+
+//Add a script to the table recreate rgb_AA
+Clear Globals( rgb_AA, color_names, color_rgb, color_default );
+Show( ::rgb_AA ); //empty global
+//----Read before running 
+//Note: When this attached script is run, the values will not be the Color RGB()
+//expressions, but a list of colors.  It works for drawit but may not meet all scripting needs.
+//If you desire rgb_AA to have expression values follow the instructions below at //--**
+//Note; comments are not copied to the script property
+
+myColors << set Property(
+	"Create rgb_AA",
+	myColors = Current Data Table();
+	color_names = Column( myColors, "Color Names" ) << get values;
+	color_rgb = As List( myColors << get as Matrix );
+//--**if desired comment the line above and uncomment the 5 lines below
+	//  colorList = Column( myColors, "Color Expression" ) << get values;
+	//  color_rgb = {};  
+	//  local( {i}, For(i=1, i<=nitems(colorList), i++, 
+	//     insert into(color_rgb, Parse(colorList[i])) );//end For
+	//  ); //end local	
+	rgb_AA = Associative Array( color_names, color_rgb );
+	color_default = myColors << get property( "Default_Value" );
+	rgb_AA << Set Default Value( color_default );
+);
+wait(0);
+//close and save myColors
+Close( myColors, Save( "C:\temp\Standard Report Colors.jmp" ) );
+
+//--write a script to open and create associative array
+myjsl = "/*JSL Script to create a Color palette Associative array called rgb_AA*/; ";
+myjsl = myjsl || "\!r\!n";  //append a carriage return and line feed
+myjsl = myjsl || "\[myColors=Open("C:\Temp\Standard Report Colors.jmp");]\";
+myjsl ||= "\!r\!n";  //ConcatTo (||=) shorthand to append
+myjsl ||= "\[myColors<<Run Script("Create rgb_AA");]\";
+
+Save Text File( "C:\temp\color palette.jsl", myjsl );
+
+//Any script needing the standard report colors, just include this script
+Clear Globals();
+Show( rgb_AA );  //nothing up my sleeve
+Include( "C:\temp\color palette.jsl" );
+Show( rgb_AA );
+
+//The authors often use a technique like this, where standards or
+//standard values need to be loaded into memory, so when creating the
+//shared table attach global variables or attach scripts that can be
+//run when opened. 
+
+//------------ How to remove a default value
+//-- rgb_AA=Associative Array( rgb_AA << Get Contents);
+//-- Get Contents returns a list of key-value pairs, not the default valie
+//-- create a new associative array with no default value
+rgb2_AA = Associative Array( rgb_AA << Get Contents ); 
+
+//-------------Run to clean up saved files-----------------------------------
+Try( Delete File( "C:\temp\color palette.jsl" ) );
+Try( Delete File( "C:\temp\Standard Report Colors.jmp" ) );

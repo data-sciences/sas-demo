@@ -1,0 +1,11 @@
+start TossCoin(N);
+/* Module to simulate the flip of a fair coin.
+ * Call the RANDSEED function before calling this module. 
+ * The module returns a vector of ones (heads) and zeros (tails).
+ */
+   c = j(N,1);                        /* allocate Nx1 vector        */
+   call randgen(c, "uniform");        /* fill with values in (0,1)  */
+   c = floor(2*c);                    /* convert to integers 0 or 1 */
+   return ( c );
+finish;
+store module=TossCoin;

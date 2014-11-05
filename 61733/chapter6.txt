@@ -1,0 +1,226 @@
+/*-------------------------------------------------------------------*/
+/*       Jump into JMP(r) Scripting                                  */
+/*          by Wendy Murphrey and Rosemary Lucas                     */
+/*       Copyright(c) 2009 by SAS Institute Inc., Cary, NC, USA      */
+/*                   SAS Publications order                          */
+/*                   ISBN 978-1-59994-658-0                          */
+/*-------------------------------------------------------------------*/
+/*                                                                   */
+/* This material is provided "as is" by SAS Institute Inc.  There    */
+/* are no warranties, expressed or implied, as to merchantability or */
+/* fitness for a particular purpose regarding the materials or code  */
+/* contained herein. The Institute is not responsible for errors     */
+/* in this material as it now exists or will exist, nor does the     */
+/* Institute provide technical support for it.                       */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+/* Date Last Updated: 19MAY2014                                      */
+/*-------------------------------------------------------------------*/
+/* Questions or problem reports concerning this material may be      */
+/* addressed to the author:                                          */
+/*                                                                   */
+/* SAS Institute Inc.                                                */
+/* SAS Press                                                         */
+/* Attn: Wendy Murphrey and Rosemary Lucas                           */
+/* SAS Campus Drive                                                  */
+/* Cary, NC   27513                                                  */
+/*                                                                   */
+/*                                                                   */
+/* If you prefer, you can send email to:  saspress@sas.com           */
+/* Use this for subject field:                                       */
+/*     Comments for Wendy Murphrey and Rosemary Lucas                */
+/*                                                                   */
+/*-------------------------------------------------------------------*/
+
+/* Chapter 6 */
+
+/* Solution 6.1 */
+
+/* Open the sample data table, Big Class. */
+dt = Open( "$SAMPLE_DATA/Big Class.jmp" );
+
+/* Query the user for a single column. */
+cdlg = Column Dialog( yCols = ColList( "Y, Response", MinCol( 1 ), MaxCol( 1 ) ) );
+
+/* Unload the value from the Column Dialog */
+my_Y = cdlg["yCols"];
+
+/* Use the column value in an analysis. This example uses the
+value in Distribution. */
+dist = Distribution( Column( my_Y[1] ) );
+
+/* Solution 6.2 */
+
+/* Create a dialog to query the user. */
+ageDlg = Dialog( "How old are you?", ageVar = EditNumber( 29 ), Button( "OK" ), Button( "Cancel" ) );
+
+/* Test the result. If -1, the Cancel button was clicked. */
+If( ageDlg["button"] == -1,
+    Print( "Cancelled!" );
+    Throw();
+);
+
+/* Show variable result in log if OK was clicked. */
+Show( ageDlg["ageVar"] );
+
+
+/* Solution 6.3 */
+
+xlsFile = Pick File( "Select Excel File", "$SAMPLE_IMPORT_DATA", {"Excel Import Files|xls"} );
+
+/* Open the file the user selected and give it a reference. */
+dt = Open( xlsFile );
+
+/* Solution 6.4 */
+
+/* Prompt the user to select a directory. For this example, we navigate to the following Windows directory:
+   C:\Program Files\SAS\JMP\8\Support Files English\Sample Data
+*/
+path = Pick Directory( "Navigate to the directory where the desired files are stored" );
+
+/* Obtain a list of all the files in the directory. */
+listOfFiles = Files In Directory( path );
+
+/* Loop through each item in the list and remove the
+filename if it does not contain the specific characters. */
+For( i = N Items( listOfFiles ), i >= 1, i--,
+    If( !Contains( Uppercase( listOfFiles[i] ), "COMPARE" ),
+        Remove From( listOfFiles, i )
+    )
+);
+
+/* Open each file in the list */
+For( k = 1, k <= N Items( listOfFiles ), k++,
+    Open( path || listOfFiles[k] )
+);
+
+/* Solution 6.5 */
+
+/* Prompt user for an age to be used in the SQL string. */
+dlg = Dialog( "Enter Age", selAge = EditNumber( 12 ), Button( "OK" ), Button( "Cancel" ) );
+
+/* Create a string that contains actual SQL concatenated with the user specified value from the dialog. */
+sqlStr = "SELECT * FROM `Bigclass$` where age >= " || Char( dlg["selAge"] );
+
+/* Use the variable as the second argument. */
+dt = Open Database( "Connect Dialog", sqlStr );
+
+
+/* Solution 6.6 */
+
+/* Prompt user for an age to be used in the SQL. */
+dlg = Dialog( "Enter Age", selAge = EditNumber( 12 ), Button( "OK" ), Button( "Cancel" ) );
+
+/* Extract the value from the dialog. */
+selAge = dlg["selAge"];
+
+/* Create a string that contains actual SQL and wrap the global variable in carats (^). */
+sqlStr = "SELECT * FROM `Bigclass$` where age >= ^selAge^";
+
+/* Use the Eval Insert function to evaluate the global variable and use the SQL string as the second argument. */
+dt = Open Database( "Connect Dialog", Eval Insert( sqlStr ) );
+
+
+/* Solution 6.7 */
+
+/* Create a flag that will be set when the user dismisses the window */
+while_flag = 0;
+
+/* New Window dialog */
+nw = New Window( "Roadrunner vs. Coyote",
+    Outline Box( "Roadrunner vs. Coyote",
+        H List Box( Text Box( " Who always wins? " ), tb = Text Edit Box( "?" ) ),
+        V List Box(
+            Button Box( "OK",
+                winner = tb << Get Text;
+                while_flag = 1; // Flag changes to 1
+                nw << Close Window;
+            )
+        )
+    )
+);
+
+/* If while_flag is 0, JMP will wait */
+While( !while_flag, Wait( 0.1 ) );
+
+/* Evaluated only after while_flag has a value of 1 */
+If( Uppercase( winner ) == "ROADRUNNER",
+    Print( "You're a winner!" ),
+    Print( "Thanks for playing. Please try again." )
+);
+
+
+/* Solution 6.8 */
+
+/* Open the sample data table, Cars 1993. */
+dt = Open( "$SAMPLE_DATA/Cars 1993.jmp" );
+
+/* Create lists of the values found in the Manufacturer and Model columns. */
+Summarize( autoMaker = By( Column( dt, "Manufacturer" ) ) );
+Summarize( makeModel = By( Column( dt, "Model" ) ) );
+
+/* Use New Window to create a non-modal dialog to display manufacturer and model for user to choose. */
+nw = New Window( "Choose Models by Manufacturer",
+    hb = H List Box(
+        Panel Box( "Select a Manufacturer",
+            select1 = Combo Box(
+                autoMaker,  
+/* Each of the following tasks are executed when the user makes a Manufacturer choice.*/
+                dt << Select Where( :Manufacturer == autoMaker[select1 << get] );
+                selRows = dt << Get Selected Rows;
+                pb << delete;
+                myModels = {};
+/* The myModels list is populated with values from the selected manufacturer models. */
+                For( i = 1, i <= N Row( selRows ), i++,
+                    Insert Into( myModels, Column( dt, "Model" )[selRows[i]] )
+                );
+/* A new panel box is drawn and values shown are based on manufacturer selection. */
+                hb << Append( pb = Panel Box( "Select a Model", select2 = Combo Box( myModels ) ) );
+            )
+        ),
+        pb = Panel Box( "Choose a Model", Combo Box( " " ) )
+    ),  
+
+/* If user clicks OK, values displayed for manufacturer and model will be selected in table. */
+    Button Box( "OK",
+        nw << Close Window;
+        dt << Select Where(
+            :Manufacturer == autoMaker[select1 << get] & :Model == myModels[select2 << get]
+        );
+/* Selected rows are subsetted into new table. */
+        dt << Subset( Output Table Name( "Vehicle Details" ) );
+    )
+);
+
+/* Solution 6.9 */
+
+/* Open the sample data table, Candy Bars. */
+dt = Open( "$SAMPLE_DATA/Candy Bars.jmp" );
+
+/* Obtain a list of column names which have a modeling type of Continuous. */
+cols = dt << Get Column Names( Continuous );
+
+/* Create a New Window to hold the ListBox of column names and the Distribution report. */
+nw = New Window( "Test",
+    hb = H List Box(
+        Outline Box( "Select a column", 
+/* Insert a ListBox containing the columns. */
+            lb = List Box(
+                cols, 
+/* Actions to be taken when a column is selected in the ListBox. */
+                f = lb << Get Selected;
+                vb << Delete;
+                hb << Append(
+                    vb = V List Box(
+                        dist = dt << Distribution(
+                            Continuous Distribution( Column( Eval( f[1] ) ) ),
+                            Invisible
+                        )
+                    )
+                );
+            )
+        ),
+        vb = V List Box()
+    )
+);
+/* End Chapter 6 solutions */

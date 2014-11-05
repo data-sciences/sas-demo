@@ -1,0 +1,172 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	App_InteractiveMutipleFileSelection.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Files selected by date or user
+
+//------------------------------------------------------------------------------------------ 
+ 
+//---------Pick Directory  --- Prompt for Filter ---- Produce a list of files 
+//-------Next Section prompts user to Pick Directory and simple dialog prompt for filtering 
+
+usrDir = Pick Directory("Select a directory for files to be opened.");
+
+// Program flow control and type checking code
+// Note type checking is not needed here. However, if you decide to ask 
+// the user to type in a string to define a directory, then type checking is probably wise.
+If(length(usrDir)==0 | !DirectoryExists(usrDir),
+	Throw("No valid directory was specified")
+);
+// Currently Files in Directory() cannot filter, so get all files then filter
+// prompt first to determine if files from subfolders should be retrieved and ask for
+// some simple filters
+
+//   This next segment of code is advanced for Chapter 2.
+//   So shut your eyes and run this "fenced off" block of commands if the syntax is 
+//   making you anxious. But don't quit, run the script, scan the code, then 
+//   come back and review it after completing chapters 3-7.
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+NdaysOpt = {"7", "14", "30", "60", "Unlimited"};
+extOpt = {"JMP", "JSL", "TXT", "XLS", "CSV"};
+usrFilt = New Window( <<Modal,
+	H List Box(
+		Panel Box( "File Selection Options",
+			cb1_recurs = Check Box( "Get files from all subfolders?" ),
+			Text Box( " " ),   //blank space
+			Lineup Box( N Col( 3 ),
+				V List Box(
+					Text Box( "Modified in the last N days" ),
+					H List Box( Text Box( "N = " ), H List Box( rb1_days = Radio Box( NdaysOpt ) ), )
+				),
+				Text Box( "     " ),
+				V List Box(
+					Text Box( "Select 1 or more file types" ),
+					lb1_ext = List Box( extOpt, width( 60 ), nlines( 4 ) )
+				)
+			)
+		),
+		Panel Box( "Action",
+			V List Box(
+				ok_bb = Button Box( "OK",
+					bbOpt = 1;
+					recurs = cb1_recurs << get;
+					Nopt = rb1_days << get;
+					kk = lb1_ext << get selected indices;
+					If( N Items( kk ) == 0,
+						kk = 1
+					);  //if none selected look for *.JMP
+					usrExt = extOpt[kk];
+					If( !Is List( usrExt ),
+						usrExt = Insert( {}, usrExt )
+					);   //if only 1 item, no list is returned, make it a list of 1 to use below	
+				),
+				end_bb = Button Box( "Cancel", bbOpt = -1 )
+			)
+		)
+	)
+);
+
+// Program flow control code
+If( bbOpt == -1,
+	Throw( "User Cancel" )
+);
+
+
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+
+// -- Now get the files in the directory and apply the filter, this is a Chapter 2 appropriate command
+
+If( recurs,     //if check box was checked recurs = 1
+	usrFid = Files In Directory( usrDir, recursive )
+, 
+ // else
+	usrFid = Files In Directory( usrDir )
+);
+
+//  -- Now we are using lists and date values and for loops
+//  -- Consider this a Concept/Context script for next steps once you have a list of all files
+
+selFid = {};  // start out with and empty list
+If( NdaysOpt[Nopt] == "Unlimited",
+	selDate = 0, 
+//else
+	Ndays = Num( NdaysOpt[Nopt] );
+	selDate = Today() - Ndays * 24 * 60 * 60  // this is a simple calculation maybe round down to the "whole day"
+	;
+);
+
+// There are several methods to improve performance - brute force will be used
+// Here's the logic for each file, if the creation date > selDate, it passes the first filter
+// Next get the last last word using dot(.) as the delimiter, if usrExt contains it (case sensitive) 
+// insert the file into selFid 
+For( i = 1, i <= N Items( usrFid ), i++,
+	If( Creation Date( usrDir || usrFid[i] ) > selDate, 
+//list of names most files should have 2 items, 1=name 2=extension, however some files have more dots
+		tmp = Words( usrFid[i], "." );  //list of names most files should have 2 items, name ext
+		If( N Items( tmp ) > 1,
+			tmp = Trim( Uppercase( tmp[N Items( tmp )] ) );
+			If( Contains( usrExt, tmp ),
+				Insert Into( selFid, usrFid[i] )
+			);
+		);
+	)
+); //end For
+
+nfids = N Items( selFid );
+//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+//this next block of code is creating a Modal Dialog Window.
+//After chapter 7 syntax in this block of code should be familiar
+If( nfids > 0,
+	ifbOpt = 1,
+	ifbOpt = 0
+);
+// define ListBox of files to select
+lb = List Box( selFid, width( 250 ), nlines( Min( nfids, 20 ) ) );
+
+// define Add ButtonBox
+add_bb = Button Box( "Add >>",
+	listofids << Append( lb << GetSelected );
+   // Send Get Items to a Col List Box
+	ChosenFiles = listofids << GetItems;
+);
+// define Remove ButtonBox
+rmv_bb = Button Box( "<< Remove",
+	listofids << Remove Selected;
+  // Send Get Items to a Col List Box
+	ChosenFiles = listofids << GetItems;
+);
+
+// define ListBox of selected items
+listofids = List Box( {}, width( 250 ), nlines( Min( nfids, 20 ) ) );
+
+nw = New Window( "Filter Results",
+	<<Modal,
+	H List Box(
+		vv = V List Box(
+			Text Box( "Number of files found with listed criteria: " || Char( nfids ) ),
+			Lineup Box( N Col( 2 ), spacing( 3 ),
+				Text Box( "Directory:" ),
+				Text Box( usrDir ),
+				Text Box( "Since Date:" ),
+				Text Box( Char( As Date( selDate ) ) ),
+				Text Box( "File Types:" ),
+				Text Box( Char( usrExt ) )
+			),
+			Text Box( "" ),
+			ifb = If Box(
+				ifbOpt,
+				H List Box( lb, Lineup Box( N Col( 1 ), Spacing( 3 ), add_bb, rmv_bb ), listofids )
+			) // end HlistBox IfBox
+		), //end VListBox
+		Panel Box( "Action",
+			V List Box(
+				ok_bb = Button Box( "OK", bbOpt = 1 ),
+				end_bb = Button Box( "Cancel", bbOpt = -1 )
+			)
+		) //end PanelBox
+	)
+);
+
+// chosen files is the list of seleceted files now "process", that is, read/analyze 
+Show( bbOpt, ChosenFiles );

@@ -1,0 +1,68 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_RetrievingDataBase.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates opening database files 
+
+
+//--Read a portion of a data table
+Bigclass_htwt_dt = Open Database(
+	"DSN=dBASE Files;
+        DBQ=C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\;",
+	"SELECT HEIGHT, WEIGHT FROM Bigclass",
+	"Bigclass ht wt"
+);
+
+//--Read the entire table using SELECT
+Solubil_dt = Open Database(
+	"DSN=dBASE Files;
+DBQ=C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\;",
+	"SELECT * FROM Solubil",
+	"Result"
+);
+
+//--Football is one of the worksheet names,
+//--each worksheet is treated as a database table
+football_dt1 = Open Database(
+	"DSN=Excel Files 2007;
+   DBQ=Basketball Football Sample Data.xlsx;
+   DefaultDir=C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\;",
+	"SELECT * FROM `Football$`",
+	"Football"
+);
+   
+//--select some fields/parameters/columns
+football_dt2 = Open Database(
+	"DSN=Excel Files 2007;
+   DBQ=Basketball Football Sample Data.xlsx;
+   DefaultDir=C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\;",
+	"SELECT Height, Weight, Fat, Speed, Neck, Position FROM `Football$`",
+	"Football_SomeFields"
+);
+   
+//--select some fields conditionally
+football_dt3 = Open Database(
+	"DSN=Excel Files 2007;
+   DBQ=Basketball Football Sample Data.xlsx;
+   DefaultDir=C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\;",
+	"SELECT Height, Weight, Fat, Speed, Neck, Position FROM `Football$` WHERE Position='qb'",
+	"Football_SomeFieldsConditional"
+);
+
+Pref( ODBC Hide Connection String( 1 ) ); 
+
+
+// Use strings to define the Open Database options
+path_str = Convert File Path( "$JSL_Companion\", Posix, Absolute );
+If( Starts With( path_str, "/" ),
+	path_str = Substr( path_str, 2, Length( path_str ) - 1 )
+);
+
+dsn_str = "DSN=Excel Files 2007;
+  DBQ=Basketball Football Sample Data.xlsx;
+  DefaultDir=" || path_str
+ || ";";
+sql_str = "SELECT * FROM `Football$`";
+outfid_str = "Football";
+
+fb_dt2 = Open Database( dsn_str, sql_str, outfid_str );
+

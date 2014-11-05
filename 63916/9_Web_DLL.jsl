@@ -1,0 +1,129 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_Web_DLL.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the Web() and DLL functions to extend JMP.
+//          Both are used with wzzip.exe to save an archive of JMP files.
+
+
+login_name = Get Environment Variable( "UserName" );
+
+nSize = 256;
+myusr = Repeat( ".", nSize );
+usrFname = Load DLL( "advapi32.dll" );
+usrFname << DeclareFunction(
+	"GetUserNameA",
+	Convention( STDCALL ),
+	Alias( "GetUserNameA" ),
+	Arg( AnsiString, update, "lpBuffer" ),
+	Arg( uInt32, update, "nSize" ),
+	Returns( uInt32 )
+);
+rc = usrFname << GetUserNameA( myusr, nSize );
+usrFname << Unload DLL();
+
+Show( myusr, login_name );
+
+//--------------SECUR32.DLL ---- No native functions in JMP 9 provide this service
+//see log for output
+//--gets the user's full name
+nSize=256;
+mynme=Repeat(".",nSize);
+mynum=Repeat(".",nSize);
+usrFname = Load Dll("secur32.dll");
+usrFname << DeclareFunction(
+	"GetUserNameExA",
+	Convention (STDCALL),
+	Alias( "GetUserNameEx"),
+	Arg(uInt32, "NameFormat"),
+	Arg(AnsiString, update, "lpBuffer" ),
+	Arg (uInt32, update, "nSize"),
+    Returns(uInt32)	
+);
+rc1 = usrFname << GetUserNameEx(3, mynme, nSize);
+show(rc1, mynme, nSize);
+usrFname << Unload DLL();
+
+//see log for output
+//--gets user session numbe
+//--Web search for your OS's Environment Variables
+nSize=256;
+mynum=Repeat(".",nSize);
+usrFname = Load Dll("secur32.dll");
+usrFname << DeclareFunction(
+	"GetUserNameExA",
+	Convention (STDCALL),
+	Alias( "GetUserNameEx"),
+	Arg(uInt32, "NameFormat"),
+	Arg(AnsiString, update, "lpBuffer" ),
+	Arg (uInt32, update, "nSize"),
+    Returns(uInt32)	
+);
+rc2 = usrFname << GetUserNameEx(6, mynum, nSize);
+show(rc2, mynum, nSize);
+usrFname << Unload DLL();
+
+//------------------------------------------------------------------------------
+// Web command will execute a run command for the file path
+// Windows recognizes .XLS files and will open Excel for this file
+web("C:\Program Files\SAS\JMP\9\Support Files English\Sample Import Data\Demand.xls");
+
+//This command opens a Windows command prompt
+web("c:\windows\system32\cmd.exe");
+
+//--------------------------------------------------------------------------------
+/*  wzzip.exe and wzunzip.exe are available for download from http://www.winzip.com/prodpagecl.htm
+    This link that documents SAS usage led me to these extensions http://www.lexjansen.com/phuse/2006/cc/cc01.pdf
+    Note JMP's WEB() command on DOS is similar to SAS's X command
+
+The examples below will zip a selection of JMP files and unzip them elsewhere   
+*/
+// create a zip file of all JMP scripts that begin with "demo"
+zip_text = "wzzip c:\temp\demojsl.zip "
+ || "\["C:\Program Files\SAS\JMP\9\Support Files English\]\" 
+ || "\[Sample Scripts\demo*.jsl"]\";  
+ //paths with spaces must be enclosed in double quotes for DOS
+
+SaveTextFile("c:\temp\zipit.bat", zip_text);
+wait(1);
+web("c:\temp\zipit.bat");
+
+// 
+
+param_text = "c:\temp\demo2jsl.zip "
+ || "\["C:\Program Files\SAS\JMP\9\Support Files English\]\" 
+ || "\[Sample Scripts\demo*.jsl"]\";  
+ //paths with spaces must be enclosed in double quotes for DOS
+
+shell32 = Load DLL( "shell32" );
+shell32 << DeclareFunction(
+	"ShellExecuteA",
+	Convention( STDCALL ),
+	Alias( "ShellExecute" ),
+	Arg( UIntPtr, input, "hWnd" ),
+	Arg( AnsiString( 20 ), "lpOperation" ),
+	Arg( AnsiString( 256 ), "lpFile" ),
+	Arg( AnsiString( 256 ), "lpParameters" ), /* Arg( UInt32, "lpParameters" ), */
+	Arg( UInt32, "lpDirectory" ),
+	Arg( UInt32, "nShowCmd" ),
+	Returns( UInt32 )
+); //If the function succeeds, it returns a value greater than 32. // Example call:
+fname = "wzzip";
+rc = shell32 << ShellExecute( 0, "open", fname, param_text, 0, 1 ); 
+shell32 << UnloadDLL();
+
+//Note I do not need to specify the path of wzzip.exe by following the install 
+//suggestions to map the path variable
+
+//The documentation for wzzip includes options to save files created after a specified date
+//and numerous other options.  Use JMP's Mail() function to send the zipped file.
+/*
+If( Host is( Windows ),
+	Mail(
+		"put eamil adress here, e.g.,  test@example.com",
+		"ZippedFiles",
+		"JMP is great.",
+		"C:\temp\demo2jsl.zip"
+	),
+	"Mail is only available on Windows."
+);
+*/

@@ -1,0 +1,139 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_ManipulatingRows.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates the syntax for referencing and selecting rows
+
+
+// Demonstrates the syntax for referencing and selecting rows for deleting, finding
+// and changing data table rows.  
+//  Uses: Select Where(), Get Rows Where(), 
+//        Add Rows(), Delete Rows(), and Index()
+//        For Each Row(), Current Data Table() and Current Row()
+//
+//Extra #1: How to select using a column reference
+//Extra #2: A function to convert text to TitleCase
+// 
+Open( "$Sample_Data\Gosset's Corn.jmp" );
+
+//Reference Gossets Corn data table
+GossetsCorn_dt = Current Data Table();
+
+//Select four specific rows
+GossetsCorn_dt << Select Rows( {2, 4, 6, 8} );
+//Clear the selection of rows
+GossetsCorn_dt << Clear Select;
+
+//Define a list named RowChoice that lists all rows where :KILN is greater than 1800
+// and then select that list.
+RowChoice = GossetsCorn_dt << Get Rows Where( :KILN >= 1800 );
+GossetsCorn_dt << Select Rows( RowChoice );
+
+//Try it again, note no rows are selected, yet RowChoice is a list of rows
+//where :KILN >= 1800
+GossetsCorn_dt << Clear Select;
+RowChoice = GossetsCorn_dt << Get Rows Where( :KILN >= 1800 );
+
+//Select the same rows without the list
+GossetsCorn_dt << Select Where( :KILN >= 1800 );
+
+//Select odd-numbered rows, invert the selection so even-numbered rows are selected,
+// and then delete those rows.
+GossetsCorn_dt << Select Where( Mod( Row(), 2 ) == 1 );
+GossetsCorn_dt << Invert Row Selection();
+GossetsCorn_dt << Delete Rows();
+
+//Select even-numbered rows.  Isn't that easier?
+GossetsCorn_dt << Select Where( Mod( Row(), 2 ) == 0 );
+
+//Add three rows thrice...once at the beginning, once at the end, and once after row 5
+GossetsCorn_dt << Add Rows( 3, 0 );   //add at beginning
+GossetsCorn_dt << Add Rows( 3 );      //add at end
+GossetsCorn_dt << Add Rows( 3, 5 );   // add after row 5
+
+//Delete rows 1-10
+GossetsCorn_dt << Delete Rows( 1 :: 10 );
+//Note: Index(1,10) = 1::10 = [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 ]
+
+//Select :KILN >= 1800, invert the selection, hide the rows, exclude the rows, and clear the selection 
+GossetsCorn_dt << Select Where( :KILN >= 1800 ) << Invert Row Selection() << Hide << Exclude << Clear Select;
+
+//---------------------------------------------------------------------------------
+//Create a new data table to demonstrate assigning values to rows
+States_dt = New Table( "State Data", Add Rows( 6 ),
+	New Column( "States", Character, Nominal,
+	  Set Values( {"TEXAS", "OKLAHOMA", "NEW MEXICO", 
+		"COLORADO", "ARIZONA", "UTAH"} ) )
+);
+
+//---------------------------------------------------------------------------------
+//Create a new data table to demonstrate For Each Row to assign values rowwise or 
+//change values rowwise.  Look at the table, before and after running each 
+//For Each Row() command.  JSL Function Index -> Row -> Row or open the
+//JMP scripting guide and search for Current Row
+
+stateList = {"texas", "OKlahomA", "New Mexico", "COLORADO", "ARIZONA", "utah"};
+States_dt2 = New Table( "State Data #2",
+	Add Rows( 6 ),
+	New Column( "States", Character, Nominal )
+);
+
+For Each Row( :States = stateList[Row()] );  //assign values rowwise
+
+For Each Row( :States = Lowercase( :States ) );
+For Each Row( :States = Uppercase( :States ) );
+
+
+//==========================Extra #1===============================================
+//Extra: Special syntax for using a column reference for selecting and changing
+
+//Start over
+Try(Close(GossetsCorn_dt, No Save));
+Open( "$Sample_Data\Gosset's Corn.jmp" );
+
+//Reference Gossets Corn data table
+GossetsCorn_dt = Current Data Table();
+
+GossetsCorn_dt << Clear Select;
+
+//Create a a reference for Gosset's Corn
+klnCol = Column(GossetsCorn_dt, "Kiln");
+
+//When using a relative reference a blank [] is required for selection and calculation
+newSelect = GossetsCorn_dt << Get Rows Where( klnCol > 1750 );
+//Hover over newSelect to see and empty vector []
+// now re-run using the empty [] effect
+newSelect = GossetsCorn_dt << Get Rows Where( klnCol[] > 1750 );
+//Hover over newSelect to see vector [ 1, 2, 3, 4, 5, 6, 7]
+
+
+//==========================Extra #2===============================================
+//Extra More Advanced function to create Camel Case also known as Title Case
+//--Functions are presented in chapters 4 and 9. It is presented here as
+//  an alternative user defined capitaliztion function
+  
+TitleCase = Function( {_str_},
+//make the string lowercase then make the first character
+//of every word uppercase
+	{wordup, j},
+	wordup = Words( _str_, " " );
+	For( j = 1, j <= N Items( wordup ), j++,
+		wordup[j] = Munger( Lowercase( wordup[j] ),
+			1, 1,
+			Uppercase( Substr( wordup[j], 1, 1 ) )
+		)
+	);
+	Concat Items( wordup );
+); //end titlecase function
+
+//Now use this function using indirect references
+stateList = {"texas", "OKlahomA", "New Mexico", "COLORADO", "ARIZONA", "utah"};
+States_dt3 = New Table( "State Data #3",
+	Add Rows( 6 ),
+	New Column( "States", Character, Nominal )
+);
+
+stateCol = column(States_dt3, "States");
+For Each Row( stateCol[] = stateList[Row()] );  //assign values rowwise
+//Use TitleCase function on column reference
+For Each Row( stateCol[] = TitleCase( stateCol[] )  );
+For Each Row( stateCol[] = Uppercase( stateCol[] ) );

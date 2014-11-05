@@ -1,0 +1,28 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_DuelingHandles.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates interactive graphics using two Handle() functions with
+//          a global variable "a"  
+
+
+a = 1;
+New Window( "Normal Density",
+	Graph Box(
+		FrameSize( 500, 300 ),
+		X Scale( -10, 10 ), Y Scale( 0, 10 ), Double Buffer,
+		Y Function( a * x ^ 2, x );
+		Handle( a, 2, a = 2 * x );  //the mouse runs from this handle
+		Handle( a / 2, 1, a = 2 * x );  //the mouse will get this handle
+	)
+);
+
+/*------------------------------------------------------------------------
+As soon as the user clicks on the first handle at ( 1, 2 ), the 
+expression a=2*x is evaluated, and the handle moves. In other words, 
+the mouse cannot catch the handle. 
+
+Click or drag the second handle, and a=2*x is evaluated.
+
+Use caution when using the Handle( ) function. The script can be defined 
+such that the handle runs from the mouse when trying to drag it.
+--------------------------------------------------------------------------*/

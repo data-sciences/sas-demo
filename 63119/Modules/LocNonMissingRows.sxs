@@ -1,0 +1,7 @@
+start LocNonMissingRows(x);
+/* SAS/IML 9.22: a module to return the nonmissing rows of a matrix */
+   r = countmiss(x, "row");     /* number of missing in row         */
+   nonMissingIdx = loc(r=0);    /* rows that do not contain missing */
+   return ( nonMissingIdx );
+finish;
+store module=LocNonMissingRows;

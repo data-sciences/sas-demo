@@ -1,0 +1,136 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_AssociativeArray_TextMining.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax and statements for Associative Arrays for a text-mining 
+//     application. The nested and complex nature of associative array traceQ7_AA 
+//     is used for demonstration and not necessarily a recommended approach.
+
+
+//----------------------------------------------------------------------------------------------
+//  This script is advanced for Chapter 5.  It uses
+//     New Window and Display box scripting for its comment viewer function.
+//     Run the function but skip over reading the function if you are new to these 
+//     commands. Review after completing Chapter 7.
+//  uniqQ7_AA is a global associative array for all responses
+//        keys are unique words and value is the word count.
+//  traceQ7_AA key is a user code and the corresonding values is an associative array of the 
+//        student's "value" words.
+//  studentQ7_AA is temporary associative array used to build traceQ7_AA. 
+//------------------------------------------------------------------------------------------------
+   
+//----Text Viewer function------------------------------------------------------------------------
+viewText=Function({tblRef, colStr, rowId}, {Default Local},
+	if(type(tblRef)=="Table" & type(colStr)=="String" &
+		Contains({"Number", "Integer"}, type(rowId)),
+	str=column(tblRef,colStr)[rowId];
+	show(str);
+    userFlag=1;   //quit if user selects stop	
+    nw=New Window("View Text", <<Modal,
+      LineupBox(nCol(3),
+        VListBox(
+    	  HListBox(Text Box("Table Name: "), 
+    	    TextBox((tblRef<<get Name),<<Set Font Style("Bold"), 
+    	      << Font Color(blue) ),
+    	    TextBox("  row#: "),
+    	    Text Box(char(rowId),<<Set Font Style("Bold"),
+    	      <<Font Color(blue) ),
+    	    ),
+    	  SpacerBox(<<size(10,10)),
+	     bb2=Border Box( Left( 10 ), Right( 10 ),
+		  Top( 5 ), Bottom( 5 ), Sides( 15 ),
+		  tt=Text Box(""||str,<<Set Wrap(450);Set Style("Bold"))
+	     )),
+	  sb=SpacerBox(<<size(20,20)),
+	  VListBox(LineupBox(ncol(1),
+	   ButtonBox("OK", userFlag=0),
+	   ButtonBox("Cancel", userFlag=0)))
+      )
+   );
+   userFlag
+));   
+//----End Text Viewer function--------------------------------------------------------------------
+
+
+/* Example of a little text mining using Associative Arrays 
+/ Q6 What did you like about this class?
+/ Q7 What would you change about this class?
+/ Evaluate Q7 can be extended for Q6
+*/
+
+surv_dt = open("$JSL_Companion\ClassSurvey.jmp");
+
+//--Create AAobj uniqQ7_AA a global mining of quetions 7's response
+uniqQ7_AA=[=>0];
+for(i=1, i<=nrow(surv_dt), i++,
+  words7=words(lowercase(column(surv_dt,"Q7")[i]), " .,;");
+  for(j=1, j<=nitems(words7), j++,
+    uniqQ7_AA[words7[j]]+=1);
+);
+uniqQ7_AA<<Get Contents;
+//get rid of low value words
+lowValue={"a", "an", "and", "or", "is", "was", "i", "in", "of", "for", "this", 
+"that", "these", "those", "the", "when", "to", "were", "has", "have"};
+show(nitems(uniqQ7_AA));
+for(i=1, i<=nitems(lowValue), i++,
+  remove from(uniqQ7_AA, lowValue[i])	
+);
+show(nitems(uniqQ7_AA));
+uniqQ7_AA<<Get Contents;
+
+//----------------------------------------------------------------------------------------------
+//--Create AAobj traceQ7_AA and view any response that contains one or more of the
+//  focus words "add", "change", "bored", "boring", "bore"
+//--code below creates an associative array where the
+//--the key is a list of userid and row number and the 
+//--associated value is an associative array of that 
+//--individual's unique words. 
+//--An example of iterating follows. 
+traceQ7_AA = Associative Array([=>]);
+//use "Set Default" syntax for default values that  
+//are lists, matrices or another associative array
+traceQ7_AA << Set Default Value([=>] );
+
+//--for each user create a unique word associative array
+for(i=1, i<=nrow(surv_dt), i++,
+  words7=words(lowercase(column(surv_dt,"Q7")[i]), " .,;");
+  studentQ7_AA=[=>0];
+  for(j=1, j<=nitems(words7), j++,
+    studentQ7_AA[words7[j]]+=1;
+  );
+//remove LowValue words
+  for(k=1, k<=nitems(lowValue), k++,
+    remove from(studentQ7_AA, lowValue[k])	
+  );
+//--store the result with the user id and row number
+  traceQ7_AA[evalList({column(surv_dt,"UserCode")[i], i})]
+     =studentQ7_AA;
+);  //end for i
+
+traceQ7_AA<< Get Contents;
+
+//--traceQ7_AA, has traceability to the full text in the table
+//--and the associated value being an associative array allows 
+//--quick referencing.  Cycle through traceQ7_AA, looking 
+//--for the words "add", "change", "bored", "boring", "bore" 
+//--in the associated AA and view the comment
+focusWords = {"add", "change", "bored", "boring", "bore"};
+curKey=traceQ7_AA<<First;
+While(Type(curKey)=="List",
+/*
+//alternative to the Sum( << Get Values()) >0, command
+  if((traceQ7_AA[curKey]["add"] 
+    + traceQ7_AA[curKey]["change"]
+    + traceQ7_AA[curKey]["bored"]
+  	+ traceQ7_AA[curKey]["boring"]
+  	+ traceQ7_AA[curKey]["bore"]
+  	+ traceQ7_AA[curKey]["don't"])> 0,
+*/
+  if (Sum( traceQ7_AA[curKey] << Get Values(eval(focusWords)))>0,
+//display in a modal text box the user comment  	
+// show(curKey) //for debug
+   viewText(surv_dt, "Q7",curKey[2]);  //curKey[2] is the row#
+  );
+  tmpKey=curKey;    //need a reference that is not itself
+  curKey = traceQ7_AA << Next(tmpKey)	
+); 
+

@@ -1,0 +1,69 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_CheckValuesDataTypes.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates using the Type() and Is xxx() functions
+
+
+//Simple examples for Type() and Is obj() functions
+a = 4;
+b = "hello world";
+c = {"red", "green", "blue"};
+d = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
+e = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+dt = Open( "$Sample_Data\Candy Bars.jmp" );
+acol = Column( dt, 1 );
+anme = acol << get name;
+Show( a, Is List( a ), Is String( a ), Is Expr( a ) );
+Show( b, Is List( b ), Is String( b ), Is Expr( b ) );
+Show( d, Is List( d ), Is Matrix( d ) );
+Show( e, Is List( e ), Is Matrix( e ) );
+
+Show(a,Type(a), b, Type(b), c, Type(c),
+	d, Type(d), e, Type(e), dt, Type(dt),
+    acol, Type(acol), anme, Type(anme)	
+);
+
+//Type remains even after acol is deleted
+dt << delete column( 1 );
+Show( Type( acol ), Is Empty( acol ) );
+
+//Type remains even after the table is closed
+Close( dt, NoSave );
+Show( Type( dt ), Is Empty( dt ) );
+
+//Clear Gobals removes Type association
+Clear Globals( dt, acol );
+Show( Type( dt ), Type( acol ), Is Empty( dt ), Is Empty( acol ) );
+
+atemp = 3 * 5;
+Show( Type( atemp ) );  //returns "Number"
+atemp = "N/A";
+Show( Type( atemp ) );  //returns "String"
+
+//Note the difference in type
+xx = Today();
+yy = As Date( xx );
+Show( Type( xx ), Type( yy ) );  //returns "Number" "Date"
+
+//zz is uninitialized, Type(zz) throws an error  -- run just this line
+Show( Is Empty( zz ), Type( zz ) );
+
+//You may want to use Is Empty(), before checking the type --now run this block
+If( !Is Empty( zz ),
+	Show( Type( zz ) ),
+	Show( "zz is empty" ) //else
+);
+
+
+myList = {yr = 2010, mon = "Oct", date = 20, day = "Wednesday", sold = {"hummus",
+"roast beef", "turkey", "chicken"}, amt = [20, 20, 10, 30], xx = Today(), yy =
+As Date( xx )};
+
+Show( Type( myList ), Type( myList[1] ), Type( myList[6] ) );
+//each item in myList is an expression
+
+//now run thus next block
+myeval = Eval List( myList );
+Show( Type( myeval ), Type( myeval[1] ), Type( myeval[6] ) );
+Show( Type( myeval[7] ), Type( myeval[8] ) );
+

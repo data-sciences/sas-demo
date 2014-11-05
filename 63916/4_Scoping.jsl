@@ -1,0 +1,127 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_Scoping.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates variable scoping with an extreme case
+
+
+//------------------------------------------------------------------------------------------
+//Admittedly, this script is an extreme case.
+//The goal is show that ambiguity can be overcome with proper scoping.
+//This demonstrates scoping available as of JMP 9.0.3.
+//  Recall: 
+//    - Single Colon (:) refers to a column  :age, :Brand
+//    - one method to reference a column for a specific table is tablename:columnname
+//    - Double Colon (::) refers to a global variable or constant 
+//    - Local is just local and does not interfere with global values outside
+//    - When JMP encouters a name like "val" it looks for (1)a column with that name in 
+//      the current data table. If it doesn't exist then is looks for a variable within
+//      a Local() or Function() and uses the "local" value.  If not found yet, (3)it looks
+//      it looks for a global value.  And then if not found, treats it as unspecified, empty
+//The naming here is ambiguous on purpose.  Never use such ambiguous naming!
+//
+//Run the script in pieces, look at the table, then look at the Log window
+//for results or errors.
+ 
+Clear Globals();
+Delete Symbols();  //start with a clean slate
+
+//::val is defined as a global variable referring to the table named "i" 
+::val = New Table( "i", 
+//table "i" is referenced by global variable ::val 	
+	Add Rows( 10 ),
+	New Column( "VAL",      //the first column is named VAL
+		Numeric,
+		Continuous,
+		Format( "Best", 12 ),
+		Set Values( [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] )
+	),
+	New Column( "val",      //the second column is named val
+		Numeric,
+		Continuous,
+		Format( "Best", 12 ),
+		Set Values( [-10, -9, -8, -7, -6, -5, -4, -3, -2, -1] )
+	)
+);   //end New Table
+
+Local( {val},      //use local variable val to loop through the table
+	For( val = 1, val <= N Row( ::val ), val++,
+		Show( val, :VAL[val], :val[val] )
+	)	 //end for
+);       //end Local
+//within this local function, val (1 to 10) is used 
+
+//all is good with proper scoping JMP knows what to do
+Show( ::val:val[2], ::val:VAL[2] );
+//*: val:val[2] = -9;  val:VAL[2] = 2; 
+
+//-------------------------------------------------------------------------------------
+//---clean things up (JMP remembers nothing) and don't scope
+Try( Close( Data Table( val ), NoSave ) );
+//Try() is used here just in case you already closed the data table named "i"
+
+
+Clear Globals();
+Delete Symbols();
+
+val = New Table( "val",
+	Add Rows( 10 ),
+	New Column( "VAL",
+		Numeric,
+		Continuous,
+		Format( "Best", 12 ),
+		Set Values( [10, 20, 30, 40, 50, 60, 70, 80, 90, 100] )
+	),
+	New Column( "val",
+		Numeric,
+		Continuous,
+		Format( "Best", 12 ),
+		Set Values( [-101, -91, -81, -71, -61, -51, -41, -31, -21, -11] )
+	)
+);
+//---Run to here-------------------------------------------------------------------------
+//JMP creates the table but warns about the name collision
+//too many unqualified "val" , Local val collides with Data Table (val)
+
+Local({val},
+   for(val=1, val<=N Row( Data Table( "val" ) ), val++,
+   	Show( VAL[val], val[val] )
+   )	
+);
+
+
+//still problems
+Local({val},
+   for(val=1, val<= N Row( ::val ), val++,
+   	Show( VAL[val], val[val] )
+   )	
+);
+
+//JMP throws an error
+
+/*  Log output
+
+Name Unresolved: val{10} in access or evaluation of 'val' , ::val 
+
+*/
+
+
+//once the column is scoped, JMP has enough information to proceed
+Local({val},
+   for(val=1, val<=N Row( Data Table( "val" ) ) , val++,
+   	Show( :VAL[val], :val[val] )
+   )	 
+);
+
+
+//JMP can handle the command below using the scoping syntax tableRef:columnName.  
+//Note it would have problems inside the local function
+//Outside the local function the global variable "val" refers to the data table named "val" 
+
+//JMP can handle xxx:yyy, JMP looks for table xxx and column yyy
+Show( val:val[2], val:VAL[2] );
+
+//---See row 2 of data table val to verify results -91 and 20
+//Enough with variations of "val"! 
+//Bottom line: An important and simple method to avoid name collisions is: 
+//practice good naming conventions and scope!
+

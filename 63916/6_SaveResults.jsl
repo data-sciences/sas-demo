@@ -1,0 +1,110 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 6_SaveResults.jsl 
+// Version:   Windows JMP 9.0.3
+// Purpose: Demonstrates the syntax and statements for saving graphs and reports in 
+//     multiple file formats.
+
+
+//Define path name in which to save file
+save_path = "c:\temp\";
+
+bigclass_dt = Open( "$SAMPLE_DATA\Big Class.jmp" );
+
+//Single analysis and append a second
+bigclass_onew = bigclass_dt << Oneway(
+	Y( :height ),
+	X( :age ),
+	Means( 1 ),
+	Mean Diamonds( 0 ),
+	Plot Quantile by Actual( 0 ),
+	Line of Fit( 0 ),
+	Box Plots( 1 ),
+	ANOVA( 0 ),
+	X Axis proportional( 0 ),
+	Points Jittered( 1 )
+);
+//Create report
+onew_rpt = bigclass_onew << Report;
+
+//Create another analysis and append it to the first report
+bigclass_biv = Bivariate( Y( :height ), X( :weight ) );
+biv_rpt = bigclass_biv << Report;
+onew_rpt << Append( biv_rpt );
+
+//The Bivariate window is active (live). Use your mouse or lasso
+//to select everal points.  In the Oneway window, the Oneway
+//graph is active (live) but the Bivariate graph that was already 
+//displayed one was appended.  It is an inactive (dead) graph:
+//graph points cannot be selected.
+
+//Save appended report in different formats
+onew_rpt << Save PDF( save_path || "bigclass_out.pdf" );
+onew_rpt << Save Journal( save_path || "bigclass_out.jrn" );
+onew_rpt << Save MSWord( save_path || "bigclass_out.doc" );
+onew_rpt << Save HTML( save_path || "bigclass_out.htm" );
+
+// Save a specific part of the output to a text file
+// Note that this can be saved even if not part of the display
+onew_rpt["Means and Std Deviations"] <<
+save Text( save_path || "mn_std.txt" );
+
+//Saving an analysis with a By group (see page 217 JSG)
+bigclass_by_biv = bigclass_dt << Bivariate(
+	Y( :weight ),
+	X( :height ),
+	By( :sex )
+);
+biv_by_rpt = bigclass_by_biv << Report;
+
+((biv_by_rpt[1] << parent) << parent) <<
+Save PDF( save_path || "bigclass_by.pdf" );
+
+//Using a LineupBox or OutlineBox container to be saved
+nw = New Window( "BigClass",
+	ob1 = Outline Box( "Gender Comparison",
+		lub1 = Lineup Box( N Col( 2 ),
+			bigclass_by_biv = bigclass_dt <<
+			Bivariate( Y( :weight ), X( :height ), By( :sex ) )
+		)
+	)
+);
+ob1 << Save PDF( save_path || "ob_bigclass_by.pdf" );
+lub1 << Save PDF( save_path || "lub_bigclass_by.pdf" );
+
+//Saving Multiple Analyses with New Window
+bigclass_nw = New Window( "Big Class",
+	H List Box(
+		bigclass_dt << Oneway(
+			Y( :height ),
+			X( :sex ),
+			Means and Std Dev( 1 ),
+			Plot Actual by Quantile( 1 ),
+			Box Plots( 1 ),
+			Mean Error Bars( 0 ),
+			Std Dev Lines( 0 ),
+			Points Jittered( 1 )
+		),
+		bigclass_dt << Bivariate( Y( :weight ), X( :height ), Fit Line )
+	)
+);
+
+//Create journal and define handle to journal
+bigclass_nw << Journal;
+bigclass_jrn = Current Journal();
+bigclass_jrn << Save PDF( save_path || "bigclass_nw.pdf" );
+bigclass_jrn << Save Journal( save_path || "bigclass_nw.jrn" );
+bigclass_jrn << Save HTML( save_path || "bigclass_nw.htm" );
+
+
+//Save a picture/selection
+bigclass_biv = bigclass_dt << Bivariate(
+	Y( :weight ),
+	X( :height ),
+	Fit Line
+);
+bigclass_rpt = bigclass_biv << report;
+bigclass_rpt[Picture Box( 1 )] << Save Picture( save_path || "wt_vs_ht.png" );
+
+//Now outside of JMP open each of the saved files.
+//The use of an OutlineBox or a LineupBox generally improves the display of 
+//multiple graphs embedded in Word, a .PDF file or a Web page. 

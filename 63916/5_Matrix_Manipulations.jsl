@@ -1,0 +1,65 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_Matrix_Manipulations.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for manipulating matrices.
+
+
+// Make two matrices of prime numbers A and B
+A = [101  79 107 103, 17 89 113 13,  3 109 19 2, 59 23 61 127];
+B = [ 11 131  97  67, 29 31  83 71, 47  37  7 5, 41 53 43  73];
+// Note that spaces can be used profligately to make the matrix more readable.
+
+C = Concat(A,B);		// Makes a 4 row by 8 column matrix.
+C = A||B;				// Does the same as Concat().
+
+D = VConcat(A,B); 	// Makes an 8 row by 4 column matrix.
+D = A|/B;         	// Does the same as VConcat().
+
+
+F = C[3,4];  				//Returns the value from row 3, column 4 of matrix C.
+F = Subscript(C,3,4);  	// Does the same thing as above.
+
+G = D[5,3];  			//Returns the value from row 5, column 3 of matrix D.
+ij= [19]; 
+G = D[ij];	  			// Does the same thing as above with a single subscript.
+// Note: [i,j] = [5,3], so 19 =(i-1)*ncol + j = (5-1)*4 + 3
+                     
+H = B[0,2];  			//Returns column 2 from matrix B.
+
+K = A[4,0];  			//Returns row 4 from matrix A.
+
+
+AT = A`;     			//Returns the transpose of matrix A using the backquote.
+AT = Transpose(A);  	//Another way to transpose matrix A.
+
+Det(B);  	         //Returns the determinant of matrix B.
+
+Sweep(B);	         // Returns the sweep of matrix B.
+
+Trace(A);           	// Returns the trace of matrix A.
+
+AInv = Inverse(A);	// Returns the inverse of matrix A.
+
+A*AInv; 					// Returns Identity Matrix within floating point limitations.
+Round(A*AInv,15);	   // Returns the Identity Matrix.
+
+
+mag=function({x},sqrt(x`*x));  // Create your own Magnitude function.
+Mag ( H );
+
+// Open the Sample Data Semiconductor Capability dataset
+// and turn the numeric columns into a matrix
+SemiCapable_dt = Open("$SAMPLE_DATA/Semiconductor Capability.jmp");
+M = SemiCapable_dt << GetAsMatrix;
+
+// Take the mean of the 4th column
+N = V Mean( M[0,4] );
+
+//Make a table with column named Prime
+New Table("Table 0", New Column( "Prime", numeric ));
+
+// Make a column of the vector H
+Column("Prime") << SetValues(H);
+
+// Turn matrix M into a dataset
+SemiMatrix_dt = AsTable(M);

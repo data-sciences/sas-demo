@@ -1,0 +1,77 @@
+
+   /********************************************************************/
+   /********** Using Expressions When Reading or Writing Data **********/
+
+   whereName = "Mpg_City";
+   DataName = "Sasuser.Vehicles";
+
+   use (DataName) where((whereName)>=33);   /* valid IMLPlus statement */
+   read all var {"Make" "Model"};
+   close (DataName);
+
+
+   /********************************************************************/
+   /********** IMLPlus Modules **********/
+
+   /* define IMLPlus module with no arguments */
+   x=1;                            /* x is defined in the main program */
+   start MyFunc();                 /* no arguments; local variables    */
+      y=2;                         /* y is a local variable            */
+      return ( y );                /* return the value of y            */
+   finish;
+
+   t = MyFunc();                   /* copies values into t             */
+
+
+   /* Write a module that estimates a location parameter in several ways. 
+    * First version: the traditional PROC IML approach.
+    */
+   proc iml;              
+   start MyMean(x);
+      return ( x[:,] );
+   finish;
+   
+   /* the Median module already exists in IMLMLIB */
+   
+   /* module that calls either the MyMean or the Median module */
+   start Location(StatName, x);
+      if upcase(StatName)="MYMEAN" then return ( MyMean(x) );
+      else return ( Median(x) );
+   finish;
+
+   x = {1 2 1, 1 4 3, 1 5 3, 1 5 18};
+   mean = Location("MyMean", x);
+   median = Location("Median", x);
+
+   /* write an IMLPlus module that estimates a location parameter */
+   start MyMean(x);
+      return ( x[:,] );
+   finish;
+   
+   /* The Median module already exists in IMLMLIB.
+    * The syntax is Median(x). 
+    */
+   
+   /* module that calls either the MyMean or the Median module */
+   start Location(StatName, x);
+      alias *MyFunc(x) StatName;    /* MyFunc is an ALIAS              */
+      y = MyFunc(x);                /* call function that is passed in */
+      return ( y );                 /* value is returned               */
+   finish;
+   
+   x = {1 2 1, 1 4 3, 1 5 3, 1 5 18};
+   mean = Location("MyMean", x);
+   median = Location("Median", x);
+   print mean, median;
+
+   /********************************************************************/
+   /********** Features for Debugging Programs **********/
+
+
+   /* pause program at the end of each iteration */
+   do x = 5 to 1 by -1;
+      y = log(x);
+      z = log(y);
+      pause "At the end of an iteration";
+   end;
+

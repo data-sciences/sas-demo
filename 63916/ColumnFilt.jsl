@@ -1,0 +1,88 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	ColumnFilt.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: This is a concept script and used in the script 7_DesigningADialogWindow_Extra.jsl
+
+//This is provided  as a concept script.  
+//To be fully functional, it needs to associate with a Column List
+//then include in a script where needed.
+
+//For example
+//  ::allList=current data table()<<get column names(ALL, string);
+//Runs test case at the end of this script.  _cf_doit merely reports
+//the current settings of the column filter pulldown. See the Log
+//for the output.
+
+//Clear Gobals();   //run this command to reset options.
+//Char To Blob( "~E2~9C~94" )
+chkMarkStr="✔";
+chkOpt={"    "};
+insert into(chkopt, chkMarkStr);
+::getUsrStr=0;
+::UsrStr="";
+_cf_doit=Function({usrOpt},
+	show(::getUsrStr, ::UsrStr, usrOpt)
+);
+_cf_usr = Function({opt},
+    ::UsrStr="";
+    ::getUsrStr=opt;
+    ::teb << set text (::UsrStr);
+   ifStrBox<<set(::getUsrStr);
+);
+//11 options
+cLopt=[0,0,1,1,1,1,1,0,0,0,0];
+cLstr={};
+for(i=1, i<=nrow(cLopt), i++,
+  insert into(cLstr, parse("chkOpt[cLopt["||char(i)||"]+1]"))
+);
+commandList = {
+eval(cLstr[1])||" Reset", cLopt[1]=!cLopt[1];_cf_doit(1),
+eval(cLstr[2])||" Sort by Name", cLopt[2]=!cLopt[2];_cf_doit(2),
+"", empty(), //makes a separator line
+eval(cLstr[3])||" Continuous", cLopt[3]=!cLopt[3];_cf_doit(3),
+eval(cLstr[4])||" Ordinal", cLopt[4]=!cLopt[4];_cf_doit(4),
+eval(cLstr[5])||" Nominal", cLopt[5]=!cLopt[5];_cf_doit(5),
+"", empty(), //makes a separator line
+eval(clStr[6])||" Numeric", cLopt[6]=!cLopt[6];_cf_doit(6),
+eval(cLstr[7])||" Character", cLopt[7]=!cLopt[7];_cf_doit(7),
+"", empty(), //makes a separator line
+eval(cLstr[8])||" Match Case", cLopt[8]=!cLopt[8];_cf_doit(8),
+eval(cLstr[9])||" Contains...", cLopt[9]=!cLopt[9]; 
+    _cf_usr(cLopt[9]); _cf_doit(9),
+eval(cLstr[10])||" Starts With...", cLopt[10]=!cLopt[10]; 
+    _cf_usr(cLopt[10]); _cf_doit(10),
+eval(cLstr[11])||" Ends With...", cLopt[11]=!cLopt[11]; 
+    _cf_usr(cLopt[11]); _cf_doit(11)	
+};
+//--testing for pop-up
+/*
+w = New Window( "Test Popup",
+	H List Box(
+		usr_select = Popup Box( commandList ),
+		ifStrBox = If Box( ::getUsrStr, 
+		  ::teb=TextEditBox(::UsrStr,
+            <<Script(::UsrStr=::teb<<get text), <<Set width(-1)) )
+	)
+);
+// On Close reset defaults
+w << On Close(::getUsrStr=0; 
+              ::UsrStr="";
+               ifStrBox<<set(0);
+               cLopt=[0,0,1,1,1,1,1,0,0,0,0];             
+);
+*/
+
+//---Notes-------------------------------------------------------------------------
+/*  To be fully functional as a drop-in component, this script should
+    include an adjoining ColListBox and create a new namespace for each 
+    instance.  For example, a Fit Y by X dialog window and a Distribution
+    dialog window can be open at the same time and the built-in column filter
+    allows each window to have different column filter options.
+    
+    Script 9_Namespace.jsl contains examples for more advanced scoping methods 
+    using namespaces; for example using the Window namespace or using 
+    Include() << New Context;
+
+    The goal of chapter 7 is to present some of the components to build a 
+    user interface.  
+*/

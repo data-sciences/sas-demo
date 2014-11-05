@@ -1,0 +1,282 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_CapturingInputErrors.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates methods to capture input and data errors.
+//          Examples of using the Parse Date() function are included. 
+
+
+//Run in blocks of code defined by //----
+//--------#1: Check for the existence of current data table-----------------------
+
+//N Table() returns the number of currently opened tables
+If( N Table() == 0,
+	lj_dt = Open(),
+	lj_dt = Current Data Table()
+);  
+
+//---------#2: Check for the Existence of a column named Time----------------------
+//--- Create two expressions used later 
+
+promptExpr = Expr( Local({usr_dlg, timeCol},
+	usr_dlg = Column Dialog(
+		" ",
+		"Select a column to be used as Time",
+		timeCol = ColList( "Enter", Max Col( 1 ), Datatype(Numeric) )
+    );
+    show(usr_dlg);
+    if(usr_dlg["Button"]==-1,   //user cancelled,
+       abortExpr,
+       usr_dlg["timeCol"][1] << set name("Time")	
+    );
+//Note because the Program expects the hard-coded name "Time" the only
+//option is to rename the data table's column if user supplies one or abort
+));  //end PromptExpr
+
+/* test promptExpr
+promptExpr;
+*/
+
+abortExpr = Expr(Caption("Column named Time was not found...program is aborting");
+          wait(3); Caption(Remove); Throw(); );
+
+/* test promptExpr
+abortExpr;   //see log for output
+*/
+//--- End create expressions.
+
+
+mypath = "C:\temp\";
+
+//Check that an expected column exists
+lj_dt = open("$Sample_Data\Chips R Us.jmp"); 
+
+colStrList = lj_dt << Get Column Names( string ); 
+If( nrow(Loc(colStrList, "Time")) == 0,
+	//prompt for which column to use for time or abort
+	promptExpr
+);
+
+
+//Loc() looks for an exact match, it is case-sensitive
+colStrList = lj_dt << Get Column Names( string ); 
+Local( {i, k},
+   k=0;
+   For(i = 1, i<=nitems(colStrList), i++,
+      if( Lowercase(Trim(colStrList[i])) == "time",
+         k = i;
+         Break())
+    ); //end for
+    If (k==0,
+	  //prompt for which column to use for time or abort
+	  promptExpr,
+//else
+      column(lj_dt, i) << set name ("Time")	
+    ) //end if k==0	
+);
+
+// ---- If your script is scheduled to run on a server, modify error behavior
+errorLog = Function( {error_str, stopit},  {Default Local},
+   Write(error_str); 
+// Some errors may not be severe enough to abort
+// Saving the LOG as .JSL preserves coloring/highlighting and .TXT does not
+   If( stopit == 1, 
+   	SaveLog(mypath||"CapturingErrorsLog.jsl");
+   	Throw()
+   ) 
+); 
+
+/* test errorLog
+ errorLog("this is a test \!r ", 0);
+ errorLog("test2", 1);  //check for the file CapturingErrorsLog.jsl
+*/
+
+colStrList = lj_dt <<Get Column Names(string); 
+Local( {i, k},
+   k=0;
+   For(i = 1, i<=nitems(colStrList), i++,
+      if( Lowercase(Trim(colStrList[i])) == "time",
+         k = i;
+         Break())
+    ); //end for
+    If (k==0,
+     errorLog("Column named Time was not found...program is aborting" , 1 ),	
+//else
+      column(lj_dt, i) << set name ("Time")	
+    ) //end if k==0	
+);
+
+//------------#3: Checking for data/modeling type-----------------------------
+
+lj_dt = open("$Sample_Data\Chips R Us.jmp"); 
+colStrList = lj_dt <<Get Column Names(string); 
+Local( {i, k},
+   k=0;
+   For(i = 1, i<=nitems(colStrList), i++,
+      if( Lowercase(Trim(colStrList[i])) == "time",
+         k = i;
+         Break())
+    ); //end for
+    If (k==0,
+     errorLog("Column named Time was not found...program is aborting" , 1 ),
+//column found is it continuous the modeling type for dates     
+     (Column(lj_dt, k) << get modeling type) != "Continuous",
+     errorLog("Column " ||Char (k) || 
+            " is named Time but is not continuous ...program is aborting" , 1 ),
+//else
+      column(lj_dt, i) << set name ("Time")	
+    ) //end if k==0	
+);
+
+//-----------#4: Check if column time has the expected format -----
+datetimeFmts = {"m/d/y h:m" , "m/d/y h:m:s",
+	"d/m/y h:m",  "d/m/y h:m:s", 
+	"y/m/d h:m",  "y/m/d h:m:s", 
+	"ddMonyyyy h:m", "ddMonyyyy h:m:s",
+	"ddMonyyyy:h:m", "ddMonyyyy:h:m:s", 
+	"Monddyyyy h:m",  "Monddyyyy h:m:s", 
+	"yyyy-mm-ddThh:mm",  "yyyy-mm-ddThh:mm:ss", 
+	"Locale Date Time h:m", "Locale Date Time h:m:s"
+};
+
+xxfmt = (lj_dt:Time <<get Format); 
+show (xxfmt, Arg(xxfmt,1));
+
+//------------#5: JMP can handle mixed Date and Time Formats-----------------------------
+test_dt = New Table( "Test Table",
+	Add Rows( 2 ),
+	New Column( "Datetime",
+		Numeric,
+		Continuous,
+		Set Values( [3352864027, 3358343420] ),
+    ),
+	New Column( "Time",
+		Numeric,
+		Continuous,
+		Set Values( [86340, 1440] )
+	)
+);
+//--Test Table has 2 dates but no date format and 2 time values
+xxfmt = Arg(test_dt:Datetime <<get Format , 1);
+xxMT  =  test_dt:Datetime <<get Modeling Type;
+//check for Continuous Modeling Type
+if(Contains(datetimeFmts, xxfmt)==0,
+/*several options
+    1: if the data should have a specified date range, get Column max and min and check those values
+    2: Use Year() and check value, if JMP cannot read it the result is 1904
+*/
+//example of 1: assume expeceted dates should be between January 1 and July 1 of 2010
+    chk1 = ( Col Maximum(test_dt:DateTime) < Informat("7/1/2010", "m/d/y") )
+           *  ( Col Minimum(test_dt:DateTime) > Informat("1/1/2010", "m/d/y") ) ;
+    chk2 = (Year(Col Maximum(test_dt:DateTime) ) != 1904);
+
+);
+Show( chk1, chk2);  // both pass, i.e., equal 1
+
+//-------------------------------------------------------------------------
+//Try these same functions on :Time from data table Chips R Us.
+//An empty or a date with year 1904 is a lead indicator that the number 
+//did not convert to a proper date.  Note :Time is a "duration" value .35, .45, etc.
+
+ 
+chk1 = ( Col Maximum(test_dt:Time) < Informat("7/1/2010", "m/d/y") )
+           *  ( Col Minimum(test_dt:Time) > Informat("1/1/2010", "m/d/y") ) ;
+chk2 = (Year(Col Maximum(test_dt:Time) ) != 1904);
+
+Show( chk1, chk2);  // both fail
+
+
+//--------a tough problem occurs when a Column called datetime is data type Character
+//Create a Date column that is character for testing purposes
+
+test_dt <<New Column("Datetime2", Character);
+test_dt:DateTime2 << set each value( Format(test_dt:Datetime, "Monddyyyy h:m:s"));
+
+test_dt << Bring Window to Front;
+Caption( "Datetime2 is character..will be changed to a numeric datetime");
+wait(3);
+//The trick is to change that column or create another column and test if Year is 1904 etc
+test_dt:Datetime2 << {data type( "Numeric"), Modeling Type("Continuous"),
+	Format("m/d/y h:m:s")
+};
+Caption(Remove);
+
+//There are regular expressions that are 300+ characters long to test for a 
+//specific date format, but JMP handles this well with its date functions as long as you do not
+//expect dates prior to 1904.
+
+//-----------------------------------------------------------------------
+
+//JMP is able to handle the situation where you concatenate or join two columns with a  
+//date or time or datetime format that are different, since JMP stores the date as an internal number.
+//The resulting file will have a datetime value that may need to be formatted.
+
+test2_dt = New Table( "Test Table #2",
+	Add Rows( 2 ),
+	New Column( "Datetime",
+		Numeric,
+		Continuous,
+		Format("yyyy-mm-ddThh:mm:ss"),
+		Set Values( [3356788637, 3358343420] )
+    )
+);
+
+test_dt:DateTime << format("Best");
+current data table(test_dt);
+
+test_dt << Concatenate( test2_dt, output table name("No format") );
+
+test_dt:DateTime << format("m/d/y h:m:s");
+current data table(test_dt);
+test_dt << Concatenate( test2_dt, output table name("format") );
+
+
+//-------------------------------------------------------------------------
+//To demonstrate the power of JMP, a table with a text column that has many different 
+//datetime formats is created. There is an option to create a new column that 
+//uses the function Parse Date, or merely, convert that column to numeric, continuous
+//and set the date format you desire.
+
+//--- Run line-by line and check the Log for results 
+xx = Parse Date("JUN162010 2:59:13");
+If ( Try(xx = Parse Date("JUN312010 2:59:13")); 1,
+  Throw("Not a valid date")  );
+
+//------#6: Create a data table with a Character column of different date time formats
+dtimeList={};
+InsertInto( dtimeList, "JUN162010 2:59:13");
+InsertInto( dtimeList, Format(AsDate(Today()), "yyyy-mm-ddThh:mm:ss"));
+InsertInto( dtimeList,Format(AsDate(Today() - 3*34*60), "yyyy-mm-ddThh:mm"));
+InsertInto( dtimeList,Format(AsDate(Today() + 12*34*60), "yyyy-mm-ddThh:mm"));
+InsertInto( dtimeList, "12/01/2010");
+InsertInto( dtimeList, "01/12/2010");
+InsertInto( dtimeList, "30/12/2010 1:1:1");
+
+test3_dt = New Table ("Test Datetime", new Column("dummy", character));
+test3_dt << add rows( nitems(dtimelist));
+test3_dt:dummy << set values (dtimeList);
+//----run to here---------------------------------------------------------
+
+//----Look at the data table...create a new column using Parse Date function
+convCol = test3_dt << New Column( "Parsed dummy", Numeric, Continuous );
+convCol << set each value (Parse Date(:dummy));
+convCol << Format("monddyyyy h:m:s");
+
+//Also, even though the column has mixed formats, by converting to numeric, 
+//continuous and specifying a datetime format, JMP automatically parses the dates
+:dummy << {data type( "Numeric"), Modeling Type("Continuous")};
+:dummy << Format("m/d/y h:m:s");
+
+//A couple examples of functions to extract date parts
+show( Year(Parse Date("JUN162010 2:59:13")),
+	Day(Parse Date("30/12/2010 1:1:1")) );
+
+//----------------------Clean up Tables-------------------------
+Try( Close( Data Table("No format"), NoSave) ) ;
+Try( Close( Data Table("format"), NoSave) );
+Try( Close( test3_dt, NoSave) );
+Try( Close( test2_dt, NoSave) );
+Try( Close( test_dt, NoSave) );
+Try( Close(lj_dt, NoSave) );
+
+//The very powerful JMP Parse Date() function can handle a column of mixed
+//datetime formats and no leading zeros for values <10 are required!

@@ -1,0 +1,180 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_DialogsNewWindow.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for making dialogs with New Window.
+
+//Run the script in blocks of JSL statements (code) delimited by //--------
+Clear Globals();
+
+//-----------Create a simple UI dlg_usr with Dialog function------------------------
+sp = "  ";
+dlg_user = Dialog(
+   VList("Select options and click OK",
+	  V List( sp, "Normal Quantile Plot",
+       Lineup(2,
+	   cb1 = CheckBox("Plot Actual by Quantile",0), sp,
+	   cb2 = CheckBox("Plot Quantile by Actual",1), sp)
+      ), sp,
+      Hlist (Button("OK"), Button("Cancel"))
+));
+
+//-----------Create a simple UI win_usr with New Window function---------------------
+win_usr = New Window("New Window Dialog", <<Modal,
+       VListBox(
+       TextBox("Select Options and click OK"), 
+       SpacerBox(Size(0,15)),
+       TextBox("Normal Quantile Plot"),
+       SpacerBox(Size(0,5)),
+         cb1 = CheckBox({"Plot Actual by Quantile"}, <<set(1,0)),
+         cb2 = CheckBox({"Plot Quantile by Actual"}, <<set(1,1))
+       ), SpacerBox(Size(0,20)),
+       HListBox(SpacerBox(Size(60,1)),
+       ButtonBox("OK", 
+//          cb1 = cb1 <<Get(1); 
+//          cb2 = cb2 << Get(1)    	
+       ), //end HListBox
+       Button Box("Cancel"))
+);
+
+
+// Note: <<Get statements will be covered in a later section. Also note
+// if the "control", check box cb1, will no longer be needed, it is ok
+// to re-use the variable name and assign cb1 to be the result, the checked
+// status of the checkbox.  For a non-modal window use 2 variables references 
+// for each control, the display box reference (cb1) and the value (cb1_val)
+
+//-----------------------------------------------------------------------------------------
+//---------------Demo of CheckBox script argument--------------------------------------
+
+aVal = 0;  bVal = 1;  //initial values
+//function used i Checkbox scripts
+setit = Function({cbVal, nme}, {Default Local},
+	cbVal = !(cbVal);  //!0 --> 1 and !1 --> 0	
+	msg = If(cbVal, " is selected",  " is not selected");
+	msg = nme || msg;
+    Caption( msg );
+    cbVal
+);
+
+// Dialog with attached scripts at each checkbox and button
+win_test = New Window("Test Attached Script", <<Modal,
+       VListBox(
+       TextBox("Select Options on/off then click OK"), 
+       SpacerBox(Size(0,15)),
+        a_cb = CheckBox({"Check A"}, <<set(1,aVal), 
+            aVal = setit(aVal, "A")  ),
+        b_cb = CheckBox({"No Check Me, B"}, <<set(1,bVal),
+        	 bVal =setit(bVal, "B")
+        )
+       ), SpacerBox(Size(0,20)),
+       HListBox(SpacerBox(Size(60,1)),
+       ButtonBox("OK", rslt = 10*aVal + bVal;
+         msg = Match(rslt, 0 ,"Neither A nor B is selected",
+         	10, "Only A is selecetd",
+         	1, "Only B is selected",
+         	11, "Both A & B are selected"
+         );
+         msg = msg ||". Good-bye!";
+         Caption (msg); wait(3); Caption(remove)
+       ), //end HListBox
+       Button Box("Cancel",Caption (Remove))
+      )
+);
+
+//-----------------------------------------------------------------------------------------
+
+//-----------Create UI dlg2_usr with Dialog function------------------------
+mkspace = Repeat(" ",10);
+dlg_user = Dialog(
+   VList("Select options and click OK",
+	  Lineup(3,
+	  V List(
+	   scb1=CheckBox("Quantiles",1),
+	   scb2=CheckBox("Means and Std Dev",1),
+	   scb3=CheckBox("t Test",0),
+       " ",
+       "Normal Quantile Plot",
+	   ncb1=CheckBox("Plot Actual by Quantile",0),
+	   ncb2=CheckBox("Plot Quantile by Actual",1),
+	   ncb3=CheckBox("Line of Fit",0),
+	   ncb4=CheckBox("CDF Plot",0),
+	  ),  //end of V List 1st lineup item
+	  mkspace,    //2nd lineup item
+      VList("Display Options",
+	   dcb1 = CheckBox("All Graphs",1),
+	   dcb2 = CheckBox("Points",1),
+	   dcb3 = CheckBox("Box Plots",1),
+	   dcb4 = CheckBox("Grand Mean",1),
+	   dcb5 = CheckBox("Std Dev Lines",0),
+	   dcb6 = CheckBox("X Axis Proportional",0),
+	   dcb7 = CheckBox("Points Spread",0),
+	   dcb8 = CheckBox("Points Jittered",1),
+      )
+	  ),
+	  mkspace,
+	  Hlist (Button("OK"), Button("Cancel"))
+));
+//-----------------------------------------------------------------------------------------
+
+//-----------Create win_usr with New Window function------------------------
+//--This is the explicit brute force method 
+//Create variables to preload and track changes  - this can be done with functions/expressions
+//
+sck1set = 1; sck2set =1; sck3set =0;
+nck1set = 0; nck2set =1; nck3set =0; nck4set =0;
+dck1set = 1; dck2set =1; dck3set =1; dck4set =1;
+dck5set = 0; dck6set =0; dck7set =0; dck8set =1;
+
+win2_usr = New Window("New Window Dialog", <<Modal,
+       VListBox(
+       TextBox("Select Options and click OK"), 
+       SpacerBox(Size(0,15)),
+  LineupBox(ncol(3), 
+	VlistBox(
+	   sck1=CheckBox("Quantiles", <<Set(1,sck1set), sck1set= sck1<<get(1) ),
+	   sck2=CheckBox("Means and Std Dev", <<Set(1,sck2set), sck2set= sck2<<get(1) ),
+	   sck3=CheckBox("t Test", <<Set(1,sck3set), sck2set= sck2<<get(1) ),
+	   TextBox("  "),
+	   TextBox("Normal Quantile Plot"),
+	   nck1=CheckBox("Plot Actual by Quantile",  <<Set(1,nck1set), nck1set= nck1<<get(1) ),
+	   nck2=CheckBox("Plot Quantile by Actual",  <<Set(1,nck2set), nck2set= nck2<<get(1)  ),
+	   nck3=CheckBox("Line of Fit",  <<Set(1,nck3set), nck3set= nck3<<get(1)  ),
+	   nck4=CheckBox("CDF Plot",  <<Set(1,nck4set), nck4set= nck4<<get(1)  ),
+	),
+	SpacerBox( Size(20,0)),
+	VlistBox(
+	   TextBox("Display Options"),
+	   dck1 = CheckBox("All Graphs", <<Set(1,dck1set), dck1set= dck1<<get(1)  ),
+	   dck2 = CheckBox("Points", <<Set(1,dck2set), dck2set= dck2<<get(1)   ),
+	   dck3 = CheckBox("Box Plots", <<Set(1,dck3set), dck3set= dck3<<get(1)   ),
+	   dck4 = CheckBox("Grand Mean", <<Set(1,dck4set), dck4set= dck4<<get(1)   ),
+	   dck5 = CheckBox("Std Dev Lines", <<Set(1,dck5set), dck5set= dck5<<get(1)   ),
+	   dck6 = CheckBox("X Axis Proportional",  <<Set(1,dck6set), dck6set= dck6<<get(1)   ),
+	   dck7 = CheckBox("Points Spread", <<Set(1,dck7set), dck7set= dck7<<get(1)   ),
+	   dck8 = CheckBox("Points Jittered", <<Set(1,dck8set), dck8set= dck8<<get(1)   ),
+	)
+  ),  // end LineUpBox
+  SpacerBox(Size(0,20)),
+  HListBox(SpacerBox(Size(150,0)), 
+   ButtonBox("OK"), 
+   ButtonBox("Cancel"))
+));
+show("Stats", sck1set, sck2set, sck3set);
+show("nProb", nck1set, nck2set, nck3set, nck4set);
+Show("Display", dck1set, dck2set, dck3set, dck4set, dck5set,  dck6set, dck7set, dck8set);
+
+//--Okay hopefully you see a pattern, there needs to be a reference for each control
+//--and a reference for each resulting value
+
+/*
+The functionally identical multiple checkbox interface was created using the modal 
+Dialog()function and using New Window.  The advantage of New Window is the ability 
+to make it nonmodal, to add other display features (for example an IfBox to call 
+up help) and more.
+
+To see yet another more modular style of scripting, open and run the script 
+7_Extra_Modular_MutipleCheckBox.jsl. It demonstrates defining functions and expressions 
+that use global lists or associative arrays.  An entirely different checkbox dialog 
+window can be created simply by specifying different lists (or associative arrays) 
+for the check box names and checkbox settings.
+*/

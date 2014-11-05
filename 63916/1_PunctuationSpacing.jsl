@@ -1,0 +1,48 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	1_PunctuationSpacing.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates some JMP rules for punctuation and spacing 
+
+
+Clear Globals();
+
+// Curly brackets {} make a list, commas separate elements of the list, and
+// a semicolon glues this line to the next.
+thislist = {3, 7, 31};
+thatlist = {"Oregon", "Arizona", "New Mexico"};
+
+// Square brackets [] make a matrix, spaces separate the columns of the matrix, and
+// commas separate the rows.
+thismatrix = [1 2 3, 4 5 6, 7 8 9];
+
+// The iterative For() statement uses parentheses and commas to great effect...
+For( i = 1, i < 10, i++,
+	Show( i, Factorial( i ) )
+);
+
+// These two statement evaluate identically.
+Show( thatlist );
+Show( that list );
+
+// Using an escape sequence
+Caption( "\!"Rescue me!\!"" );
+
+// This statement below returns [3] in the Log since "New Mexico" is the third element
+// in the list...
+Loc( thatlist, "New Mexico" );
+
+// This statement below returns [] in the Log since "NewMexico" is not
+// in the list...the spaces in the string matter!
+Loc( thatlist, "NewMexico" );
+
+// This statement below returns 3 in the Log since "New Mexico" is the third element
+// in the list...
+Contains( thatlist, "New Mexico" );
+
+// This statement below returns 0 in the Log since "NewMexico" is not
+// in the list...the spaces in the string matter!
+Contains( thatlist, "NewMexico" );
+
+//Loc returns row matrix of all locations where the search item is found
+//Contains returns the numerc location of its first occurrence
+Show( Loc( {0, 0, 0, 1, 0, 1}, 1 ), Contains( {0, 0, 0, 1, 0, 1}, 1 ) );

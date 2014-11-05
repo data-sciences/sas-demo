@@ -1,0 +1,92 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	7_Extra_InteractivePopupTrendrulesTest.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates methods and syntax for generating an interactive dialog.
+
+// Run the entire script. Select individual rules.  Use the pull down to select
+// all or unselect all and to apply to all parameters or to selected parameters.
+// This is an example of building a component of a display and testing, then later
+// integrating it into the fill script.
+
+//Use expressions and a fixed list of names to create a Trend Rule display.
+Local( {i, tmpExpr},
+//Use tr as an associative array
+tr=[=>0];  //Initialize values to be 0 (unchecked)
+wrName ={ "Rule 1 2S", "Rule 1 3S","Rule 2 2S","Rule R 4S","Rule 4 1S",
+           "Rule 10 X" };
+trName={}; 
+for(i=1, i<=8, i++, InsertInto(trName, "Test " || Char(i)));
+for(i=1, i<=nItems(wrName), i++, InsertInto(trName, wrName[i]));
+
+trDescr = {	"One point beyond Zone A",
+		"Nine points in a row in a single (upper or lower) side of Zone C or beyond",
+		"Six points in a row steadily increasing or decreasing",
+		"Fourteen points in a row alternating up and down",
+		"Two out of three points in a row in Zone A or beyond",
+		"Four out of five points in Zone B or beyond",
+		"Fifteen points in a row in Zone C, above and below the center line",
+		"Eight points in a row on both sides of the center line with none in Zones C",
+		"One point beyond 2 sigma",
+		"One point beyond 3 sigma",
+		"Two points beyond 2 sigma",
+		"One point of four exceeds -2 sigma, while another exceeds +2 sigma",
+		"Four points in a row on the same side of the mean beyond 1 sigma",
+		"Ten points in a row on one side of the mean",
+		"One point beyond the control limits"
+};
+ruleExpr=Expr(LineUpBox(ncol(2), Spacing(8,2)));
+trExpr = Expr(tb=CheckBox(trName[_xx], tr[_xx]=(tb<<get)));
+tdExpr = Expr(TextBox(trDescr[_xx], <<Set Wrap(400)));
+for(i=1, i<=14, i++,
+  tmpExpr=Substitute(NameExpr(trExpr), Expr(_xx), i, Expr(tb), Parse("tb"||Char(i)));
+  insert into (ruleExpr, NameExpr(tmpExpr));
+  tmpExpr=Substitute(NameExpr(tdExpr), Expr(_xx), i);
+  insert into (ruleExpr, NameExpr(tmpExpr)); 	
+);  // end For
+);  // end Local
+
+//Create a function to select or unselect all.
+//Since the script attached to the check box does not run unless the user checkes it,
+//tr[] must be assigned/initialized to have a default value.
+SelAllOpt = Function({opt},{Default Local}, 
+    for(i=1, i<=14, i++,
+	tmpExpr = Substitute(Name Expr(_xx<<set(1,k);tr[i]=k), 
+	     Expr(_xx), Parse("tb" ||char(i)),
+	     Expr(k), opt);
+	tmpExpr
+));
+
+//--tr is a global vector of 0|1 representing the check box settings.
+//--trName and trDescr are globals, when apply is selected a list of 
+//--trnames will be created and C(urrent) or A(ll) will be used by the 
+//--display when integrated with the control chart script. 
+//--For this script, the action will be display a caption of the options.
+ApplyRules = Function({opt},{Default Local},
+	rList = {};
+	For(i=1, i<=14, i++, if (tr[i], insertInto(rList, Parse(trName[i]))));
+	if(opt==1, str="Current", str="ALL");
+	_7xx= New Window("Rules Selected", 
+	  Text Box( str),
+	  globalBox(rList)
+  );  // end New Window
+  wait(3);
+  _7xx << Close Window();	//clean up the captions
+);
+
+tRule=New Window("Trend rules",
+ BB=PanelBox("Select and Apply Trend Rules",
+    HListBox( pub=PopUpBox({"Select All",  SelAllOpt(1),
+         "Unselect All", SelAllOpt(0),
+         "Apply to current Parameter", ApplyRules(1),
+         "Apply to All Parameters", ApplyRules(2) }), ruleExpr;)) );
+
+
+/* Notes:
+  This script is using simple names for readability. It is lacking strong names and
+  scoping. 
+  
+  When building an application, we recommend you use an application specific 
+  Namespace or use one of the JMP built-in namespaces, Window or Here to 
+  avoid name collisions with other scripts that may be active.
+  See Chapter 9 to learn more about namespaces.
+*/

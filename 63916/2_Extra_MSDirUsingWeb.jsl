@@ -1,0 +1,253 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Extra_MSDirUsingWeb.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates using the Web()function to run a DOS bat (command) file
+
+
+/*===================================================================================
+The Web( ) function is a Windows only function.  
+Its syntax, Web(“path”, <JMP Window>), is documented as a command to 
+open a web site specified by the “path”  with the option to open in a 
+JMP window, that then can be controlled by JSL. The <JMP Window> option
+is not required for JMP9.
+ 
+This can be useful to create custom help in HTML or linking to important 
+information needed at a particular step in the program.   
+
+It also functions as a way to execute programs and 
+commands external to JMP.  When executing programs, it does not return a status and 
+it is not modal so programmatically it is weak. 
+
+However, its use as an external program to run commands (like the SAS "X" command)
+is so popular among our scripters, who do not know how to write DLLs,
+that a simple example is provided below...nonetheless, “buyer beware”.
+
+Note : Open() will also run executable files, that is, .exe, .bat, .xls, .doc, etc. 
+===================================================================================*/
+
+/* DOS DIR Documentation
+
+// While testing, the option /B (bare) strips more than heading and summary 
+// information.  It also does not produce dates in XP.
+// This may be fixed in later versions of Windows.  This means some extra 
+// parsing is required when none should be required.
+
+
+DIR [drive:][path][filename] [/A[[:]attributes]] [/B] [/C] [/D] [/L] [/N]
+  [/O[[:]sortorder]] [/P] [/Q] [/S] [/T[[:]timefield]] [/W] [/X] [/4]
+
+  [drive:][path][filename]
+              Specifies drive, directory, and/or files to list.
+
+  /A          Displays files with specified attributes.
+  attributes   D  Directories                R  Read-only files
+               H  Hidden files               A  Files ready for archiving
+               S  System files               -  Prefix meaning not
+  /B          Uses bare format (no heading information or summary).
+  /C          Display the thousand separator in file sizes.  This is the
+              default.  Use /-C to disable display of separator.
+  /D          Same as wide but files are list sorted by column.
+  /L          Uses lowercase.
+  /N          New long list format where filenames are on the far right.
+  /O          List by files in sorted order.
+  sortorder    N  By name (alphabetic)       S  By size (smallest first)
+               E  By extension (alphabetic)  D  By date/time (oldest first)
+               G  Group directories first    -  Prefix to reverse order
+  /P          Pauses after each screenful of information.
+  /Q          Display the owner of the file.
+  /S          Displays files in specified directory and all subdirectories.
+  /T          Controls which time field displayed or used for sorting
+  timefield   C  Creation
+              A  Last Access
+              W  Last Written
+  /W          Uses wide list format.
+  /X          This displays the short names generated for non-8dot3 file
+              names.  The format is that of /N with the short name inserted
+              before the long name. If no short name is present, blanks are
+              displayed in its place.
+  /4          Displays four-digit years
+
+Switches may be preset in the DIRCMD environment variable.  Override
+preset switches by prefixing any switch with - (hyphen)--for example, /-W.
+*/
+
+// cmd_dir is the command to get a listing of JMP sample data 
+// c:\temp\jmpDir.bat is the command file to run
+// c:\temp\dirOut.txt is the file of results from the dir command
+
+batFid = "c:\temp\jmpDir.bat";
+outDir = "c:\temp\dirOut.txt";
+
+// Get the full path for JMP Sample Data
+jmpDir = Convert File Path( "$Sample_Data", Windows );
+Show( jmpDir );
+
+// Build the DOS "dir" command
+cmd_txt ="\[dir /-C /T:C /S "]\"  
+ || jmpDir 
+ || "\[*.J*" > ]\"
+ || outDir;
+
+// Save to a file with a .bat extension.  Windows interprets .bat files 
+// the same as the Run (run command) window on the Start Button
+Save Text File( batFid, cmd_txt );
+
+// Windows interprets this "open" path file as "run"
+t0 = Today();
+Web( batFid );
+
+Wait( 1 );  
+// Wait a second for Windows to complete, maybe more if a huge directory. 
+// Note the wait is the only control you have and then look to see if the file exists.
+
+// Show results
+// A couple of "checks" that you may employ here if it does not exist or if it is older than expected
+If( !File Exists( outDir ) | (Creation Date( outDir ) - t0 > 10),
+	Caption( "There was a problem with the dir command, it did not run. Aborting..." );
+	Wait( 4 );
+	Caption( Remove );
+	Throw();
+);
+
+// Open the results file
+dir_dt = Open(
+	outDir,
+	columns( Name( "Dir results" ) = Character ),
+	Import Settings(
+		End Of Line( CRLF ),
+		End Of Field( CRLF ),  // ensures only 1 column
+		Strip Quotes( 1 ),
+		Use Apostrophe as Quotation Mark( 1 ),
+		Scan Whole File( 1 ),
+		Treat empty columns as numeric( 0 ),
+		Labels( 0 ),
+		Data Starts( 1 ),
+		Lines To Read( All ),
+		Year Rule( "10-90" )
+	)
+);
+
+// Clean up: The table is messy due to /B not working on OS.
+// Past verions of /B put in full path and dates.
+// delete empty rows
+idx = dir_dt << Get Rows Where( :Dir results == "" );
+dir_dt << delete rows( idx ); 
+
+// delete summary rows
+idx = dir_dt << Get Rows Where( Contains( :Dir results, "bytes" ) );
+dir_dt << delete rows( idx ); 
+
+// delete "Total"  and "Volume"" rows
+idx = dir_dt << Get Rows Where( Contains( :Dir results, "Total" ) );
+dir_dt << delete rows( idx ); 
+
+idx = dir_dt << Get Rows Where( Contains( :Dir results, "Volume" ) );
+dir_dt << delete rows( idx ); 
+
+// get rows that contain directory info
+idx = dir_dt << Get Rows Where( Contains( :Dir results, "Directory" ) );
+for ( i=1, i<= nrow(idx), i++,
+	:Dir results[idx[i]] = Trim ( Munger(:Dir results[idx[i]], 1,
+		"Directory of ", ""))
+);
+
+jmpDir = Substr( jmpDir, 1, Length( jmpDir ) - 1 );
+dir_dt << New Column( "Sub Path", Character );
+For( i = 1, i <= N Row( idx ), i++,
+	tmpStr = Trim(
+		Munger( :Dir results[idx[i]], 1, jmpDir, "" )
+	);
+	ibeg = idx[i] + 1;
+	If( i < N Row( idx ),
+		iend = idx[i + 1] - 1,
+		iend = N Row( dir_dt )
+	);
+	If(
+		Length( tmpStr ) > 0 & Substr( tmpStr, 1, 1 ) ==
+		"\",
+		tmpStr = Substr( tmpStr, 2, Length( tmpStr ) - 1 )
+	);
+	:Sub Path[ibeg :: iend] = tmpStr;
+);
+
+// delete directory rows
+dir_dt << delete rows( idx );
+
+// get file name
+fid = dir_dt << New Column( "File Name", Character );
+fid << set each value(
+	Trim(
+		Substr(
+			:Dir results,
+			21,
+			Length( :Dir results ) - 20
+		)
+	)
+);
+For( i = 1, i <= N Row( dir_dt ), i++,
+	fid[i] = Trim(
+		Substr(
+			fid[i],
+			Contains( fid[i], " " ),
+			Length( fid[i] )
+		)
+	)
+);
+
+// Note: this could have all been done in memory, a table was used for visibility
+// Allow the user to select multiple files to open
+// ===============================================================================
+// The script below uses skills that extend into Chapter 7, user created dialogs.
+// It is "brute" force, not so elegant, on purpose.  It is presented here
+// here as a concept since Chapter 2 discussed prompting the user for file selection.
+// A pull down with filter criteria, like sub folder, or date, could be an enhancement. 
+
+Clear Globals( Chosen Columns, Chosen IDX );
+cancelExpr = Expr( nw << Close Window );
+
+fidNameList = Column( dir_dt, "File Name" ) << get values;
+
+nw = New Window( "Get Items Demonstration",
+	H List Box(
+		chooseme = List Box( fidNameList, width( 250 ), nlines( 20 ) ),
+		Panel Box( "Action",
+			Lineup Box( N Col( 1 ), Spacing( 3 ),
+				Button Box( "Add File >>",
+					listofids << Append( chooseme << GetSelected );
+// Send Get Items to a Col List Box
+					Chosen Files = listofids << GetItems;
+					chooseme << Clear selection;
+				),  // end add button 
+				Button Box( "<< Remove File",
+					listofids << Remove Selected;
+// Send Get Items to a Col List Box
+					Chosen Files = listofids << GetItems;
+				),  // end remove button
+				Text Box( "" ),
+				Text Box( "" ),
+				Button Box( "Open",
+					Eval( cancelExpr );      //close dialog box
+					Local( {i, k},           //open each file selected
+						For( i = 1, i <= N Items( Chosen Files ), i++,
+							k = Contains( fidNameList, Chosen Files[i] );
+							If( k > 0,
+								tmpStr = dir_dt:Sub Path[k];
+								If( tmpStr == "",
+									tmpStr = "\"
+								);
+								Open( jmpDir || tmpStr || Chosen Files[i] );
+							);
+						)
+					);
+				),
+				Button Box( "Cancel", Eval( cancelExpr ) )
+			)
+		), 
+// listofids is a List Box
+		listofids = List Box( {}, width( 250 ), nlines( 20 ) ), 
+
+	),    // end HListBox
+	Text Box( " " ), 
+// Show what Get Items returns
+);
+

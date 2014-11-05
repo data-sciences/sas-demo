@@ -1,0 +1,49 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	2_Extra_ZipFiles.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates how to save JMP files in a Zip file and read ZipArchives
+
+
+// load in 2 JMP files as a binary large object, blob
+
+b = Load Text File( "$SAMPLE_DATA/Big Class.jmp", blob );
+c = Load Text File( "$SAMPLE_DATA/Companies.jmp", blob );
+
+// Before proceeding, review the documentation Help-> Object Scripting -> ZipArchive
+// Review: Read, Write and Dir commands
+ 
+// Create an empty zip.  This will write over a pre-existing zip file, if any.
+Save Text File( "$JSL_Companion\deleteMe.zip", "  " );  //save an empty string to the zip file
+
+// za is the reference to an empty ZipArchive
+za = Open( "$JSL_Companion\deleteMe.zip", zip );
+
+dirlist = za << dir;
+Show( dirlist ); //will be empty
+
+// Your system may prompt if you want to continue or cancel, select continue 
+za << Write( "big class.jmp", b ); // This works for 9.0.1 and later, did not work in JMP 9.0   
+za << Write( "companies.jmp", c ); 
+
+// Here is the workaround for the above bug: force the 2nd argument to be a blob, not a variable holding a blob.
+// eval(substitute(expr(za <<Write(  "big class.jmp",  b)),expr(b),b));
+// eval(substitute(expr(za <<Write(  "companies.jmp",  c)),expr(c),c));
+// all is good in 9.0.1+
+
+dirlist = za << dir;
+Show( dirlist ); //will have 2 items
+
+b2 = za << read( dirlist[1], Format( blob ) ); // read first member of zip file
+// Open binary data as a jmp table.
+dt1 = Open( b2, jmp );
+dt1 << set name( "Reconstituted Big Class" );
+Wait( 2 ); //wait added for emphasis and ensure I/O is complete...wait(0)should suffice 
+
+c2 = za << read( dirlist[2], Format( blob ) ); // read second member of zip file
+dt2 = Open( c2, jmp );
+dt2 << set name( "Reconstituted Companies" );
+
+//Notes:
+//  All table properties, attached scripts, and data have been restored
+//  by adding the extension. You may open the zip outside of JMP
+//  double click on a file and the system will know what to do with the extension.

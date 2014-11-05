@@ -1,0 +1,45 @@
+CHAPTER 7: Characterizing Linear Relationships Between Two Variables
+
+In this section you will find 10 files that contain the JMP data tables and statistical computations or analyses that are used in this chapter. Each file name begins with the acronym AICDUJ, which stands for 'Analyzing and Interpreting Continuous Data Using JMP', followed by 'Chapter 7' and the name of the data or statistical techniques illustrated in the book. The file names and their content are provided below.  
+
+1. AICDUJ-Chapter 7 Figure 7.1.JMP
+
+This file contains the data and script needed to produce the plot shown in Figure 7.1 in Section 7.3 "Overview of Simple Linear Regression".  
+
+2. AICDUJ-Chapter 7 Einstein's Data.JMP
+
+This file includes a JMP table with data from Einstein's first published paper. There are 11 JMP scripts in this table that produce Figures 7.3, 7.4, 7.5, 7.6, 7.7, 7.8, 7.9, 7.11, 7.12, 7.14a, 7.14b, 7.14c, and 7.17 discussed in Section 7.3 "Overview of Simple Linear Regression".     
+
+3. AICDUJ-Chapter 7 Figure 7.10.JMP
+
+This file contains the data and script needed to produce the plot shown in Figure 7.10 in Section 7.3 "Overview of Simple Linear Regression".
+
+4. AICDUJ-Chapter 7 Figure 7.15b.JMP
+
+This file contains the data and script needed to produce the plot shown in Figure 7.15b in Section 7.3 "Overview of Simple Linear Regression"
+
+5. AICDUJ-Chapter 7 Figure 7.16.JMP
+
+This file contains the data and script needed to produce the plot shown in Figure 7.16 in Section 7.3 "Overview of Simple Linear Regression"
+
+6. AICDUJ-Chapter 7 Figure 7.20(CV vs df).JMP
+
+This file contains the data and script needed to produce the plot shown in Figure 7.20 in Section 7.3 "Overview of Simple Linear Regression"
+
+7. AICDUJ-Chapter 7 Figure 7.22.JMP
+
+This file contains the data and script needed to produce the plot shown in Figure 7.22 in Section 7.3 "Overview of Simple Linear Regression"
+
+8. AICDUJ-Chapter 7 Load-Deflection Study.JMP
+
+The data for the Calibration case study is provided in this file, which is shown in Section 7.4 "Step-by-Step JMP Analysis Instructions". There are 12 JMP scripts in this file. The first script produces Figure 7.27 shown in Step 4 of the step-by-step instructions. The remaining scripts create Figures 7.28, 7.29, 7.31, 7.33, 7.35, 7.36a, 7.36b, 7.36c, 7.37a, 7.37b, 7.38, and 7.44 in Step 5 of the instructions.    
+
+9. AICDUJ-Chapter 7 Calibration Curve.JMP
+
+This file contains the two solutions for the polynomial model for the inverse predictions for the Calibration case study. The 3 scripts produce the plots shown in Figure 7.45 and 7.46. 
+
+10. AICDUJ-Chapter 7 Einstein's Data (MLR).JMP
+
+This file includes the data from Einstein's first published paper along with some residual diagnostics. The 3 scripts in the table reproduce Figures 7.48, 7.49, and 7.50 in Section 7.5 "Einstein's Data: The Rest of the Story".  
+
+

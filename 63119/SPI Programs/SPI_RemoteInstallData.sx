@@ -1,0 +1,30 @@
+/* Program to install SAS data sets into a user-defined library named "SPI." 
+   
+   These data sets are associated with the book
+     Wicklin, R. (2010),
+     Statistical Programming with SAS/IML Software,
+     Cary, NC: SAS Press.
+     
+   This program assumes that you have already completed the following
+   steps as described in the file README_How_To_Install.txt:
+   1. Put the Zip file in the SAS/IML Studio "Personal Files Directory" (PFD).
+   2. Extracted the contents of the Zip file into the PFD.
+   3. Determined that SAS/IML Studio is comnnected to a remote SAS Workspace Server.
+   
+   The program also assumes that your site administrator has used the 
+   SAS Management Console to set up a data library named "SPI" on the remote server.
+  */
+  
+
+/* Copy certain data sets into the SPI library. */
+DSName = {"Birthdays2002" "Movies" "Vehicles"};
+
+declare DataObject dobj;
+
+do j = 1 to ncol(DSName);
+   dobj = DataObject.CreateFromFile( DSName[j] );
+   dobj.WriteToServerDataSet("SPI", DSName[j]);   
+   print (DSName[j]) "saved to SPI";
+end;
+
+print "DONE";

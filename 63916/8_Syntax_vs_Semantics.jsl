@@ -1,0 +1,72 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_Syntax_vs_Semantics.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates two principles: 
+//          1) Once JMP displays an object in a window, a copy/paste or append
+//             results in a cloned inactive (journal-like)copy of the object
+//          2) The context of a command, depends on the conditions, how, when
+//             where it is applied.
+
+
+dt=Open("$Sample_Data\iris.jmp");
+
+
+//---------------#1
+//Identical syntax produces different results
+//Semantics - when or how you use the syntax dictates its behavior
+
+nw= New Window("Syntax vs. Sematics",
+ ob = OutlineBox("Active vs. Inactive",
+  lup = LineupBox(2))
+);  //end NewWindow
+
+vL = VListBox( 
+sp = Scatterplot Matrix(
+	Y( :Sepal length, 
+	   :Sepal width, 
+	   :Petal length, 
+	   :Petal width, 
+	   :Species ), Matrix Format( "Lower Triangular" ))
+);
+//---identical syntax
+//---different results – first display is active second is not
+//---semantics
+lup << append(vL);
+lup << append(vL);
+
+//Check the pull downs on both the left and right OutlineBox
+//The left Scatterplot Matrix is live/active.  The right is inactive. 
+//---------Run to here-------------------------------------------------------
+nw<<Close Window();
+
+
+//---------------#2----------------------------------------------------------
+nw2= New Window("Syntax vs. Sematics - Redux",
+ ob = Outline Box("Active and Active",
+  lup = LineUpBox(2))
+);  //end NewWindow
+
+vL1 = VListBox( 
+sp1 = Scatterplot Matrix(
+	Y( :Sepal length, :Sepal width, :Petal length, :Petal width, 
+	  :Species ), Matrix Format( "Lower Triangular" ))
+);
+vL2 = VListBox( 
+sp2 = Scatterplot Matrix(
+	Y( :Sepal length, :Sepal width, :Petal length, :Petal width, 
+	  :Species ), Matrix Format( "Lower Triangular" ))
+);
+
+//Two different addresses.  JMP can handle it, if you can!
+lup << append(vL1);
+lup << append(vL2);
+
+sp1 << Shaded Ellipses( 1 );
+sp2 << Group By( :Species ) << Shaded Ellipses( 1 );
+
+//Check the pull downs on both the left and right OutlineBox.
+//Select a group of points on one and see them highlighted in the other.
+//Both the left and right Scatterplot Matrix displays are live/active.
+
+// Knowing how JMP operates is important for complex 
+// scenarios especially for active displays.             

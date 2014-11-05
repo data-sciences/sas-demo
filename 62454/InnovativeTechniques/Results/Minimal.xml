@@ -1,0 +1,568 @@
+<?xml version="1.0" encoding="windows-1252"?>
+
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:x="urn:schemas-microsoft-com:office:excel"
+          xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+          xmlns:html="http://www.w3.org/TR/REC-html40">
+<DocumentProperties xmlns="urn:schemas-microsoft-com:office">
+<Author>Art</Author>
+<LastAuthor>Art</LastAuthor>
+<Created>2012-03-18T14:16:08</Created>
+<LastSaved>2012-03-18T14:16:08</LastSaved>
+<Company>SAS Institute Inc. http://www.sas.com</Company>
+<Version>9.03.01M0P06072011</Version>
+</DocumentProperties>
+<Styles>
+<Style ss:ID="_body">
+ <Interior ss:Pattern="Solid" />
+ <Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="_contents">
+ <Interior ss:Pattern="Solid" />
+ <Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="_pages">
+ <Interior ss:Pattern="Solid" />
+ <Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="table">
+<ss:Borders>
+<ss:Border ss:Position="Left" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Right" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Top" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Bottom" ss:Weight="1" ss:LineStyle="Continuous" />
+</ss:Borders>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="table__l" ss:Parent="table"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="table__r" ss:Parent="table"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="table__c" ss:Parent="table"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="batch">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="bycontentfolder">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="bylinecontainer">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="contentfolder">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="contentitem">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="contents">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="folderaction">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="graph">
+<ss:Borders>
+<ss:Border ss:Position="Left" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Right" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Top" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Bottom" ss:Weight="1" ss:LineStyle="Continuous" />
+</ss:Borders>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="indexaction">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="indexitem">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list10">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list2">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list3">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list4">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list5">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list6">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list7">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list8">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="list9">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="output">
+<ss:Borders>
+<ss:Border ss:Position="Left" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Right" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Top" ss:Weight="1" ss:LineStyle="Continuous" />
+<ss:Border ss:Position="Bottom" ss:Weight="1" ss:LineStyle="Continuous" />
+</ss:Borders>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="pages">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="pagesitem">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="paragraph">
+<Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="systitleandfootercontainer">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="systitleandfootercontainer__l" ss:Parent="systitleandfootercontainer"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systitleandfootercontainer__r" ss:Parent="systitleandfootercontainer"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systitleandfootercontainer__c" ss:Parent="systitleandfootercontainer"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="titleandnotecontainer" ss:Parent="_body">
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="titleandnotecontainer__l" ss:Parent="titleandnotecontainer"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="titleandnotecontainer__r" ss:Parent="titleandnotecontainer"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="titleandnotecontainer__c" ss:Parent="titleandnotecontainer"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="data" ss:Parent="table"/>
+<Style ss:ID="data__l" ss:Parent="data"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="data__r" ss:Parent="data"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="data__c" ss:Parent="data"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="header" ss:Parent="table"/>
+<Style ss:ID="header__l" ss:Parent="header"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="header__r" ss:Parent="header"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="header__c" ss:Parent="header"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="footer" ss:Parent="_body"/>
+<Style ss:ID="footer__l" ss:Parent="footer"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="footer__r" ss:Parent="footer"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="footer__c" ss:Parent="footer"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="rowheader" ss:Parent="table"/>
+<Style ss:ID="rowheader__l" ss:Parent="rowheader"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="rowheader__r" ss:Parent="rowheader"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="rowheader__c" ss:Parent="rowheader"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="byline" ss:Parent="_body"/>
+<Style ss:ID="byline__l" ss:Parent="byline"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="byline__r" ss:Parent="byline"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="byline__c" ss:Parent="byline"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter" ss:Parent="_body"/>
+<Style ss:ID="systemfooter__l" ss:Parent="systemfooter"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter__r" ss:Parent="systemfooter"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter__c" ss:Parent="systemfooter"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle" ss:Parent="_body"/>
+<Style ss:ID="systemtitle__l" ss:Parent="systemtitle"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle__r" ss:Parent="systemtitle"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle__c" ss:Parent="systemtitle"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter2" ss:Parent="_body"/>
+<Style ss:ID="systemfooter2__l" ss:Parent="systemfooter2"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter2__r" ss:Parent="systemfooter2"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter2__c" ss:Parent="systemfooter2"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle2" ss:Parent="_body"/>
+<Style ss:ID="systemtitle2__l" ss:Parent="systemtitle2"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle2__r" ss:Parent="systemtitle2"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle2__c" ss:Parent="systemtitle2"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter3" ss:Parent="_body"/>
+<Style ss:ID="systemfooter3__l" ss:Parent="systemfooter3"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter3__r" ss:Parent="systemfooter3"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter3__c" ss:Parent="systemfooter3"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle3" ss:Parent="_body"/>
+<Style ss:ID="systemtitle3__l" ss:Parent="systemtitle3"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle3__r" ss:Parent="systemtitle3"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle3__c" ss:Parent="systemtitle3"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter4" ss:Parent="_body"/>
+<Style ss:ID="systemfooter4__l" ss:Parent="systemfooter4"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter4__r" ss:Parent="systemfooter4"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter4__c" ss:Parent="systemfooter4"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle4" ss:Parent="_body"/>
+<Style ss:ID="systemtitle4__l" ss:Parent="systemtitle4"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle4__r" ss:Parent="systemtitle4"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle4__c" ss:Parent="systemtitle4"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter5" ss:Parent="_body"/>
+<Style ss:ID="systemfooter5__l" ss:Parent="systemfooter5"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter5__r" ss:Parent="systemfooter5"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter5__c" ss:Parent="systemfooter5"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle5" ss:Parent="_body"/>
+<Style ss:ID="systemtitle5__l" ss:Parent="systemtitle5"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle5__r" ss:Parent="systemtitle5"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle5__c" ss:Parent="systemtitle5"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter6" ss:Parent="_body"/>
+<Style ss:ID="systemfooter6__l" ss:Parent="systemfooter6"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter6__r" ss:Parent="systemfooter6"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter6__c" ss:Parent="systemfooter6"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle6" ss:Parent="_body"/>
+<Style ss:ID="systemtitle6__l" ss:Parent="systemtitle6"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle6__r" ss:Parent="systemtitle6"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle6__c" ss:Parent="systemtitle6"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter7" ss:Parent="_body"/>
+<Style ss:ID="systemfooter7__l" ss:Parent="systemfooter7"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter7__r" ss:Parent="systemfooter7"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter7__c" ss:Parent="systemfooter7"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle7" ss:Parent="_body"/>
+<Style ss:ID="systemtitle7__l" ss:Parent="systemtitle7"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle7__r" ss:Parent="systemtitle7"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle7__c" ss:Parent="systemtitle7"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter8" ss:Parent="_body"/>
+<Style ss:ID="systemfooter8__l" ss:Parent="systemfooter8"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter8__r" ss:Parent="systemfooter8"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter8__c" ss:Parent="systemfooter8"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle8" ss:Parent="_body"/>
+<Style ss:ID="systemtitle8__l" ss:Parent="systemtitle8"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle8__r" ss:Parent="systemtitle8"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle8__c" ss:Parent="systemtitle8"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter9" ss:Parent="_body"/>
+<Style ss:ID="systemfooter9__l" ss:Parent="systemfooter9"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter9__r" ss:Parent="systemfooter9"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter9__c" ss:Parent="systemfooter9"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle9" ss:Parent="_body"/>
+<Style ss:ID="systemtitle9__l" ss:Parent="systemtitle9"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle9__r" ss:Parent="systemtitle9"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle9__c" ss:Parent="systemtitle9"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemfooter10" ss:Parent="_body"/>
+<Style ss:ID="systemfooter10__l" ss:Parent="systemfooter10"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemfooter10__r" ss:Parent="systemfooter10"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemfooter10__c" ss:Parent="systemfooter10"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="systemtitle10" ss:Parent="_body"/>
+<Style ss:ID="systemtitle10__l" ss:Parent="systemtitle10"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="systemtitle10__r" ss:Parent="systemtitle10"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="systemtitle10__c" ss:Parent="systemtitle10"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="contentprocname"/>
+<Style ss:ID="dataemphasis" ss:Parent="table"/>
+<Style ss:ID="dataemphasis__l" ss:Parent="dataemphasis"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="dataemphasis__r" ss:Parent="dataemphasis"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="dataemphasis__c" ss:Parent="dataemphasis"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="headerempty" ss:Parent="table"/>
+<Style ss:ID="headerempty__l" ss:Parent="headerempty"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="headerempty__r" ss:Parent="headerempty"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="headerempty__c" ss:Parent="headerempty"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="dataempty" ss:Parent="table"/>
+<Style ss:ID="dataempty__l" ss:Parent="dataempty"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="dataempty__r" ss:Parent="dataempty"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="dataempty__c" ss:Parent="dataempty"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="notecontent" ss:Parent="_body"/>
+<Style ss:ID="notecontent__l" ss:Parent="notecontent"><Alignment ss:WrapText="1" ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="notecontent__r" ss:Parent="notecontent"><Alignment ss:WrapText="1" ss:Horizontal="Right"/>
+</Style>
+<Style ss:ID="notecontent__c" ss:Parent="notecontent"><Alignment ss:WrapText="1" ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="parskip" ss:Parent="_body">
+<Alignment/>
+<ss:Borders>
+<ss:Border ss:Position="Left" />
+<ss:Border ss:Position="Top" />
+<ss:Border ss:Position="Right" />
+<ss:Border ss:Position="Bottom" />
+</ss:Borders>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="pagebreak" ss:Parent="_body">
+<Alignment/>
+<ss:Borders>
+<ss:Border ss:Position="Left" />
+<ss:Border ss:Position="Top" />
+<ss:Border ss:Position="Right" />
+<ss:Border ss:Position="Bottom" />
+</ss:Borders>
+<Protection ss:Protected="1" />
+</Style>
+<Style ss:ID="datamissing_l" ss:Parent="data">
+<Alignment  ss:Horizontal="Left"/>
+</Style>
+<Style ss:ID="datamissing_c" ss:Parent="data">
+<Alignment  ss:Horizontal="Center"/>
+</Style>
+<Style ss:ID="datamissing_r" ss:Parent="data">
+<Alignment  ss:Horizontal="Right"/>
+</Style>
+</Styles>
+
+<Worksheet ss:Name="Minimal">
+<x:WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+<Print>
+<ValidPrinterInfo/>
+<PaperSizeIndex>1</PaperSizeIndex>
+<Scale>100</Scale>
+<FitWidth>1</FitWidth>
+<FitHeight>1</FitHeight>
+<HorizontalResolution>300</HorizontalResolution>
+<VerticalResolution>300</VerticalResolution>
+</Print>
+<Zoom>100</Zoom>
+<x:PageSetup>
+<x:Header />
+</x:PageSetup>
+</x:WorksheetOptions>
+<Table ss:StyleID="_body">
+<ss:Column ss:AutoFitWidth="1" ss:Width="72"/>
+<ss:Column ss:AutoFitWidth="1" ss:Width="27"/>
+<ss:Column ss:AutoFitWidth="1" ss:Width="36"/>
+<ss:Column ss:AutoFitWidth="1" ss:Width="54"/>
+<ss:Column ss:AutoFitWidth="1" ss:Width="54"/>
+<Row ss:Height="16" ss:StyleID="systemtitle__l"><Cell><Data ss:Type="String">11.2.3 Showing Style in Excel</Data></Cell></Row>
+<Row ss:Height="16" ss:StyleID="systemtitle2__l"><Cell><Data ss:Type="String">Using the Minimal Style</Data></Cell></Row>
+<Row ss:AutoFitHeight="0" ss:StyleID="_body" ss:Height="10">
+<Cell ss:StyleID="parskip"/>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="header__c" ss:Index="1"><Data ss:Type="String">Name</Data></Cell>
+<Cell ss:StyleID="header__c" ss:Index="2"><Data ss:Type="String">Sex</Data></Cell>
+<Cell ss:StyleID="header__c" ss:Index="3"><Data ss:Type="String">Age</Data></Cell>
+<Cell ss:StyleID="header__c" ss:Index="4"><Data ss:Type="String">Height</Data></Cell>
+<Cell ss:StyleID="header__c" ss:Index="5"><Data ss:Type="String">Weight</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Alfred</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">14.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">69.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">112.5</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Alice</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">13.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">56.5</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">84.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Barbara</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">13.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">65.3</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">98.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Carol</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">14.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">62.8</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">102.5</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Henry</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">14.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">63.5</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">102.5</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">James</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">12.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">57.3</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">83.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Jane</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">12.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">59.8</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">84.5</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Janet</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">15.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">62.5</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">112.5</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Jeffrey</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">13.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">62.5</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">84.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">John</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">12.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">59.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">99.5</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Joyce</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">11.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">51.3</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">50.5</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Judy</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">14.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">64.3</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">90.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Louise</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">12.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">56.3</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">77.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Mary</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">F</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">15.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">66.5</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">112.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Philip</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">16.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">72.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">150.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Robert</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">12.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">64.8</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">128.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Ronald</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">15.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">67.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">133.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">Thomas</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">11.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">57.5</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">85.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="data__l" ss:Index="1"><Data ss:Type="String">William</Data></Cell>
+<Cell ss:StyleID="data__l" ss:Index="2"><Data ss:Type="String">M</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="3"><Data ss:Type="Number">15.0</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="4"><Data ss:Type="Number">66.5</Data></Cell>
+<Cell ss:StyleID="data__r" ss:Index="5"><Data ss:Type="Number">112.0</Data></Cell>
+</Row>
+<Row ss:AutoFitHeight="1" ss:Height="18">
+<Cell ss:StyleID="dataemphasis__l" ss:Index="1"><Data ss:Type="String"></Data></Cell>
+<Cell ss:StyleID="dataemphasis__l" ss:Index="2"><Data ss:Type="String"></Data></Cell>
+<Cell ss:StyleID="dataemphasis__r" ss:Index="3"><Data ss:Type="Number">13.3</Data></Cell>
+<Cell ss:StyleID="dataemphasis__r" ss:Index="4"><Data ss:Type="Number">62.3</Data></Cell>
+<Cell ss:StyleID="dataemphasis__r" ss:Index="5"><Data ss:Type="Number">100.0</Data></Cell>
+</Row>
+</Table>
+</Worksheet>
+</Workbook>

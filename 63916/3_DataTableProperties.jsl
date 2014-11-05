@@ -1,0 +1,26 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_DataTableProperties.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates deleting, setting, and using table properties
+
+
+//Reference data table
+//rawmat_dt = Open("$JSL_Companion\RawMaterialPrices.jmp" );
+rawmat_dt = Data Table( "RawMaterialPrices" );
+
+//Delete the table variable in order to update the latest date
+rawmat_dt << Delete Table Variable( "Last Update" );
+
+//Find most recent date in table and add to table variable
+last_update = Col Maximum( Column( rawmat_dt, "Date" ) );
+rawmat_dt << Set Table Variable(
+	"Last Update",
+	"This table was last updated " || Format( last_update, "m/y" )
+);
+
+//Run Overlay Plot script that is attached to the data table
+rawmat_trend = rawmat_dt << Get Property( "Overlay Plot" );
+rawmat_trend;
+
+//Alternately to run a script attached to a table is dt << Run Script ("name" )
+rawmat_dt << Run Script ("Overlay Plot");

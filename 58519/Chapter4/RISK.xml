@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace>
+<NODES>
+<NODE COMPONENT="DataSource" X="51.0" Y="228.0" DESCRIPTION="Lossdata3" ID="$1">
+<PROPERTIES DataSource="LOSSDATA" Scope="LOCAL" Role="RAW" Library="THEBOOK" Table="LOSSDATA3" NCols="28.0" NObs="29855.0" SamplingRate="NaN" Segment="" UseExternal="" OutputType="VIEW" ForceRun="N" DataSelection="DATASOURCE" NewTable="" Component="DataSource" Description="" UseExternalData="">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes>
+<DELTA Variable="NPRVIO" AttributeName="LEVEL" AttributeValue="ORDINAL"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Partition" X="164.0" Y="228.0" DESCRIPTION="Data Partition" ID="$2">
+<PROPERTIES Method="RANDOM" TrainPct="60.0" ValidatePct="30.0" TestPct="10.0" RandomSeed="12345.0" Component="Partition">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="ModelCompare" X="395.0" Y="227.0" DESCRIPTION="Model Comparison" ID="$3">
+<PROPERTIES NumberOfReportedLevels="1.0E-6" NormalizeReportingVariables="Y" DecileBin="20.0" LiftEpsilon="1.0E-6" ProfitEpsilon="1.0E-6" RoiEpsilon="1.0E-6" ScoreDistBin="20.0" RocChart="Y" RocEpsilon="0.01" AssessAllTargetLevels="N" SelectionStatistic="DEFAULT" Component="ModelCompare" StatisticUsed="_TASE_">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="DecisionTree" X="275.0" Y="228.0" DESCRIPTION="Decision Tree" ID="$4">
+<PROPERTIES TrainMode="BATCH" Criterion="PROBF" SigLevel="0.2" Splitsize="NaN" LeafSize="5.0" MinCatSize="5.0" Maxbranch="2.0" Maxdepth="6.0" Nrules="5.0" Nsurrs="0.0" MissingValue="USEINSEARCH" UseVarOnce="N" Subtree="ASSESSMENT" NSubtree="1.0" AssessMeasure="ASE" AssessPercentage="0.25" NodeSample="5000.0" Exhaustive="5000.0" UseDecision="N" UsePriors="N" Kass="Y" KassApply="BEFORE" Depth="Y" Inputs="N" NumInputs="1.0" VarSelection="Y" Dummy="N" Leafid="Y" Predict="Y" NodeRole="SEGMENT" Performance="DISK" Component="DecisionTree">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes>
+<CLMFRQ>
+<DecData Table="EMWS2.Tree_CLMFRQ_DD">
+<Data>
+<Obs CLMFRQ="7.862945E-4"/>
+<Obs CLMFRQ="4.0211192726"/>
+</Data>
+<Metadata>
+<Variable NAME="CLMFRQ" LABEL="" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecData>
+<DecMeta Table="EMWS2.Tree_CLMFRQ_DM">
+<Data>
+<Obs _TYPE_="MATRIX" VARIABLE="" LABEL="" FORMAT="" LEVEL="PROFIT" TYPE="" COST="" USE="N" MIN="NaN" MEAN="NaN" MAX="NaN"/>
+<Obs _TYPE_="TARGET" VARIABLE="CLMFRQ" LABEL="" FORMAT="" LEVEL="INTERVAL" TYPE="N" COST="" USE="" MIN="7.862945E-4" MEAN="0.1243799589" MAX="4.0211192726"/>
+<Obs _TYPE_="PREDICTED" VARIABLE="P_CLMFRQ" LABEL="Predicted: CLMFRQ" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="NaN" MEAN="NaN" MAX="NaN"/>
+<Obs _TYPE_="RESIDUAL" VARIABLE="R_CLMFRQ" LABEL="Residual: CLMFRQ" FORMAT="" LEVEL="" TYPE="N" COST="" USE="" MIN="NaN" MEAN="NaN" MAX="NaN"/>
+</Data>
+<Metadata>
+<Variable NAME="_TYPE_" LABEL="Type" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="VARIABLE" LABEL="Variable" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LABEL" LABEL="Label" LENGTH="40" FORMAT="" TYPE="C"/>
+<Variable NAME="FORMAT" LABEL="Format" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="LEVEL" LABEL="Measurement Level" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="TYPE" LABEL="Type" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="COST" LABEL="Cost" LENGTH="32" FORMAT="" TYPE="C"/>
+<Variable NAME="USE" LABEL="Use" LENGTH="1" FORMAT="" TYPE="C"/>
+<Variable NAME="MIN" LABEL="Minimum" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MEAN" LABEL="Mean" LENGTH="8" FORMAT="" TYPE="N"/>
+<Variable NAME="MAX" LABEL="Maximum" LENGTH="8" FORMAT="" TYPE="N"/>
+</Metadata>
+</DecMeta>
+</CLMFRQ>
+</EmTargetAttributes>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Score" X="370.0" Y="367.0" DESCRIPTION="Score" ID="$5">
+<PROPERTIES OutputType="VIEW" FixedOutputNames="Y" HideVariables="N" HideInput="Y" HideTarget="Y" HideRejected="Y" HideAssess="Y" HidePredict="Y" HideFreq="Y" HideClassification="Y" HideResidual="Y" HideOther="Y" ScoreValidate="Y" ScoreTest="Y" CScore="Y" JScore="Y" PackageName="DEFAULT" UserPackageName="" PreferenceName="" Component="Score">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="DataSource" X="253.0" Y="368.0" DESCRIPTION="Risk_Score" ID="$6">
+<PROPERTIES DataSource="RISKSCORE" Scope="LOCAL" Role="SCORE" Library="THEBOOK" Table="LOSSDATA3" NCols="28.0" NObs="29855.0" SamplingRate="NaN" Segment="" UseExternal="" OutputType="VIEW" ForceRun="N" DataSelection="DATASOURCE" NewTable="" Component="DataSource" Description="" UseExternalData="">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="SASCode" X="482.0" Y="367.0" DESCRIPTION="SAS Code (2)" ID="$7">
+<PROPERTIES Catalog="" ScoreCodeFormat="DATASTEP" ScoreExternal="" External="" MetaAdvisor="BASIC" ForceRun="N" ScoreLocation="INTERNAL" UsePriors="Y" ToolType="UTILITY" DataNeeded="N" PublishCode="PUBLISH" Location="INTERNAL" ScoreCatalog="" Component="SASCode" Code=" ">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties>
+<USERTRAINCODE Type="EXTERNAL">
+<Data><![CDATA[proc contents data=&em_import_score ;]]><![CDATA[
+]]><![CDATA[run ;]]><![CDATA[
+]]><![CDATA[proc freq data=&em_import_score ; ]]><![CDATA[
+]]><![CDATA[  table _leaf_ / missing ; ]]><![CDATA[
+]]><![CDATA[run ;]]><![CDATA[
+]]></Data>
+</USERTRAINCODE>
+<USERSCORECODE Type="EXTERNAL">
+<Data/>
+</USERSCORECODE>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+</NODES>
+<CONNECTIONS>
+<CONNECTION FROM="$1" TO="$2"/>
+<CONNECTION FROM="$2" TO="$4"/>
+<CONNECTION FROM="$4" TO="$5"/>
+<CONNECTION FROM="$4" TO="$3"/>
+<CONNECTION FROM="$5" TO="$7"/>
+<CONNECTION FROM="$6" TO="$5"/>
+</CONNECTIONS>
+</Workspace>

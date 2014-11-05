@@ -1,0 +1,177 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_ExtractInformation_TableInfo_Traverse_Centered.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates scripts for navigating and accessing items in a report.
+
+
+//Tasks
+//   Fit quadratic models and traverse the report gathering the desired nuggets into a table.
+//   The results table should that include coefficients for b0 + b1*Time + b2*Time^2 
+//   for each By (Tool, Lot) and Group (Wfr) combination. 
+//   Each plot represents a single By group (Tool, Lot) with separate curves for 
+//   each wafer.
+ror_stk_dt = Open( "$JSL_Companion\ROR Model Format.jmp" );
+
+ror_biv = ror_stk_dt << Bivariate(
+	Y( :Temperature ),
+	X( :Time ),
+	By( :Tool, :Lot ),
+	Group By( :Wfr ),
+	Fit Polynomial( 2 )
+);
+
+rpt_dt = New Table( "Temperature ROR Profiles Wafer",
+	New Column( "DateTime", numeric, continuous, Format( "m/d/y h:m" ) )
+);
+dtCol = Column( rpt_dt, "DateTime" );
+entCol = rpt_dt << New Column( "Tool", character, nominal );
+lotCol = rpt_dt << New Column( "Lot", character, nominal );
+wfrCol = rpt_dt << New Column( "Wfr", numeric, nominal );
+obsCol = rpt_dt << New Column( "N", numeric, continuous );
+xbCol = rpt_dt << New Column( "Mean", numeric, continuous );
+b0Col = rpt_dt << New Column( "b0", numeric, continuous );
+b1Col = rpt_dt << New Column( "b1", numeric, continuous );
+b2Col = rpt_dt << New Column( "b2", numeric, continuous );
+r2Col = rpt_dt << New Column( "RSquare", numeric, continuous );
+errCol = rpt_dt << New Column( "RMSE", numeric, continuous );	
+
+//Bivariate is Format "A" Transparent so loop thru the series of bivariate analyses
+//Note each nItems(ror_biv) = # unique combinations of Ent Lot
+crow = 0;
+For( i = 1, i <= N Items( ror_biv ), i++,
+	rpt = Report( ror_biv[i] );   // work on each Bivariate get the address of 1 report
+	ttl = rpt[Outline Box( 1 )] << get title;
+
+//use pattern matching to get the entity and lot values
+	p1 = Pat Arb() + "Tool=" + Pat Arb() >? entid + "," + Pat Arb() + "Lot=" + Pat Rem() >? lotid;
+	Pat Match( ttl, p1 );
+
+/* --- Alternative -----
+// Without pattern matching and regular expressions use JMP functions
+  entid = trim(word(2, ttl, "=,"));
+  lotid = trim(word(4, ttl, "=,"));
+*/
+
+	// show(entid, lot id);
+	// the loop 3 is hardcoded, if variable number of wafers    
+	rpt_dt << add rows( 3 );
+	For( j = 1, j <= 3, j++,
+		entCol[crow + j] = entid;
+		lotCol[crow + j] = lotid;
+		wfrCol[crow + j] = j;
+//see Notes below on Structure and Robust code
+		//? wildcard referencing works because a it is unique (1,2,3) for each tool/lot
+		newobj = rpt[Outline Box( "?Wfr==" || Char( j ) || "??" )];
+		sum_fit = newobj["Summary of Fit"][Table Box( 1 )][2];
+		obsCol[crow + j] = sum_fit[5];
+		xbCol[crow + j] = sum_fit[4];
+		r2Col[crow + j] = sum_fit[1];
+		errCol[crow + j] = sum_fit[3];
+//the desired coefficients are for b0 + b1*Time + b2*Time^2 
+		//algebra will be used to complete this, see the alternative below
+		coef_fit = newobj["Parameter Estimates"][Number Col Box( "Estimate" )];
+//get midpoint
+		quad_str = newobj["Parameter Estimates"][String Col Box( "Term" )][3];
+		p2 = "(Time-" + Pat Arb() >? str_mp + ")^2";
+		If( Pat Match( quad_str, p2 ),
+			mp = Num( Trim( str_mp ) ),
+			Throw( "Unexpected midpoint pattern at " || ttl || "Wfr==" || Char( j ) )
+		);
+		b0Col[crow + j] = coef_fit[1] + coef_fit[3] * mp ^ 2;
+		b1Col[crow + j] = coef_fit[2] + coef_fit[3] * (-2) * mp;
+		b2Col[crow + j] = coef_fit[3];
+//If desired clean up the display by turning off each curve's report
+		//This is  commented out so you may check the newly created report values with JMP report
+		//   ror_biv[i]<< (Curve[j] << Report(0));
+	);
+	crow = N Row( rpt_dt );
+);
+//The last table report task is to get the datetime. This could have been added
+//to the By variable and pulled out from each bivariate's outline box title
+//However, this would have changed the structure since time for wafers 2-3 are 
+//some offset from wafer 1, so use a join or summary here.  Below is summarize
+Current Data Table( ror_stk_dt );
+Summarize( tgrps = By( :Tool, :Lot, :Wfr ), ttime = Min( :DateTime ) ); //keep same order as Bivariate
+//check of the number of times match the number of rows in the report
+If( N Row( ttime ) != N Row( rpt_dt ),
+	Throw( "unexpected mismatch while joining datetime" )
+);
+dtCol << set values( ttime );
+
+
+/* ------ Notes -----------------------
+*  When using a Group By variable in Bivariate, each "fit" request 
+*  generates output for each unique By Group value, in this case 
+*  Wfr has unique values, 1,2,3.  However, once created a user has the
+*  option to remove a specific GroupBy fit, and/or the report for that
+*  fit so JMP's structure uses an IfBox wrapper arround each Group 
+*  analysis.  I point this out for 2 reasons: Structure and Robust
+*  code. 
+*  Structure 
+     i=1; rpt=report(ror_biv[i]);  //needed if run outside for i loop
+     for(j=1, j<=3, j++,
+      if(j==1, newobj = rpt[OutlineBox(2)],
+      	newobj = ((currobj << parent)<<sib)<<child
+      );
+      show(newobj<<class name, newobj<<get title);
+      newobj << select;
+      wait(5);
+      newobj << deselect;
+      currobj = newobj;  
+  );
+*  For each loop the currobj is the report for "fit" of a group
+*  Its parent is the IfBox; its sib is the next IfBox, and
+*  its child is the OutlineBox containing the next "fit"
+*  group report. 
+ 
+*  Robust Code
+*  If you are generating an interactive report where a 
+*  user may interact with the report and you have a custom
+*  button to create a report, this should be in a while loop
+*  stopping when no more fit/group reports are found.
+*  To be really safe a strategically placed Try() function 
+*  to capture any issues should be deployed.
+*
+*  When you are writing code, where you have control
+*  assuming you have a report for each wafer is probably
+*  safe.  But what if one lot had only 2 wafers results 
+*  A Try() should be wrapped around the commands within
+*  the For j loop.  Depending upon the application, I might
+*  keep a row for each of 3 wafers, highlighting one was missing,
+*  or I might change the script to add a row only when a 
+*  fit report was found.
+*  See syntax below
+*  
+*/
+
+/*--- Alternate for getting simplified coefficients ----
+//note this needs to have the bivariate curve reports available
+i=1; rpt=report(ror_biv[i]);  //needed if run outside for i loop
+for(j=1, j<=3, j++,
+    newobj=rpt[Outline Box("?Wfr=="||char(j)||"??")];
+    c_eqn = newobj[TextEditBox(1)] <<get text;
+    c_ww = words(c_eqn);       //each "word" in the text is an item
+	wl = c_ww[Nitems(c_ww)];   //get the last itme, the squared term
+	wl = word(1,wl, "^");      //get everything to the left of ^2
+	wl = wl ||"*" || word(2,wl,"*");  //change b3*(Time-mp)^2 to b3*(Time-mp)*(Time-mp)
+	c_ww[Nitems(c_ww)] = wl;   // put the expression back together again except for the for 2 words
+    n_eqn = Parse(Concat Items(c_ww));	
+    f_eqn = Simplify Expr(NameExpr(n_eqn));
+    show(c_eqn, n_eqn, f_eqn);
+//  if desired write the simplified equation to the report uncomment below
+  newobj[TextEditBox(1)] << set text (char(name expr(f_eqn)));
+);
+//Simplify Expr() is a very handy formula.  Typically, I like to use
+//Fit Model and save the Prediction Formula.  The Prediction Formula
+//uses the format (x-mp)*(x-mp) for all 2nd and higher order effects
+//So the algebra and restructuring of the equation needed to get the 
+//desired equation is a matter of applying Simplify Expr() to the
+//Prediction Formula. 
+//For this case simply using Fit Special( Degree( 2 ), Centered Polynomial( 0 ) 
+//instead of Fit Polynomial.  
+//The moral is to plan code to your output.  Find the platform that provides
+//both the desired gpahs and correct statistical results.
+//While you can find a solution to a less than optimal choice with a little extra work
+//In my opinion, let JMP do the heavy lifting and keep the code as simple as 
+//possible.
+*/

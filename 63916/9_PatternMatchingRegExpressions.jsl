@@ -1,0 +1,53 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_PatternMatchingRegExpressions.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates regular expression functions Regex() and PatMatch().
+
+
+//Find words in a text string
+str1 = "There is a match.";
+str2 = "There is no Match";
+//Regular Expressions
+a = Regex( str1, "match" );  //returns "match"
+b = Regex( str2, "match" );  //returns . - numerical missing when no match
+c = Regex( str2, "(m|M)atch" );  //returns "Match"
+
+//Pattern Matching
+Pat Match( str1, "match" );  //returns a 1 indicating a match
+Pat Match( str1, "match", "dog" );  //replaces match with dog in str1
+Show( str1 );
+Pat Match( str2, "MATCH" );  //returns a 1 indicating a match, not case sensitive
+Regex Match( str2, Pat Regex( "match" ), NULL, MATCHCASE );  //returns an empty list
+
+
+//Find formatted values
+str3 = "The phone number is (888) 123-4567";
+Regex( str3, "\d\d\d\d" );  //returns "4567"
+Regex( str3, "\d{3}" );  //returns "888"
+Regex( str3, "[^(8]\d\d\d" );  //returns " 123"
+Regex( str3, "\(\d\d\d\) ?\d{3}-\d{4}" );  //returns "(888) 123-4567"
+
+//Find values
+str4 = "Find the value 42 in this string.";
+Regex( str4, "\d+" );  //returns "42"
+str5 = "Find the value 42,000 in this string.";
+Regex( str5, "\d+\,\d+" );  //returns "42,000"
+
+//Retrieving values from strings
+mystring = "It is a beautiful day!";
+q1 = Pat Regex( "It..." );
+q2 = Pat Regex( "day." );
+q3 = q1 >? z1 + Pat Arb() >? middle + q2 >? z2;
+If( Pat Match( mystring, q3 ),
+	New Window( "Results",
+		Outline Box( "We matched '" || z1 || "' and '" || z2 || "'." ),
+		Outline Box( "The stuff in the middle '" || middle || "'." )
+	)
+);
+Show( mystring, middle, z1, z2 );
+/* Notes:
+In this last example, mystring is the search string.  q1, q2, q3
+are defined patterns.  Specifically, q3 defines z1 and z2 as variables
+to store matched patterns. Note that >? is the syntax used to assign 
+text to variables.
+*/

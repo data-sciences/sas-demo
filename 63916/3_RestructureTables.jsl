@@ -1,0 +1,142 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	3_RestructureTables.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates commands from the Tables menu
+
+
+//Reference Data Table
+thick_dt = Open("$JSL_Companion\ThicknessSite.jmp" );
+
+//Variability graph to compare tool and sites
+thick_dt << Variability Chart(
+	Y( :Thickness ),
+	X( :Tool, :Site ),
+	Analysis Type( Name( "Choose best analysis (EMS REML Bayesian)" ) ),
+	Connect Cell Means( 1 ),
+	Show Group Means( 1 ),
+	Std Dev Chart( 0 ),
+	Points Jittered( 1 ),
+	SendToReport(
+		Dispatch( {"Variability Chart for Thickness"}, "", NomAxisBox, Rotated Tick Labels( 1 ) )
+	)
+);
+
+//Summarize the data to the lot level
+thick_sum_dt = thick_dt << Summary(
+	Group( :Lot, :Tool ),
+	Mean( :Thickness ),
+	Std Dev( :Thickness )
+);
+
+//Oneway analysis to compare tools
+thick_sum_dt << Oneway(
+	Y( :Name( "Mean(Thickness)" ), :Name( "Std Dev(Thickness)" ) ),
+	X( :Tool ),
+	Means and Std Dev( 1 ),
+	Box Plots( 1 ),
+	Mean Lines( 1 ),
+	Mean Diamonds( 0 ),
+	Mean Error Bars( 0 ),
+	Std Dev Lines( 0 ),
+	X Axis proportional( 0 ),
+	Points Jittered( 1 ),
+	Grand Mean( 0 )
+);
+
+//Split the table in order to do additional analyses
+thick_split_dt = thick_dt << Split(
+	Split By( :Site ),
+	Split( :Thickness ),
+	Group( :Lot, :Tool ),
+	Output Table( "ThicknessSite Split" )
+);
+
+
+//Overlay and correlation plots on original data structure to compare sites
+New Window( "Graphs with unstacked data",
+	thick_onew = thick_split_dt << Overlay Plot(
+		X( :Lot ),
+		Y( :Bottom, :Top, :Right, :Left, :Center ),
+		Separate Axes( 1 ),
+		Connect Thru Missing( 1 ),
+		Connect Points( 1 ),
+		Overlay(1),
+		SendToReport(
+			Dispatch( {}, "101", ScaleBox, {Add Ref Line( 20.5, Solid, "Black" )} ),
+			Dispatch( {}, "Overlay Plot", FrameBox, Frame Size( 445, 270 ) ), 
+
+		)
+	);
+
+//Label overlay plot with tool
+	Report( thick_onew )[FrameBox( 1 )] << Add Graphics Script(
+		Text( right justified, {5, 1325}, "Tool A" );
+		Text( right justified, {40, 1325}, "Tool B" );
+	);
+
+	thick_split_dt << Multivariate(
+		Y( :Bottom, :Top, :Right, :Left, :Center ),
+		Estimation Method( "REML" ),
+		Scatterplot Matrix( Density Ellipses( 1 ), Shaded Ellipses( 0 ), Ellipse Color( 3 ) ),
+		SendToReport(
+			Dispatch(
+				{"Scatterplot Matrix"},
+				"Multiv Plot",
+				FrameBox( 6 ),
+				Row Legend(
+					Tool,
+					Color( 1 ),
+					Color Theme( "JMP Default" ),
+					Marker( 0 ),
+					Marker Theme( "" ),
+					Continuous Scale( 0 ),
+					Reverse Scale( 0 ),
+					Excluded Rows( 0 )
+				)
+			)
+		)
+	);
+);  //end New Window
+//--------Run to here------------------------------------------------------------------------------
+
+site_dt = Open("$JSL_Companion\SiteCoordinates.jmp");
+//Update current table to include x and y coordinates
+thick_dt << Update( With( Data Table( "SiteCoordinates" ) ), Match Columns( :Site = :Site ) );
+
+/* Syntax using Join instead of Update, this will create a new data table
+Data Table( "ThicknessSite" ) << Join(
+	With( Data Table( "SiteCoordinates" ) ),
+	Select( :Tool, :Lot, :Site, :Thickness ),
+	SelectWith( :x, :y ),
+	By Matching Columns( :Site = :Site ),
+	Drop multiples( 0, 0 ),
+	Name( "Include non-matches" )(0, 0),
+	Output Table( "Joined Table" )
+);
+*/
+
+
+//Contour plots to determine the pattern across the wafer
+thick_dt << Contour Plot(
+	X( :x, :y ),
+	Y( :Thickness ),
+	By( :Tool ),
+	Show Data Points( 1 ),
+	Fill Areas( 1 ),
+	Label Contours( 0 ),
+	Color Theme( "Blue to Gray to Red" ),
+	Specify Contours(
+		Min( 1100 ),
+		Max( 1260 ),
+		N( 7 ),
+		Contour( 1, 1100, -2768895 ),
+		Contour( 2, 1126.66666666667, -5530605 ),
+		Contour( 3, 1153.33333333333, -8358107 ),
+		Contour( 4, 1180, -11185609 ),
+		Contour( 5, 1206.66666666667, -13149862 ),
+		Contour( 6, 1233.33333333333, -14250610 ),
+		Contour( 7, 1260, -15351358 ),
+		Contour( 8, 1260, -16517899 )
+	),
+	SendToReport( Dispatch( {}, "Contour Legend", FrameBox, Frame Size( 117, 183 ) ) )
+);

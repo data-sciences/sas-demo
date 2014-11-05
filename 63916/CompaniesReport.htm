@@ -1,0 +1,54 @@
+<!doctype html public "-//W3C//DTD HTML 4.0//EN"><html><head><title>JMP Output</title></head><body>
+
+<table border=1 cellpadding=2 cellspacing=1>
+<tr valign=top align=right><th align=left>Type</th><th align=left>Size Co</th><th>N Rows</th><th>Mean(Sales ($M))</th><th>Mean(Profits ($M))</th><th>Mean(profit/emp)</th><th>Mean(Assets)</th><th>Mean(%profit/sales)</th></tr>
+<tr valign=top align=right><td align=left>Computer</td><td align=left>big</td><td>4</td><td>20597.48</td><td>1089.93</td><td>4530.478</td><td>25765.00</td><td> -9.619</td></tr>
+<tr valign=top align=right><td align=left>Computer</td><td align=left>medium</td><td>2</td><td>3018.85</td><td> -85.75</td><td> -3462.506</td><td>4168.40</td><td> -2.620</td></tr>
+<tr valign=top align=right><td align=left>Computer</td><td align=left>small</td><td>14</td><td>1758.06</td><td>44.94</td><td>7998.815</td><td>1313.00</td><td>3.041</td></tr>
+<tr valign=top align=right><td align=left>Pharmaceutical</td><td align=left>big</td><td>5</td><td>7474.04</td><td>894.42</td><td>17140.699</td><td>7054.78</td><td>12.512</td></tr>
+<tr valign=top align=right><td align=left>Pharmaceutical</td><td align=left>medium</td><td>5</td><td>4261.06</td><td>698.98</td><td>24035.115</td><td>4503.34</td><td>15.011</td></tr>
+<tr valign=top align=right><td align=left>Pharmaceutical</td><td align=left>small</td><td>2</td><td>1083.75</td><td>156.95</td><td>38337.191</td><td>1287.85</td><td>15.341</td></tr>
+</table><br>
+
+<h2>Profit per Employee</h2>
+<img src="gfx/image19.png" width=486 height=275><br>
+<br>
+<br>
+
+<h3>Variability Summary for profit/emp</h3>
+
+<table border=1 cellpadding=2 cellspacing=1>
+<tr valign=top align=right><th align=left></th><th>Mean</th><th>Std Dev</th><th>Std Err Mean</th><th>Lower 95%</th><th>Upper 95%</th><th>Minimum</th><th>Maximum</th><th>Observations</th></tr>
+<tr valign=top align=right><td align=left>profit/emp</td><td>12679.18</td><td>18382.17</td><td>3249.54</td><td>6051.7</td><td>19306.66</td><td> -37800</td><td>66530.13</td><td>32</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer]</td><td>6159.015</td><td>16344.29</td><td>3654.694</td><td> -1490.35</td><td>13808.38</td><td> -37800</td><td>37620.15</td><td>20</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical]</td><td>23546.12</td><td>16874.18</td><td>4871.157</td><td>12824.78</td><td>34267.47</td><td>8756.219</td><td>66530.13</td><td>12</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer] Size Co[big]</td><td>4530.478</td><td>8259.961</td><td>4129.98</td><td> -8612.96</td><td>17673.92</td><td> -7767.92</td><td>9806.378</td><td>4</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer] Size Co[medium]</td><td> -3462.51</td><td>16281.04</td><td>11512.44</td><td> -149742</td><td>142816.9</td><td> -14974.9</td><td>8049.93</td><td>2</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer] Size Co[small]</td><td>7998.815</td><td>18319.14</td><td>4895.996</td><td> -2578.34</td><td>18575.97</td><td> -37800</td><td>37620.15</td><td>14</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical] Size Co[big]</td><td>17140.7</td><td>4020.473</td><td>1798.01</td><td>12148.62</td><td>22132.78</td><td>13020.46</td><td>21690.02</td><td>5</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical] Size Co[medium]</td><td>24035.11</td><td>14438.52</td><td>6457.104</td><td>6107.319</td><td>41962.91</td><td>8756.219</td><td>43470.93</td><td>5</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical] Size Co[small]</td><td>38337.19</td><td>39870.84</td><td>28192.94</td><td> -319888</td><td>396562.5</td><td>10144.25</td><td>66530.13</td><td>2</td></tr>
+</table><br>
+<br>
+
+<h2>Percent Profit per Sales</h2>
+<img src="gfx/image20.png" width=469 height=275><br>
+<br>
+<br>
+
+<h3>Variability Summary for %profit/sales</h3>
+
+<table border=1 cellpadding=2 cellspacing=1>
+<tr valign=top align=right><th align=left></th><th>Mean</th><th>Std Dev</th><th>Std Err Mean</th><th>Lower 95%</th><th>Upper 95%</th><th>Minimum</th><th>Maximum</th><th>Observations</th></tr>
+<tr valign=top align=right><td align=left>%profit/sales</td><td>5.223408</td><td>14.93957</td><td>2.640969</td><td> -0.16288</td><td>10.6097</td><td> -58.2824</td><td>23.46265</td><td>32</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer]</td><td> -0.05719</td><td>16.24086</td><td>3.631567</td><td> -7.65815</td><td>7.543765</td><td> -58.2824</td><td>11.58861</td><td>20</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical]</td><td>14.02441</td><td>6.180509</td><td>1.784159</td><td>10.0975</td><td>17.95132</td><td>6.035044</td><td>23.46265</td><td>12</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer] Size Co[big]</td><td> -9.61854</td><td>32.44615</td><td>16.22308</td><td> -61.2476</td><td>42.01052</td><td> -58.2824</td><td>6.966972</td><td>4</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer] Size Co[medium]</td><td> -2.62029</td><td>15.78665</td><td>11.16285</td><td> -144.458</td><td>139.2171</td><td> -13.7831</td><td>8.542561</td><td>2</td></tr>
+<tr valign=top align=right><td align=left>Type[Computer] Size Co[small]</td><td>3.040779</td><td>9.160487</td><td>2.448243</td><td> -2.24833</td><td>8.329887</td><td> -23.048</td><td>11.58861</td><td>14</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical] Size Co[big]</td><td>12.51174</td><td>3.517332</td><td>1.572998</td><td>8.144401</td><td>16.87909</td><td>7.928253</td><td>16.33615</td><td>5</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical] Size Co[medium]</td><td>15.01059</td><td>7.399251</td><td>3.309046</td><td>5.823209</td><td>24.19798</td><td>6.035044</td><td>22.49976</td><td>5</td></tr>
+<tr valign=top align=right><td align=left>Type[Pharmaceutical] Size Co[small]</td><td>15.3406</td><td>11.48631</td><td>8.122045</td><td> -87.8598</td><td>118.541</td><td>7.21856</td><td>23.46265</td><td>2</td></tr>
+</table><br>
+
+</body></html>

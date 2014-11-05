@@ -1,0 +1,42 @@
+start Func(x);
+   return  ( x#(x-0.5) );
+finish;
+ 
+start GoldenSection(a0, b0, eps);
+/*  define module that implements the golden section search */
+/* Find the value that minimizes the continuous unimodal function 
+ * f (defined by the module "Func") on the interval [a,b] by using 
+ * a golden section search. The algorithm stops when b-a < eps.
+ *
+ * Example: 
+ * start Func(x);
+ *    return  ( x#(x-0.5) );
+ * finish;
+ * x0 = GoldenSection(0,1,1e-4);
+ */
+
+w = (sqrt(5)-1)/2;                     /* "golden ratio" - 1        */
+a = a0; b = b0;
+x1 = w*a + (1-w)*b;
+x2 = (1-w)*a + w*b;
+fx1 = Func(x1);
+fx2 = Func(x2);
+do while (b-a>eps);
+   if fx1 < fx2 then do;               /* choose new right endpoint */
+      b = x2;                          /* update x1 and x2          */
+      x2 = x1;
+      fx2 = fx1;
+      x1 = w*a + (1-w)*b;
+      fx1 = Func(x1);
+   end;
+   else do;                            /* choose new left endpoint  */
+      a = x1;                          /* update x1 and x2          */
+      x1 = x2;
+      fx1 = fx2;
+      x2 = (1-w)*a + w*b;
+      fx2 = Func(x2);
+   end;
+end;
+return ( choose(fx1<=fx2, a, b) ); 
+finish;
+store module=GoldenSection;

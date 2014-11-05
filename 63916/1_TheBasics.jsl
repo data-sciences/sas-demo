@@ -1,0 +1,40 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	1_TheBasics.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: An introduction to basic JSL commands
+
+
+// Create and Run a Script
+txt = "In teaching others we teach ourselves.";
+Show( txt );
+
+// Modify, Save, and Open a Script
+CO2_dt = Open( "$SAMPLE_DATA/Time Series/CO2.jmp" );
+
+CO2_dt << Bivariate( Y( :CO2 ),
+	X( :Name( "Year&Month" ) ),	
+	Fit Line()
+);
+
+CO2_dt << Bivariate(
+	Y( :CO2 ),
+	X( :Name( "Year&Month" ) ),
+	Fit Spline( 0.0001 )
+);
+
+
+// Make it STOP!
+For( i = 99, i > 0, i--,
+	Caption( Wait( 2 ),	{10, 30},
+		Char( i ) 
+		|| " bottles of beer on the wall, " 
+		|| Char( i ) 
+		|| " bottles of beer; take one down  pass it around, "
+		||	Char( i - 1 ) 
+		|| " bottles of beer on the wall. "
+	)
+);
+Wait( 3 );
+Caption( Remove );
+
+//Make sure the caption window is highlighted and press Esc to stop

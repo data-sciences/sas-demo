@@ -1,0 +1,65 @@
+* E3_6_7.sas
+* 
+* Compression functions;
+
+title1 '3.6.7 Compression Functions';
+*****************************************;
+title2 'Using COMPRESS';
+data _null_;
+string1 = 'ABCDEABCDE';
+string2 = compress(string1,'CAE','k');
+put string1=;
+put string2=;
+len = length(string2);
+put len=;
+run;
+*****************************************;
+title3 'Counting lines of code';
+filename code "&path\sascode\chapter11\e11_3_4.sas";
+data _null_;
+infile code truncover;
+input ;
+justsemi = compress(_infile_,';','k');
+cnt+index(justsemi,';')*length(justsemi);
+call symputx('cnt',cnt);
+run;
+%put line count is: &cnt;
+
+*****************************************;
+title2 'Compressing with TRANSLATE';
+data test;
+string1 = 'ABCDE';
+string2 = translate(string1,' ','A');
+string3 = translate(string1,' ','E');
+string4 = string3||'x';
+put string1=;
+put string2=;
+put string3=;
+put string4=;
+len2 = length(string2);
+len3 = length(string3);
+put len2= len3=;
+run;
+
+****************************************;
+title2 'Removing Quotes';
+data quoteless;
+string1 = "'CA', ""OR"", 'WA'";
+string2 = "Tom's Truck";
+dq1 = dequote(string1);
+dq2 = dequote(string2);
+cprs1=compress(string1,"%bquote('")");
+cprs2=compress(string2,"%bquote('")");
+cprs3=compress(string2,,'p');
+trns1=transtrn(string1,"%bquote(")",trimn(''));
+trns2=transtrn(string2,"'",trimn(''));
+put string1=;
+put string2=;
+put dq1=;
+put dq2=;
+put cprs1=;
+put cprs2=;
+put cprs3=;
+put trns1=;
+put trns2=;
+run;

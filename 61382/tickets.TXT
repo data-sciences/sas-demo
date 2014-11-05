@@ -1,0 +1,52 @@
+State	Amount
+Alabama	60
+Delaware	31.5
+Alaska	20
+Arkansas	47
+Florida	44
+Arizona	15
+California	50
+Georgia	45
+Idaho	12.5
+Colorado	64
+Nebraska	10
+Maryland	40
+Missouri	50
+New Mexico	20
+Minnesota	44
+North Carolina	47.5
+North Dakota	10
+New Hampshire	33
+Oklahoma	56
+Rhode Island	30
+Tennessee	40
+Texas	48
+Utah	28
+Virginia	40
+Washington	38
+Hawaii	35
+Illinois	20
+Connecticut	60
+Iowa	33
+Kansas	28
+Indiana	50
+Louisiana	45
+Montana	5
+Kentucky	65
+Maine	40
+Massachusetts	50
+Nevada	5
+Michigan	40
+New Jersey	50
+New York	28
+Mississippi	39.5
+Ohio	100
+Oregon	26
+South Carolina	45
+Pennsylvania	72.5
+South Dakota	10
+Vermont	35
+West Virginia	60
+Wyoming	15
+Wisconsin	44.5
+Washington DC	.

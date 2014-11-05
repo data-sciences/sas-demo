@@ -1,0 +1,152 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	6_Navigation_dboPathSyntax.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates syntax and statements to find and change display boxes in a report
+//      The technique of selecting and deselecting display boxes is used to show alternate
+//      display box object (dbo) navigation paths.
+
+
+body_dt = Open( "$Sample_Data\Body Measurements.jmp" );
+body_biv = body_dt << Bivariate( Y( :Waist ), X( :Mass ) );
+
+body_biv << Fit Line( {Report( 1 ), Confid Shaded Fit( 1 )});
+body_biv << Fit Polynomial(2) ;
+
+//Ask JMP to expose the locations via the report command
+rpt_biv =  body_biv  <<report;
+
+//At the top most reveal button right click -> Edit -> Show Tree Structure
+body_biv << Show Tree Structure;
+
+//----- Start of Block #1 of Code to Run ------------------------------------------------
+body_biv << Bring Window to Front;
+rpt_biv << Scroll Window({0,410});  //Polynomial Fit Degree 2 should be visible
+hilite = Expr(::xx<< select; wait(2); ::xx<< deselect; Wait(2));
+xx=rpt_biv[NumberColBox(30)];
+hilite;
+xx=rpt_biv[TableBox(7)][NumberColBox(2)];
+hilite;
+xx=rpt_biv[OutlineBox(10)][TableBox(1)][NumberColBox(2)];
+hilite;
+xx=rpt_biv[OutlineBox(7)][OutlineBox(4)][TableBox(1)][NumberColBox(2)];
+hilite;
+xx=rpt_biv[IfBox(2)][OutlineBox(1)][OutlineBox(4)][TableBox(1)][NumberColBox(2)];
+hilite;
+xx=rpt_biv[OutlineBox(1)][IfBox(2)][OutlineBox(4)][TableBox(1)][NumberColBox(2)];
+hilite;
+
+//----end of block #1--------------------------------------------------------------------
+
+//----- Start of Block #2 of Code to Run ------------------------------------------------
+//A variable can be assigned to any display box, then its address may 
+//be used to reference display box objects that belong to it.  This 
+//can simplify "deep" nesting. 
+
+body_biv << Bring Window to Front;
+rpt_ply = rpt_biv["Poly?"]["Analy?Var?"];
+xx = rpt_ply[NumberColBox("Mean?Squa?")];  // for a change
+hilite;
+
+xx = rpt_ply[OutlineBox(1)] << Show Tree Structure; 
+
+//----end of block #2 -------------------------------------------------------------------
+
+//Close if not closed already
+Try (body_biv << Close Window());
+
+//----- Start of Block #3 of Code  Run by Step # ----------------------------------------
+//----- Step #3a Editing the Analysis Layer ---------------------------------------------
+
+//two platforms with different structure
+A_body_biv = body_dt << Bivariate( Y( :Chest ), X( :Mass ) );
+B_body_dist = body_dt << Distribution( Y( :Chest ), Horizontal(0) );
+
+//----Add customizations that are global for the report and that can
+//    be made at the top layer here.
+A_body_biv << Fit Line( {Report( 1 ), Confid Shaded Fit( 1 )} );
+B_body_dist << {Normal Quantile Plot( 1 ), 
+      Fill Color( "Medium Dark Purple" ), Histogram Color( 24 )};
+//---- end of step #3a ------------------------------------------------------------------
+
+//A_body_biv << Show Tree Structure;
+//B_body_dist << Show Tree Structure;
+
+//---- Step #3b Customizing the Report Layer - Bivariate example ------------------------
+//---- almost identical code will be used for Multiple Y's in 
+//     Script 6_MultipleVariable Structure
+A_body_biv << Bring Window To Front; wait(1);
+A_body_biv << Fit Polynomial( 3 ); wait(2);
+A_body_biv << {Curve[2] << Report( 0 ) << Line width( 3 ) 
+    << Line Color( "Dark Gray" )}; wait(2);
+rpt_A = A_body_biv << report;
+rpt_A[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Size( 11 ); wait(2);
+rpt_A[AxisBox( 1 )][Text Edit Box( 1 )] << Set Font Style( "Bold" ); wait(2);
+rpt_A[AxisBox( 2 )][Text Edit Box( 1 )] << Set Font Size( 11 ); wait(2);
+rpt_A[AxisBox( 2 )][Text Edit Box( 1 )] << Set Font Style( "Bold" ); wait(2);
+//---- end of step #3b ------------------------------------------------------------------
+
+//---- Step #3c Customizing the Report Layer - Distribution example ---------------------
+//---- almost identical code will be used for Multiple Y's in 
+//     Script 6_MultipleVariable Structure
+B_body_dist << Bring Window To Front; wait(1);
+rpt_B = B_body_dist << Report;
+rpt_B["Chest"][AxisBox( 2 )] << select; 
+rpt_B[Outline Box( "Chest" )][AxisBox( 2 )] << deselect;
+rpt_B["Chest"][AxisBox( 1 )] << Add Axis Label( "Chest" ); Wait( 2 );
+rpt_B["Chest"][AxisBox( 1 )][Text Edit Box( 1 )]  
+ << {Set Font Size( 11 ), Set Font Style( "Bold" ), Rotate Text (Horizontal)};
+//---- end of step #3c ------------------------------------------------------------------
+
+
+//----Extra you can add more features to the analyses, recommend you regenerate the report
+//----- Step #3d Customizing the Report Layer - Distribution example----------------------
+B_body_dist << Bring Window To Front; wait(1);
+B_body_dist << CDF Plot(1);
+stats = rpt_B["Moments"][TableBox(1)] << Get As Matrix;
+B_body_dist << {Quantiles(0), Moments(0)};
+rpt_B["Chest"] << Set Title ("Chest" 
+  || " Mean = " 
+  || Char(stats[1], 5,2)
+  || "  StdDev = " 
+  || Char(stats[2], 5,2) );
+//--Note if you change the outline box search string you must adjust your search
+//--a wildcard makes this easy - consider changing outline titles last or be aware
+//-- of changes
+rpt_B = B_body_dist << Report;
+// This is brute force code to add a custom normal scale
+// An expression can simplify this
+// The Distribution, especially the CDF is tightly linked
+// to the other picture.  Most axes and scale boxes belong to
+// a PictureBox.  Starting at the PictureBox can simplify the path
+ 
+rpt_cdf =  rpt_B["Chest?"]["CDF?"] [PictureBox(1)]; 
+rpt_cdf[ScaleBox(2)] << 
+	{Scale( "Normal" ), Format( "Best", 5 ),
+		Min( 0.00620966532577616 ),
+		Max( 0.993790334674224 ), Inc( 1 ), Minor Ticks( 1 ),
+		Add Ref Line( 0.05, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.02, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.95, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.96, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.97, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.98, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.91, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.92, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.93, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.94, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.99, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.09, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.08, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.07, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.6, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.06, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.04, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.03, Solid, {187, 187, 187} ),
+		Add Ref Line( 0.01, Solid, {187, 187, 187} ), 
+		Show Major Grid( 1 ), Show Minor Grid( 1 )};
+//different path same messages.....		
+rpt_CDF[PictureBox(1)][AxisBox(1)][TextEditBox(1)] 
+   << {SetFontSize(11), SetFontStyle("Bold")};
+rpt_CDF[PictureBox(1)][AxisBox(2)][TextEditBox(1)] 
+   << {SetFontSize(11), SetFontStyle("Bold")};
+

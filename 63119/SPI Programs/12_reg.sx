@@ -1,0 +1,424 @@
+ 
+   /********************************************************************/
+   /********** Fitting a Regression Model **********/
+
+   /* create regression diagnostic plots in SAS/IML Studio */
+   submit;
+   /* 1. log transform of US_Gross and Budget variables */
+   data movies;
+      set Sasuser.Movies;
+      LogUS_Gross = log(US_Gross);
+      LogBudget = log(Budget);
+      label LogUS_Gross = "log(US Gross)"  LogBudget = "log(Budget)";         
+   run;
+   
+   /* 2. run classic regression analysis */
+   proc glm data=movies;
+      model LogUS_Gross = LogBudget;
+      output out=GLMOut 
+             P=P LCLM=LCLM UCLM=UCLM          /* predictions and CLM   */
+             R=R RSTUDENT=ExtStudR            /* residuals             */
+             COOKD=CookD H=Leverage;          /* influence diagnostics */
+   quit;
+   endsubmit;
+
+   /* 3a. read variables from output data set into vectors */
+   use GLMOut;
+   read all var {LogBudget P UCLM LCLM} into logFit; /* log scale       */
+   read all var {CookD};                             /* read for Step 8 */
+   close GLMOut;
+
+   /* 3b. invert transformation for predicted values and CLM */
+   fit = exp(LogFit);
+
+   /* 4. create data object that contains data and results */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Work.GLMOut");
+   dobj.SetRoleVar(ROLE_LABEL, "Title");
+
+   /* 4a. add transformed variable to the data object */
+   dobj.AddVar("Pred", "Predicted US Gross (million $)", fit[,2]);
+   dobj.AddVar("ObsNumber", "Observation Number", T(1:nrow(fit)));
+
+   /* 5. create line plot */
+   declare LinePlot line;
+   line = LinePlot.Create(dobj, "Budget", "Pred");   
+   line.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   line.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+   line.ShowObs(false);
+   line.SetLineWidth(2);
+
+   /* 6. Use drawing subsystem to draw CLM band. */
+   line.DrawUseDataCoordinates();
+   line.DrawSetRegion(PLOTBACKGROUND);
+   LightBlue = 0x9BBBC9;                 /* RGB value: (155, 187, 201) */
+   line.DrawSetBrushColor(LightBlue);
+   line.DrawSetPenAttributes(GRAY, DOTTED, 1);
+   call sort(fit, 1);                    /* sort CLM by Budget         */
+   x = fit[,1]; LCLM = fit[,3]; UCLM = fit[,4];
+   N = nrow(fit);
+   line.DrawPolygon(x//x[N:1], LCLM//UCLM[N:1], true);
+
+
+   /********************************************************************/
+   /********** Identifying Influential Observations **********/
+
+   /* 7. create Cook's D plot */ 
+   declare ScatterPlot cook;
+   cook = ScatterPlot.Create(dobj, "ObsNumber", "CookD");
+   cook.SetMarkerSize(5);   
+
+   /* 8. draw reference lines on Cook's D plot */
+   solidGray = 0xc8c8c8|| SOLID|| 1;    /* use solid gray for y=0      */
+   run abline(cook, 0, 0, solidGray);   /* horiz line at y=0           */
+   
+   nonMiss = sum(CookD^=.);             /* number of nonmissing values */
+   cookCutoff = 4 / nonMiss;                       
+   run abline(cook, cookCutoff, 0, .);  /* high Cook's D: horiz line   */
+
+
+   /********************************************************************/
+   /********** Identifying Outliers and High-Leverage Observations **********/
+
+
+   /* 9. create plot of studentized residuals versus leverage */
+   declare ScatterPlot resid;
+   resid = ScatterPlot.Create(dobj, "Leverage", "ExtStudR");
+   resid.SetMarkerSize(5);   
+
+   /* 10. draw reference lines on residual-leverage plot */
+   run abline(resid, 0, 0, solidGray);  /* horiz line at y=0             */
+
+   run abline(resid, {2,-2}, {0,0}, .); /* outliers: horiz lines at +/-2 */
+   p = 2;                               /* number of params              */
+   leverage = 2*p / nonMiss; 
+   run abline(resid, leverage, ., .);   /* high leverage: vertical line  */
+
+
+   /********************************************************************/
+   /********** Examining the Distribution of Residuals **********/
+
+
+   /* define module to compute normal quantiles associated with data */
+   start GetNormalQuantiles(x);
+      nonMissing = loc(x^=.);           /* locate nonmissing values    */
+      numNM = ncol(nonMissing);         /* count the nonmissing values */
+      
+      if numNM=0 then                   /* all values are missing      */
+         return ( j(nrow(x),ncol(x),.) );
+      
+      /* rank the observations; handle any missing values */
+      r = j(nrow(x),ncol(x),.);
+      r[nonMissing] = ranktie(x[nonMissing]);
+      
+      v = (r-0.375) / (numNM+0.25);     /* transform quantiles of ECDF */
+      q = quantile("NORMAL", v);        /* associated normal quantiles */
+      return ( q );
+   finish;
+
+
+   /* create QQ plot of residuals */
+   dobj.GetVarData("R", r);
+   q = GetNormalQuantiles(r);
+   dobj.AddVar("QN_R", "Normal Quantiles", q);
+   
+   declare ScatterPlot qq;
+   qq = ScatterPlot.Create(dobj, "QN_R", "R");
+   qq.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   
+   mu = r[:];
+   sigma = sqrt(var(r));
+   run abline(qq, mu, sigma, .);
+
+   /********************************************************************/
+   /********** Regression Diagnostics for Models with Classification Variables ********/
+
+
+   /*****************************************************/
+   /* SAS/IML Studio program to create regression diagnostic plots */
+   submit;
+   /* 1. log transform of US_Gross and Budget variables */
+   data movies;
+   set sasuser.movies;
+   logUS_Gross = log(US_Gross);
+   logBudget = log(Budget);
+   run;
+   
+   /* 2. run classic regression analysis: class variable, interaction effects */
+   proc glm data=movies;
+   class AANomin;
+   model logUS_Gross = logBudget | AANomin /solution;
+   output out=GLMOutB P=P UCLM=UCLM LCLM=LCLM    /* predictions and CLM          */
+                     RSTUDENT=ExtStudR          /* studentized residuals        */
+                     COOKD=CookD H=Leverage;    /* influence diagnostics        */
+   quit;
+
+   /* only main effects */
+   ods output OverallAnova=Anova;
+   proc glm data=movies;
+   class AANomin;
+   model logUS_Gross = logBudget AANomin / solution;
+   output out=GLMOut2 P=P UCLM=UCLM LCLM=LCLM    /* predictions and CLM          */
+                     RSTUDENT=ExtStudR          /* studentized residuals        */
+                     COOKD=CookD H=Leverage;    /* influence diagnostics        */
+   quit;
+   endsubmit;
+   
+   /***********************************************************/
+   /* 3. create plot in original coordinates */
+   /* 3a. read confidence limits of mean into vectors */
+   use GLMOut2;
+   read all var {LogBudget P UCLM LCLM} into logFit;
+   read all var {AANomin CookD};
+   close GLMOut2;
+
+   /* 3b. invert transformation for predicted values and CLM */
+   fit = exp(logFit);
+   
+   /* 4. create data object that contains data and results */
+   declare DataObject dobj1;
+   dobj1 = DataObject.CreateFromServerDataSet("work.GLMOut2");
+   dobj1.SetRoleVar(ROLE_LABEL, "Title");
+
+   /* 4a. add transformed variable to the data object */
+   dobj1.AddVar("Pred", "Predicted US Gross (million USD)", fit[,2]);
+   dobj1.AddVar("ObsNumber", "Observation Number", T(1:nrow(fit)));
+
+   /* 4b. use marker shapes to represent AANomin levels */
+   dobj1.SetMarkerShape(OBS_ALL, MARKER_X);
+   dobj1.SetMarkerShape(loc(AANomin), MARKER_TRIANGLE);
+   dobj1.SetNominal("AANomin");
+   
+   /* 5. create line plot */
+   declare LinePlot line1;
+   line1 = LinePlot.CreateWithGroup(dobj1, "Budget", "Pred", "AANomin");   
+   line1.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   line1.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+   line1.ShowObs(false);
+   line1.SetLineWidth(2);
+
+   /* 5e. Use drawing subsystem to draw CLM band. Assumes ORD_AA is sorted by CRSDepTime. */
+   line1.DrawUseDataCoordinates();
+   line1.DrawSetRegion(PLOTBACKGROUND);
+   LightBlue = 0x9BBBC9;               /* RGB value: (155, 187, 201) */
+   line1.DrawSetBrushColor(LightBlue);
+   line1.DrawSetPenAttributes(GREY, DOTTED, 1);
+   u = unique(AANomin);
+   do i = 1 to ncol(u); 
+      idx = loc(AANomin=u[i]);
+      N = ncol(idx);
+      z = fit[idx,];
+      call sort(z, 1);
+      x = z[,1]; LCLM = z[,3]; UCLM = z[,4];
+      line1.DrawPolygon(x//x[N:1], LCLM//UCLM[N:1], true );
+   end;
+   
+   /* 7. create Cook's D plot */ 
+   declare ScatterPlot cook;
+   cook = ScatterPlot.Create(dobj1, "ObsNumber", "CookD");
+   cook.SetMarkerSize(5);   
+   
+   /* 8. draw reference lines on Cook's D plot */
+   solidGrey = 0xc8c8c8|| SOLID|| 1;        /* use solid grey for y=0 */
+   run abline(cook, 0, 0, solidGrey);       /* horiz line at y=0 */
+   
+   nonMiss = sum(CookD^=.);                 /* number of nonmissing values */
+   cookCutoff = 4 / nonMiss;                           
+   run abline(cook, cookCutoff, 0, .);      /* high Cook's D: horiz line */
+   
+   /* 9. create residual plot or studentized residuals versus leverage */
+   declare ScatterPlot resid;
+   resid = ScatterPlot.Create(dobj1, "Leverage", "ExtStudR");
+   resid.SetMarkerSize(5);   
+   
+   /* 10. draw reference lines on residual plot */
+   run abline(resid, 0, 0, solidGrey);      /* horiz line at y=0 */
+   run abline(resid, {2,-2}, {0,0}, . );    /* outliers: horiz lines at +/- 2 */
+   
+   use Anova;
+   read point 1 var {DF};                   /* first element if Model DF */
+   close Anova;
+   p = DF + 1;                              /* number of design vars (+1 for intercept) */
+   leverage = 2*p / nonMiss; 
+   run abline(resid, leverage, ., .);       /* high leverage: vertical line */
+
+   cook.SetWindowPosition(0,0);
+   resid.SetWindowPosition(50,50,50,50);
+   /****************************************/
+
+   /********************************************************************/
+   /******** Case Study: Comparing Least Squares and Robust Regression Models ********/
+
+   /* compare regression models */
+   /* 1. first window is for least squares regression */
+   declare OutputDocument LSDoc = OutputDocument.GetDefault();
+   LSDoc.SetWindowPosition(0, 50, 50, 50);
+   LSDoc.Clear();                        /* clear any previous content */
+
+   /* 2. transform variables and run least squares regression analysis */
+   submit;
+   data movies;
+      set Sasuser.Movies;
+      LogUS_Gross = log(US_Gross);
+      LogBudget = log(Budget);
+      label LogUS_Gross = "log(US Gross)"  LogBudget = "log(Budget)";         
+   run;
+   
+   proc glm data=movies;
+      model LogUS_Gross = LogBudget;
+      output out=GLMOut P=P R=Resid; 
+   quit;
+   endsubmit;
+
+   printnow;                               /* flush any pending output */
+
+   /* 3. set up second output window */
+   declare OutputDocument RobustDoc = OutputDocument.Create();
+   RobustDoc.SetWindowPosition(50, 50, 50, 50);
+      
+   /* 4. run robust regression on the same data */
+   submit;
+   proc robustreg data=movies method=LTS;
+      model LogUS_Gross = LogBudget / leverage;
+      output out=RROut P=RobP R=RobResid 
+                       RD=RobDist MD=MahalDist
+                       outlier=RobOutFlag leverage=RobLevFlag;
+      ods output DiagSummary = RobustDiagnostics;
+   quit;
+   endsubmit;
+
+
+   /* 5. create data object that contains data and results */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Work.RROut");
+   dobj.SetRoleVar(ROLE_LABEL, "Title");
+   
+   rc = CopyServerDataToDataObject("Work", "GLMOut", dobj,
+      {"P" "Resid"},
+      {"P" "Resid"},
+      {"Predicted log(US_Gross)" "Residual"},
+      true);
+
+   /* 6. create scatter plot that compares fits */
+   declare ScatterPlot plot;
+   plot = ScatterPlot.Create(dobj, "LogBudget", "LogUS_Gross");   
+   plot.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   plot.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+
+   /* 6a. use drawing subsystem to add fit lines */
+   dobj.GetVarData({"LogBudget" "P" "RobP"}, fit);
+   call sort(fit, 1);                                     /* sort by X */
+   x = fit[,1]; P = fit[,2]; RobP = fit[,3];
+   
+   plot.DrawUseDataCoordinates();
+   plot.DrawSetPenAttributes(BLUE, DASHED, 2);
+   plot.DrawLine(x, RobP);
+   plot.DrawSetPenAttributes(BLACK, SOLID, 2);
+   plot.DrawLine(x, P);
+
+   /* 6b. add legend */
+   Labels = {"Robust LTS" "Least Squares"};
+   Color = BLUE || BLACK;
+   Style = DASHED || SOLID;
+   run DrawLegend(plot, Labels, 12, Color, Style, _NULL_, -1, "ILT");
+
+   /* 7. compare residuals */ 
+   declare ScatterPlot residPlot;
+   residPlot = ScatterPlot.Create(dobj, "Resid", "RobResid");
+   residPlot.SetMarkerSize(5);  
+   residPlot.ShowReferenceLines();
+   solidGray = 0xc8c8c8 || SOLID || 1;       /* define line attributes */
+   run abline(residPlot, 0, 1, solidGray);   /* identity line          */
+
+   /* 8. compare leverage */ 
+   declare ScatterPlot distPlot;
+   distPlot = ScatterPlot.Create(dobj, "MahalDist", "RobDist");
+   distPlot.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   distPlot.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+   distPlot.SetMarkerSize(5);   
+   run abline(distPlot, 0, 1, solidGray);        /* identity line      */
+   use RobustDiagnostics; 
+      read point 2 var {Cutoff};                 /* cutoff for RobDist */
+   close RobustDiagnostics; 
+   run abline(distPlot, Cutoff, 0, solidGray);   /* high-leverage line */
+
+
+   /********************************************************************/
+   /********** Logistic Regression Diagnostics **********/
+
+   /* create logistic regression diagnostic plots */
+   submit;
+   /* 1. run logistic analysis */
+   proc logistic data=Sasuser.Vehicles;
+      model Hybrid(event='1') = Mpg_Hwy_Minus_City;
+      output out=LogOut P=Prob c=C 
+                        reschi=ResChiSq difchisq=DifChiSq;
+   quit;
+
+   data LogOut;            /* add ObsNumber variable and revise labels */
+      set LogOut;
+      ObsNumber = _N_;
+      label Prob      = "Estimated Probability of Being Hybrid"
+            C         = "CI Displacement C"
+            DifChiSq  = "Influence on Chi-Square"
+            ObsNumber = "Observation Number";
+   run;
+   endsubmit;
+
+   /* 2. create data object that contains data and results */
+   declare DataObject dobj;
+   dobj = DataObject.CreateFromServerDataSet("Work.LogOut");
+   dobj.SetRoleVar(ROLE_LABEL, "Model");
+   
+   /* 3. set observation markers to encode Hybrid=1 */
+   use LogOut;   read all var {Hybrid};   close LogOut;
+   dobj.SetMarkerShape(loc(Hybrid=0), MARKER_CIRCLE);
+   dobj.SetMarkerFillColor(loc(Hybrid=0), NOCOLOR);
+   dobj.SetMarkerShape(loc(Hybrid=1), MARKER_STAR);
+
+   /* 4. create line plot of estimated probability */
+   declare LinePlot line;
+   line = LinePlot.Create(dobj, "Mpg_Hwy_Minus_City", "Prob");
+   line.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   line.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+   line.SetMarkerSize(5);
+
+   /* 5. create influence diagnostic plot */ 
+   declare ScatterPlot influencePlot;
+   influencePlot = ScatterPlot.Create(dobj, "ObsNumber", "C");
+   influencePlot.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   influencePlot.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+   influencePlot.SetMarkerSize(5);
+   
+   /* 6. create other diagnostic plots */
+   declare ScatterPlot difChiSqPlot;
+   difChiSqPlot = ScatterPlot.Create(dobj, "Prob", "DifChiSq");
+   difChiSqPlot.SetAxisLabel(XAXIS, AXISLABEL_VARLABEL);
+   difChiSqPlot.SetAxisLabel(YAXIS, AXISLABEL_VARLABEL);
+   difChiSqPlot.SetMarkerSize(5);
+
+
+   /********************************************************************/
+   /********** Viewing ODS Statistical Graphics **********/
+
+
+   /* write ODS output (including graphics) to HTML */
+   run GetPersonalFilesDirectory(path);                     /* 1 */
+   htmlfile = "Output.html";
+
+   submit path htmlfile;                                    /* 2 */
+   ods graphics on;                                  
+   ods html body="&htmlfile" path="&path";                  /* 3 */
+
+   proc reg data=Sasuser.Vehicles;                          /* 4 */
+      model MPG_Hwy = MPG_City;
+   quit;
+
+   ods html close;                                          /* 5 */
+   ods graphics off;
+   endsubmit;
+
+   /* launch browser to display HTML */    
+   pgm = "C:\Program Files\Internet Explorer\iexplore.exe";
+   ok = ExecuteOSProgram(pgm, path+htmlfile, false);        /* 6 */
+

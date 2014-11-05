@@ -1,0 +1,161 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	5_Matrix_Examples.jsl 
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the many uses of Matrices.
+
+//--------- Solve 3 Simultaneous Equations-----------------
+//--Find the values of x, y and z that simultaneously satisfy all 3 equations.
+// Three equations; Three variables
+//  x +  y +  z = 6
+// 2x + 3y + 4z = 20
+// 4x + 2y + 3z = 17
+f = [1 1 1, 2 3 4, 4 2 3];
+g = [6, 20, 17];
+h = Inv( f ) * g;
+Show( h );  
+// Log window returns h = [1, 2, 3]; , so x=1, y=2, and z=3.
+// --Alternate method use Solve
+Show( Solve( f, g ) );
+
+//---------- Ordinary Least Squares Using Matrices -----------
+// There are many references for Ordinary Least Squares regression.
+// Start with JMP Help Modeling and Multivariate Methods book.
+// One equation:  Y = b0  + b1*X + random error
+// Find b0 and b1 that fits the 5 (X,Y) pairs the best
+Y = [1, 2, 3, 3, 4];
+X = [6, 7, 8, 9, 10];
+X = J( N Row( X ), 1 ) || X;
+xpxi = Inv( x` * x );
+beta = xpxi * x` * y;
+resid = y - x * beta;
+sse = resid` * resid;
+dfe = N Row( x ) - N Col( x );
+mse = sse / dfe;
+rmse = Sqrt( sse / dfe );
+stdb = Sqrt( Vec Diag( xpxi ) * mse );
+alpha = .05;
+qt = Students t Quantile( 1 - alpha / 2, dfe );
+betau95 = beta + qt * stdb;
+betal95 = beta - qt * stdb;
+tratio = beta :/ stdb;
+probt = (1 - t Distribution( Abs( tratio ), dfe )) * 2;
+Show( beta, rmse, betal95, betau95, probt );
+// Note that "beta" is blue, since it is a reserved word.
+//  The script still works, however...
+// --Check results: Make a table of X Y data and use Fit Y by X
+ols_dt = As Table(X[0,2] || Y);  //X had a column of 1's prepended, use just column 2
+ols_dt << Fit Y by X (Y(:Col2), X(:Col1), Fit Line);
+
+// Right click in the table of values under "Parameter Estimates" 
+// select Columns and turn on Lower 95% and Upper 95% to check the values of 
+// betai95 and betasl95.
+
+// This is a look ahead of things to come and presented here to check matrix 
+// results with JMP Fit Y by X results. These commands demonstrate how to
+// turn on these confidence interval columns vis JSL.
+ols_dt <<Fit Y by X( Y( :Col2 ), X( :Col1 ),
+	Fit Line( {Confid Shaded Fit( 1 )} ) ,
+	SendToReport(
+		Dispatch(
+			{"Linear Fit", "Parameter Estimates"},
+			"Lower 95%",
+			NumberColBox,
+			{Hide( 0 )}
+		),
+		Dispatch(
+			{"Linear Fit", "Parameter Estimates"},
+			"Upper 95%",
+			NumberColBox,
+			{Hide( 0 )}
+		)
+	)
+);
+
+
+
+//---------- Simulation of a Specific Control Chart with 2 of 3 Trend Rule---------
+// The script below demonstrates a fast and efficient method of simulation 
+// by using matrices.  In this example, we simulate a count distribution 
+// with many zeros, and test how a control limit and supplemental rules 
+// flag in the absence of special cause variation.
+
+Names Default to Here(1);
+
+// Set probability values
+Pzero = 0.80; PGEtwo = 0.005; Pone = 1 - Pzero - PGEtwo;
+
+// Set simulation size, upper control limits, zone 2 and an empty matrix sumvalue
+N = 10000; UCL = 3; z2 = 2; sumvalue = [];
+
+// Make three matrices of zeros, all with one row and N columns.
+flag = J( 1, N, 0 ); counter = J( 1, N, 0 ); supp_flag = J( 1, N, 0 );
+
+// Set values of 0, 1, and between 2 and 7 from the probability distribution specified above, and
+// calculate the sum of those three values.
+For( j = 1, j <= N, j++,
+	randu1 = Random Uniform();
+	randu2 = Random Uniform();
+	randu3 = Random Uniform();
+	value1 = If( randu1 <= Pzero, 0, If( randu1 > Pzero & randu1 <= Pzero + Pone, 1, Random Integer(2,7) ));
+	value2 = If( randu2 <= Pzero, 0, If( randu2 > Pzero & randu2 <= Pzero + Pone, 1, Random Integer(2,7) ));
+	value3 = If( randu3 <= Pzero, 0, If( randu3 > Pzero & randu3 <= Pzero + Pone, 1, Random Integer(2,7) ));
+	sumvalue = sumvalue || (value1 + value2 + value3 ) ;
+);
+
+// Fill out counter matrix based on values.
+For( k = 1, k <= N, k++,
+	If(
+		sumvalue[k] > UCL, flag[k] = 99,
+		sumvalue[k] > z2, counter[k] = 1
+	);  //end if
+);  // end for k
+
+// Create a row vector of flags
+comb_flag = flag + counter;
+
+// Set comb-flag values based on flagging results.
+For( m = 3, m <= N, m++,
+	If(
+		(supp_flag[m - 2] == 1) | (supp_flag[m - 1] == 1), supp_flag[m] == 0,  //reset flag after violation
+		((comb_flag[m - 2] + comb_flag[m - 1] + comb_flag[m] >= 2) & (comb_flag[m - 2] + comb_flag[m - 1] + comb_flag[m] < 98)), supp_flag[m] = 1
+	); // end if
+); // end for k
+
+// Make a data table and set column values from the matrices.
+mean_dt = New Table( "meanvalues.jmp" );
+mean_dt << Add Rows( N );
+mean_dt << New Column( "Sum", values( sumvalue ) );
+mean_dt << New Column( "Combined Flag", values( comb_flag ) );
+mean_dt << New Column( "Supplemental Rule Flag", values( supp_flag ) );
+mean_dt << New Column( "OOC", set each value( If(:Combined Flag > 1, 1, If(:Supplemental Rule Flag > 0, 1, 0)) ) );
+mean_dt << Delete Column( "Column 1" );
+
+//--Extra:  Run the script below to tally flagging results
+mean_dt << Tabulate(
+	Show Control Panel( 0 ),
+	Add Table(
+		Column Table( Statistics( N, Name( "% of Total" ) ) ),
+		Row Table( Grouping Columns( :OOC, :Supplemental Rule Flag ) )
+	)
+);
+
+/* -------------------------------------------------------------------------
+Notes:
+ - Combined Flag is 99 if value > UCL and 1 value > z2 else zero (0)
+ - Supplemental Rule Flag is 1 if current row and last 2 rows of Combined Flag > 0
+ - OOC is 1 if  one of the two previous flag columns is not zero
+ - Rerun multiple times with current settings.
+ - Change the values of Pzero and PGEtwo.  Make sure their sum is less than 1 and re-run
+
+Rare events have many zeros and can be difficult to fit a distribution.
+Using historical characteristics (Pzero,z2), control limits and rules can be tested for
+false error rates, like this example.  Often simulations like this are extended 
+to add a perturbations and check how quickly a flag occurs, called average run length,
+ARL.  
+
+The goal was to demonstrate JSL matrices, syntax, functions and applications.
+For more information regarding control charts, on the JMP Main Menu
+ Help > Books > Quality an Reliability Once the PDF opens, find
+   Statistical Control Charts > Tests for Special Causes > Western Electric Rules 
+   Test 5
+*/

@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace>
+<NODES>
+<NODE COMPONENT="DataSource" X="79.0" Y="170.0" DESCRIPTION="NUMRI_NTARG" ID="$1">
+<PROPERTIES DataSource="NUMRINTARGB" Scope="LOCAL" Role="RAW" Library="THEBOOK" Table="NUMRI_NTARG_B" NCols="234.0" NObs="2920.0" SamplingRate="NaN" Segment="" UseExternal="" OutputType="VIEW" ForceRun="N" DataSelection="DATASOURCE" NewTable="" Component="DataSource" Description="" UseExternalData="">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes>
+<DELTA Variable="NVAR005" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR018" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR024" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR025" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR029" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR040" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR051" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR055" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR056" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR057" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR080" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR081" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR082" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR083" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR084" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR091" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR094" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR095" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR098" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR112" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR119" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR158" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR159" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR160" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR161" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR162" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR163" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR164" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR165" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR174" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR176" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR183" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR184" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR185" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR186" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR187" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR188" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR195" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR196" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR197" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR198" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR199" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR200" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR225" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR226" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR227" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR228" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR229" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR230" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+<DELTA Variable="NVAR243" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Partition" X="184.0" Y="170.0" DESCRIPTION="Data Partition" ID="$2">
+<PROPERTIES Method="DEFAULT" TrainPct="50.0" ValidatePct="30.0" TestPct="20.0" RandomSeed="12345.0" Component="Partition">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="VariableSelection" X="286.0" Y="170.0" DESCRIPTION="Variable Selection" ID="$3">
+<PROPERTIES TargetModel="DEFAULT" HideRejectedVars="N" MaxMissingPercent="50.0" MaxLevel="100.0" RejectUnusedInputVars="Y" UseAov16="Y" UseInteractions="N" UseGroups="Y" MinR2="0.05" StopR2="0.0050" MaxRows="3000.0" Passes="6.0" ChiSquare="3.84" Bins="50.0" SASSPDS="Y" PrintOption="DEFAULT" Component="VariableSelection" VarselLabel="VARSELLABEL">
+<VariableProperties/>
+<Notes/>
+<ManualSelectionVariables/>
+<NameMappings/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Regression" X="406.0" Y="170.0" DESCRIPTION="Regression" ID="$4">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2.0" Terms="N" Error="LOGISTIC" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0.0" Stop="0.0" Force="0.0" Hierarchy="CLASS" Rule="NONE" MaxStep="NaN" StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="NaN" MaxFunctionCalls="NaN" MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0.0" AbsFTime="1.0" AbsGValue="1.0E-5" AbsGTime="1.0" AbsXValue="1.0E-8" AbsXTime="1.0" FConvValue="0.0" FConvTimes="1.0" GConvValue="1.0E-6" GConvTimes="1.0" ClParm="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" Component="Regression">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+</NODES>
+<CONNECTIONS>
+<CONNECTION FROM="$1" TO="$2"/>
+<CONNECTION FROM="$2" TO="$3"/>
+<CONNECTION FROM="$3" TO="$4"/>
+</CONNECTIONS>
+</Workspace>

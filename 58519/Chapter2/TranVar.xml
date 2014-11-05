@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace>
+<NODES>
+<NODE COMPONENT="DataSource" X="132.0" Y="180.0" DESCRIPTION="BinaryTarget_B" ID="$1">
+<PROPERTIES DataSource="" Scope="" Role="" Library="" Table="" NCols="NaN" NObs="NaN" SamplingRate="NaN" Segment="" UseExternal="" OutputType="VIEW" ForceRun="N" DataSelection="DATASOURCE" NewTable=" " Component="DataSource" Description="">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes>
+<DELTA Variable="VAR2O" AttributeName="LEVEL" AttributeValue="ORDINAL"/>
+<DELTA Variable="VAR3N" AttributeName="LEVEL" AttributeValue="INTERVAL"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Partition" X="241.0" Y="179.0" DESCRIPTION="Data Partition" ID="$2">
+<PROPERTIES Method="DEFAULT" TrainPct="40.0" ValidatePct="30.0" TestPct="30.0" RandomSeed="12345.0" Component="Partition">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Transform" X="359.0" Y="180.0" DESCRIPTION="Transform Variables" ID="$3">
+<PROPERTIES DefaultMethod="NONE" DefaultTargetMethod="NONE" DefaultClassMethod="NONE" DefaultClassTargetMethod="NONE" Offset="1.0" MinOffset="Y" SummaryVariables="TRANSFORMED" HideVariable="N" RejectVariable="N" GroupCutoff="0.5" GroupMissing="N" EmRandomSeed="12345.0" EmSampleSize="DEFAULT" EmSampleMethod="FIRSTN" MissingValue="USEINSEARCH" Component="Transform">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes>
+<DELTA Variable="VAR1N" AttributeName="METHOD" AttributeValue="OPTIMAL"/>
+<DELTA Variable="credscore" AttributeName="METHOD" AttributeValue="LOG"/>
+</EmVariableAttributes>
+<EmTargetAttributes/>
+<EmFileProperties>
+<INTERACTION Type="DATA">
+<Data/>
+<Metadata/>
+</INTERACTION>
+<FORMULA Type="DATA">
+<Data/>
+<Metadata/>
+</FORMULA>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="SASCode" X="507.0" Y="180.0" DESCRIPTION="SAS Code" ID="$4">
+<PROPERTIES Catalog="" ScoreCodeFormat="DATASTEP" ScoreExternal="" External="" MetaAdvisor="BASIC" ForceRun="N" ScoreLocation="INTERNAL" UsePriors="Y" ToolType="UTILITY" DataNeeded="N" PublishCode="PUBLISH" Location="INTERNAL" ScoreCatalog="" Component="SASCode" Code=" ">
+<VariableProperties/>
+<Notes/>
+<EmVariableAttributes/>
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties>
+<USERTRAINCODE Type="EXTERNAL">
+<Data><![CDATA[data &em_export_train; ]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[     set &em_import_data ; ]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[     total_tran = var3n + var1n ; ]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[     label total_tran = "Total Transactions Created in SAS Code node" ; ]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[run ;]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]><![CDATA[
+]]></Data>
+</USERTRAINCODE>
+<USERSCORECODE Type="EXTERNAL">
+<Data/>
+</USERSCORECODE>
+</EmFileProperties>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Drop" X="435.0" Y="287.0" DESCRIPTION="Drop" ID="$5">
+<PROPERTIES DropFromTable="Y" DropHidden="Y" DropInput="N" DropTarget="N" DropRejected="Y" DropAssess="N" DropPredict="N" DropFreq="N" DropClassification="N" DropResidual="N" DropOther="N" Component="Drop">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Regression" X="505.0" Y="287.0" DESCRIPTION="Regression" ID="$6">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2.0" Terms="N" Error="LOGISTIC" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0.0" Stop="0.0" Force="0.0" Hierarchy="CLASS" Rule="NONE" MaxStep="NaN" StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="NaN" MaxFunctionCalls="NaN" MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0.0" AbsFTime="1.0" AbsGValue="1.0E-5" AbsGTime="1.0" AbsXValue="1.0E-8" AbsXTime="1.0" FConvValue="0.0" FConvTimes="1.0" GConvValue="1.0E-6" GConvTimes="1.0" ClParm="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" Component="Regression">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="Regression" X="603.0" Y="181.0" DESCRIPTION="Regression (2)" ID="$7">
+<PROPERTIES MainEffect="Y" TwoFactor="N" Polynomial="N" PolynomialDegree="2.0" Terms="N" Error="LOGISTIC" LinkFunction="LOGIT" SuppressIntercept="N" InputCoding="DEVIATION" MinResourceUse="N" ModelSelection="NONE" SelectionCriterion="DEFAULT" SelectionDefault="Y" Sequential="N" SlEntry="0.05" SlStay="0.05" Start="0.0" Stop="0.0" Force="0.0" Hierarchy="CLASS" Rule="NONE" MaxStep="NaN" StepOutput="N" OptimizationTechnique="DEFAULT" ModelDefaults="Y" MaxIterations="NaN" MaxFunctionCalls="NaN" MaxCPUTime="1 HOUR" ConvDefaults="Y" AbsConvValue="-1.34078E154" AbsFValue="0.0" AbsFTime="1.0" AbsGValue="1.0E-5" AbsGTime="1.0" AbsXValue="1.0E-8" AbsXTime="1.0" FConvValue="0.0" FConvTimes="1.0" GConvValue="1.0E-6" GConvTimes="1.0" ClParm="N" CovB="N" CorB="N" Simple="N" SuppressOutput="N" Details="N" PrintDesignMatrix="N" SASSPDS="N" Performance="N" Component="Regression">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+<NODE COMPONENT="ModelCompare" X="677.0" Y="87.0" DESCRIPTION="Model Comparison" ID="$8">
+<PROPERTIES NumberOfReportedLevels="1.0E-6" NormalizeReportingVariables="Y" DecileBin="20.0" LiftEpsilon="1.0E-6" ProfitEpsilon="1.0E-6" RoiEpsilon="1.0E-6" ScoreDistBin="20.0" RocChart="Y" RocEpsilon="0.01" AssessAllTargetLevels="N" SelectionStatistic="DEFAULT" Component="ModelCompare">
+<VariableProperties/>
+<Notes/>
+<EmTargetAttributes/>
+<EmFileProperties/>
+</PROPERTIES>
+</NODE>
+</NODES>
+<CONNECTIONS>
+<CONNECTION FROM="$1" TO="$2"/>
+<CONNECTION FROM="$2" TO="$3"/>
+<CONNECTION FROM="$3" TO="$4"/>
+<CONNECTION FROM="$3" TO="$5"/>
+<CONNECTION FROM="$5" TO="$6"/>
+<CONNECTION FROM="$4" TO="$7"/>
+<CONNECTION FROM="$7" TO="$8"/>
+</CONNECTIONS>
+</Workspace>

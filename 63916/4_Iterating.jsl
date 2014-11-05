@@ -1,0 +1,173 @@
+﻿// JSL Companion: Applications of the JMP Scripting Language 
+// Title:	4_Iterating.jsl 
+// Version:	Windows JMP 9.0.3
+// Purpose: Demonstrates built-in iterating functions, For and While loops
+
+
+//--Summation and Product
+
+//---------- Built-in Iterating Functions----------------------------------
+six_evens = Summation( i = 1, 6, 2 * i );  // 42 Sum of 1st 6 even integers
+six_odds = Summation( i = 1, 6, 2 * i - 1 ); // 36 Sum of 1st 6 odd integers
+power3to5 = Product( i = 1, 5, 3 );      // 3*3*3*3*3 = 3^5 = 243
+
+a = 2;
+b = 4;
+d = (b - a) / 10;      //d is the step size for 10 intervals
+integration_approx = Summation( i = 1, 10, d * (a + (i - .5) * d) ^ 2 );  
+// 18.66  Integral(x^2) = (x^3)/3 = 64/3 – 8/3 = 56/3
+
+Show( six_evens, six_odds, power3to5, integration_approx );
+
+//---------- For & While Functions -----------------------------------------
+//For loop for 5 iterations, intervals n: 10, 20, 40, 80, 160
+a = 2; b = 4; lastVal = 1000;
+integration_approx = 0;
+For( k = 1, k <= 5, k++,
+	If( k == 1,
+		n = 10,
+		n = 2 * n
+	);
+	lastVal = integration_approx;
+	d = (b - a) / n;
+	integration_approx = Summation( i = 1, n, d * (a + (i - .5) * d) ^ 2 );
+//-- show convergence
+   Show (k, n, d, integration_approx, integration_approx - lastVal);
+);  //end For
+
+Show (k, n, d, integration_approx, integration_approx - lastVal);
+// k = 6; n = 160; d = 0.0125 ; integration_approx = 18.888840625;...
+
+//-----------------------------------------------------------------------------
+
+clear globals(k, n, d, integration_approx);
+//show(Is empty(k), n, d, integration_approx);
+
+//For loop multiple initial and multiple stopping rules and multiple increments  
+a = 2; b = 4; 
+For( k = 1; lastVal = 1000; integration_approx = 0; n = 10 ,     //initial
+     k < 100 & Abs( integration_approx - lastVal ) > 1e-5,       //test
+     k++; n = 2*n ,                                              //increment
+	 lastVal = integration_approx;                               //body...
+	 d = (b - a) / n;
+	 integration_approx = Summation( i = 1, n, d * (a + (i - .5) * d) ^ 2 );
+);
+Show (k, n, d, integration_approx, integration_approx - lastVal);
+
+//-----------------------------------------------------------------------------
+
+clear globals(k, n, d, integration_approx);
+//show(Is empty(k), n, d, integration_approx);
+
+//Same as previous script
+//Uses a Break( )to stop looping, an early stop when convergence is met
+//Note n *= 2 is equivalent to n = 2*n  
+a = 2; b = 4; 
+For( k = 1; lastVal = 1000; integration_approx = 0; n = 10 ,     //multiple initial values
+     k < 100,                                                    //test
+     k++; n *= 2 ,                                               //increment
+	 lastVal = integration_approx;                               //body...
+	 d = (b - a) / n;
+	 integration_approx = Summation( i = 1, n, d * (a + (i - .5) * d) ^ 2 );
+	 If (Abs( integration_approx - lastVal ) < 1e-5, Break());
+);
+Show (k, n, d, integration_approx, integration_approx - lastVal);
+
+//-----------------------------------------------------------------------------
+
+clear globals(k, n, d, integration_approx);
+//show(Is empty(k), n, d, integration_approx);
+
+//#4: Use While to test convergence 
+
+a = 2; b = 4; lastVal = 1000;
+k = 1;
+integration_approx = 0;  //starting value
+//Needs a starting value or while condition needs to handle missing conditions(sect.4.6)
+While( Abs( integration_approx - lastVal ) > 1e-5 & k < 1000,
+	If( k == 1,
+		n = 10,
+		n = 2 * n;
+		lastVal = integration_approx;
+	);
+	d = (b - 2) / n;
+	integration_approx = Summation( i = 1, n, d * (a + (i - .5) * d) ^ 2 );
+	k = k + 1;  // same as k++
+);
+Show (k, n, d, integration_approx, integration_approx - lastVal);
+
+//-----------------------------------------------------------------------------
+
+
+//--------------------Extra Examples-------------------------------------------
+
+//--Open Semiconductor Data with 128 Measurement Parameters
+jmp_semi_dt = Open( "$Sample_data\Semiconductor Capability.jmp" );
+
+//--Remove List Check so lot_id can be modified
+:lot_id << Delete property( "List Check" );
+
+//-- Clean up lot_id to have leading zeros to sort correctly
+//-- Without this step lot10 sorts prior to lot2
+//-- Another option is Value Ordering, however if 100's of lots, this is easier
+jmp_semi_dt:lot_id << set each value(
+	If( Length( :lot_id ) == 4,
+		Munger( :lot_id, 1, "lot", "lot0" ),
+		:lot_id
+	)
+);
+
+//---- A few extra commands for your pleasure
+//---- Typically a list of columns/variables to be charted would be selected via a dialog
+//---- or a hardcoded list
+//--#1: Get a list of columns via dialog, filter or random
+meas_List = jmp_semi_dt << Get Column Names( Continuous, String );
+
+//select 5 columns randomly to manage size
+/* //--uncomment to test commands
+	testit = Random Shuffle( 1 :: 20 );
+	subtest = testit[1 :: 5];
+	Show( testit, subtest );
+*/
+idx = Random Shuffle( 1 :: N Items( meas_List ) )[1 :: 5];
+cList = meas_List[idx];
+Show( idx );
+
+//To demo Continue, force P1 into cList at the 3rd position, if it is not already there 
+If( !Contains( cList, "P1" ),
+	Insert Into( cList, "P1", 3 )
+);
+
+//--create an unlinked summary table for 5 or 6 variables
+lot_sumry_dt = jmp_semi_dt << Summary(
+	Mean( Eval( cList ) ),
+	Group( :lot_id ),
+	statistics column name format( "column" ),
+	Output Table Name( "Lot_Summary" ),
+	Link to original data table( 0 )
+);
+
+
+//Create a custom chart for each response with a non-constant value
+For( i = 1, i <= N Items( cList ), i++,
+	If( Col Std Dev( Column( cList[i] ) ) == 0,
+		tmpStr = cList[i] || " has no variation, no charts created";
+		Caption( tmpStr );                           //caption
+		V List Box( Outline Box( tmpStr ) ) << journal;  //journal
+		Show( tmpStr );                              //Log window 
+		Wait( 5 );
+		Caption( Remove );
+		Continue()  
+//go to the bottom of the loop, skip remaining "body" commands 
+	); //end if
+	
+	cc = lot_sumry_dt << Control Chart(
+		Sample Label( :lot_id ),
+		KSigma( 3 ),
+		Chart Col( Eval( cList[i] ), Levey Jennings )
+	); //end control chart
+	Report( cc )[Outline Box( 2 )] << journal;
+	Wait( 0 );
+	cc << close window;
+);  //end for i
+

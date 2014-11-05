@@ -1,0 +1,105 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	8_CustomPlatformSubsetBy.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates how to build a report using more than one platform 
+//          combining analyses for each unique group (by group) using an
+//          undocumented command Platform().
+
+
+/*
+  This script uses a function called Platform()
+  and as promised in Chapter 4 of the JSL Companion this script provides 
+  an example for Subset with a By option.
+
+  Platform is undocumented. In response to a question, the JMP Developers 
+  provided a script and it used Platform(). 
+  
+  The synatx appears to be 
+      Platform(source table, JMP platform1(); JMP platform2(); )
+  
+  Recall the results of a VListBox or a HListBox are not visible unless & until
+  it is placed in a New Window. 
+
+  By creating a subset table for each By group a custom live display 
+  can be created with familar code.  The cost is the duplicate data.
+  Try the script with unlinked subsets and linked subsets.  When linked,
+  the main table will capture the current selections.  Select one or
+  several points on a single state. The main table gets those selections 
+  and sets all other rows as unselected, which then shows as unselected 
+  subsetted table.
+  
+  If using unlinked subset tables, you may want to add an On Close
+  function, to get the subsetted tables' selections then select on the main 
+  table.  An example of Onclose is provided.
+  
+  This script adds a Close Button, but the function to clean up the
+  invisible tables was added as an On Close() command to window nw.  
+  
+  Then if the user closes the window using the "X" or the Close button the cleanup
+  occurs either way.
+  
+  The timing statements were added to test performance against an 
+  alternative method to platform, using just 1 table and "where"
+  see 8_CustomWhereBy.jsl 
+  
+  This is an example of what the authors call creating a display "bottom up".
+  Each graph is created, customized and appended to the display.
+*/
+//------------------------------------------------------------------------- 
+
+
+dt = Open( "$SAMPLE_DATA\SATByYear.jmp" );
+t0 = Tick Seconds();
+Summarize( _b = By( :State ),   //find all States in this file
+     vbmin = min( :SAT Verbal ), vbmax = max( :SAT Verbal ),
+     mamin = min(:SAT Math ), mamax = max( :SAT Math )   
+);  //min max will be used to maintain the same scale within state
+subdt = dt << Subset( By( :State ), Linked,  Invisible );
+//subdt = dt << Subset( By( :State ),  Invisible );
+
+
+//---- Function to close the files
+subdtClose = Expr(
+    For(i = 1, i<=Nitems( _b ), i++,
+	  Try( Close( subdt[i], NoSave ))
+// Try is added just in case one was inadvertently closed
+	)
+);
+
+//---- Modularize code with expressions 
+//---Overlay customizations
+Include( "$JSL_Companion\SATovlStr_Platform.jsl" );
+
+bivExpr = Expr(
+biv = Bivariate(
+	Y( :SAT Verbal ),
+	X( :SAT Math ), Fit Spline(0),
+	Fit Line( {Report( 0 ), Line Color( {213, 72, 87} ), Report( 0 )} )
+);
+);
+
+nw = New Window( "Using SubsetBy & Platform ", HListBox(
+    vv = VListBox(),
+    ButtonBox( "Close", nw<<Close Window() ) 
+   ) // end HListBox
+);  //end New Window
+
+nw << OnClose( eval( subdtClose ) ) ;
+
+For( i = 1, i <= N Items( _b ), i++,
+    ymin = min( vbmin[i], mamin[i] ) - 5;
+    ymax = max( vbmax[i], mamax[i] ) + 5;
+    ovlExpr = parse( evalInsert( ovlStr ) );
+	 vTemp = VListBox(
+		OutlineBox( "State = " || _b[i],
+			VListBox(
+				HListBox(
+					Platform( subdt[i], bivExpr; ovlExpr )
+		))) // end OutlineBox  
+	); // end VListBox
+	wait(0);
+	vv << Append( vTemp );
+); // end For
+t1 = Tick Seconds();
+
+Show( t1 - t0 );

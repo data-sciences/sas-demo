@@ -1,0 +1,107 @@
+// JSL Companion: Applications of the JMP Scripting Language 
+// Title: 	9_StoredExpressions.jsl
+// Version: Windows JMP 9.0.3
+// Purpose: Demonstrates the use of expressions and substitute functions
+//          and the use of Eval Insert() as macro statements.
+
+bling_dt = Open( "$Sample_data\Diamonds Data.jmp" );
+biv = bling_dt << Bivariate( Y( :Price ), X( :Carat Weight ) );
+
+xLo = 0.2;   xHi = 2.2;
+b0 = 6.5;     b1 = 1.826;
+
+bivr = Report( biv );
+bivr[AxisBox( 2 )] << {Min( xLo ), Max( xHi ), Inc( 0.1 ), Minor Ticks( 1 )};
+bivr[FrameBox(1)] << Add Graphics Script(
+	Pen Size(3);
+	Pen Color ("Red");
+	Yfunction( exp( b0 + b1*x), x)
+);
+
+bivScript = biv << Get Script;
+Show(bivScript);   //see the Log window or mouse over bivScript
+//---The values of xLo and xHi are embedded into the script, but variable references
+//---b0 and b1, not their values are stored in the FrameBox customization.
+//---Below are alternative methods to store the values in the FrameBox.
+
+//Start Over
+biv << Close Window();
+
+biv = bling_dt << Bivariate( Y( :Price ), X( :Carat Weight ) );
+bivr = Report( biv );
+
+xLo = 0.2;   xHi = 2.2;
+b0 = 6.5;     b1 = 1.826;
+
+//---Store the expression first. In a for-loop, this may not be
+//---necessary, but it does make reading the code a little easier.
+//---If the expression is to be used in many places in the script
+//---then it needs to be stored...becomes a "macro". 
+curveExpr = Expr(bivr[Framebox(_xk_)] << Add Graphics Script(
+	Pen Size(3);
+	Pen Color ("Red");
+	Yfunction( exp( _xb0_ + _xb1_*x), x)
+));
+//---Using different names for the values to be replaced, i.e. _xb0_ for b0,
+//---enhances code readability, mantainability.
+
+//---If the number of globals is not an issue, store the expression.
+//---It makes testing and debugging issues easier.
+addit = Substitute(NameExpr(curveExpr), Expr(_xk_), 1,
+	Expr(_xb0_), b0 , Expr(_xb1_), b1
+);
+addit;  // executes the command
+
+//---Right click in the Framebox --> Customize --> Script
+//   The script now includes actual values for the slope 
+//   and intercept and not variable references. 
+ 
+//Start Over  Option 2: 1 step method
+biv << Close Window();
+
+biv = bling_dt << Bivariate( Y( :Price ), X( :Carat Weight ) );
+bivr = Report( biv );
+
+xLo = 0.2;   xHi = 2.2;
+b0 = 6.5;     b1 = 1.826;
+
+//---This could also be accomplished with the commands below.
+//---It's a little more difficult to read, and with evaluating the
+//---new expression without storing it, it will be more difficult to debug errors.
+Eval(Substitute(Expr(bivr[Framebox(_xx_)] << Add Graphics Script(
+	Pen Size(3);
+	Pen Color ("Red");
+	Yfunction( exp( _xb0_ + _xb1_*x), x)
+    )), 
+    Expr(_xx_), 1,
+	Expr(_xb0_), b0 , 
+	Expr(_xb1_), b1
+));
+
+//Another option using stored text strings
+//Start Over  Option 2: 1 step method
+biv << Close Window();
+
+biv = bling_dt << Bivariate( Y( :Price ), X( :Carat Weight ) );
+bivr = Report( biv );
+
+xLo = 0.2;   xHi = 2.2;
+b0 = 6.5;     b1 = 1.826;
+
+//Create a text string with the delimiters
+//Eval Insert <-> Substitute and Eval Insert Into <-> Substitute Into
+//---Note block quotations "\[...]\" for embedded quotes, see example below.
+//---Used % as the start and end delimiters instead of the default ^ to 
+//---enhance readability and eliminate mistaking it for a power operator. ex. y^2 
+macroStr = "\[bivr[Framebox(%Char(k)%)] << Add Graphics Script(
+	Pen Size(3);  Pen Color ("Red");
+	Yfunction( exp( %Char(b0)% + %Char(b1)%*x), x))]\";
+k= 1;
+curveStr = Eval Insert( macroStr, "%" );
+Show( curveStr );   //See Log window, expressions between % are evaluated
+Eval( Parse( curveStr ) );
+
+//Example of block quoted string
+xx="A string with quoted \!"A\!", quoted \!"B\!", quoted \!"C\!" is messy.";
+yy= "\[A string with quoted "A", quoted "B", quoted "C" is easier to read.]\";
+write (xx , "\!n" ,yy);  //look at log
